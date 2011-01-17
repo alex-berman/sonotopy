@@ -1,0 +1,40 @@
+SONOTOPY
+
+Original author: Alexander Berman (see http://nimations.com)
+
+Github repo: https://github.com/alex-berman/sonotopy
+
+//////////////////////////////////////////////////////////////////////////////
+
+Sonotopy: the mapping of sound (from Latin sonus for sound, topica for place)
+
+Sonotopy is a C++ library for perceptually analyzing the contents of
+an acoustic signal in real time. Its primary use is to map sound
+streams such as music or voice to a visual or other kind of output.
+
+The library consists of methods to extract high-level features from an
+acoustic waveform. These numeric feature values can be interpreted as
+e.g. shapes, colors or motion parameters. The library also gives
+access to lower levels of processing such as spectral distribution.
+
+Typical uses:
+- visualization of music, beat-sensitive visuals
+- dancing toys and robots
+- artistic explorations of interactions between sound and other senses
+
+Key features:
+- implements a psychoacoustical model of the human hearing system,
+  resulting in a "natural" response
+- adaptivity: the underlying mechanisms constantly adapt to the
+  current input, using biologically inspired algorithms (neural networks)
+- efficient implementation in C++, supporting real-time processing,
+  low latency and making it suitable for embedded platforms
+- high-level API: complex processing and large parameter sets are
+  hidden behind simple abstractions
+- cross-platform: the library compiles and runs on Linux, Mac OS X and Windows
+- noise robustness: the adaptivity and psychoacoustical modelling
+  limits the effects of noise in the signal
+
+The algorithms in the library are not intented to represent a true
+model of the human auditory system. Instead, the main motivator behind
+its development has been to explore artistic applications.
