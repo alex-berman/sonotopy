@@ -40,10 +40,19 @@ its development has been to explore artistic applications.
 
 //////////////////////////////////////////////////////////////////////////////
 
-INSTALLATION
+REQUIREMENTS
 
 Sonotopy is built using Scons:
 http://www.scons.org/
+(or apt-get install scons)
+
+Sonotopy requires FFTW3:
+http://www.fftw.org/
+(or apt-get install libfftw3-dev)
+
+//////////////////////////////////////////////////////////////////////////////
+
+INSTALLATION
 
 To build the library, run "scons" in the root directory.
 
