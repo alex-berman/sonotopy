@@ -23,16 +23,17 @@ Typical uses:
 - artistic explorations of interactions between sound and other senses
 
 Key features:
-- implements a simple psychoacoustical model of the human hearing system,
-  resulting in a "natural" response
-- adaptivity: the underlying mechanisms constantly adapt to the
-  current input, using biologically inspired algorithms (neural networks)
+- implements a simple psychoacoustic model of the human hearing system,
+  resulting in a natural response
+- autonomy: continuous adaption using biologically inspired algorithms
+  (neural networks) eliminates the need of offline training or manual user
+  adjustments
 - efficient implementation in C++, supporting real-time processing
 - high-level API: complex processing and large parameter sets are
   hidden behind simple abstractions
 - cross-platform: the library compiles and runs on Linux, Mac OS X and Windows
-- noise robustness: the adaptivity and psychoacoustical modelling
-  limits the effects of noise in the signal
+- noise robustness: the adaptivity and psychoacoustic modelling
+  limit the effects of noise in the signal
 
 The algorithms in the library are not intented to represent a true
 model of the human auditory system. Instead, the main motivator behind
@@ -44,11 +45,11 @@ REQUIREMENTS
 
 Sonotopy is built using Scons:
 http://www.scons.org/
-(or apt-get install scons)
+(or: apt-get install scons)
 
 Sonotopy requires FFTW3:
 http://www.fftw.org/
-(or apt-get install libfftw3-dev)
+(or: apt-get install libfftw3-dev)
 
 //////////////////////////////////////////////////////////////////////////////
 
