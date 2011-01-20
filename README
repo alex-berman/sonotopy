@@ -45,6 +45,18 @@ INSTALLATION
 Sonotopy is built using Scons:
 http://www.scons.org/
 
-To compile, run "scons" in the root directory.
+To build the library, run "scons" in the root directory.
 
 To install the library and header files, run "sudo scons install".
+
+//////////////////////////////////////////////////////////////////////////////
+
+EXAMPLES
+
+Sonotopy is bundled with a demo.
+
+To build the demo, run "scons examples".
+
+To execute the demo, run "examples/Demo". For usage instructions, run
+"examples/Demo -h".
+

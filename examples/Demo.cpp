@@ -60,7 +60,10 @@ void Demo::processCommandLineArguments() {
     arg = *argptr;
     if(arg[0] == '-') {
       char *argflag = arg + 1;
-      if(strcmp(argflag, "f") == 0) {
+      if(strcmp(argflag, "h") == 0) {
+	usage();
+      }
+      else if(strcmp(argflag, "f") == 0) {
         useAudioInputFile = true;
         echoAudio = true;
         argnr++; argptr++;
