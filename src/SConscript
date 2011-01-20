@@ -1,0 +1,18 @@
+Import('env', 'platform', 'Prefix')
+
+TARGET = 'sonotopy'
+
+SOURCE = ['BeatTracker.cpp', 'CircleMapCircuit.cpp',
+	'CircleMapCircuitParameters.cpp', 'CircleTopology.cpp', 'CircularBuffer.cpp',
+	'GridMapCircuit.cpp', 'GridMapCircuitParameters.cpp', 'Normalizer.cpp',
+	'SOM.cpp', 'Smoother.cpp', 'Sonogram.cpp', 'SonogramMap.cpp',
+	'SonogramMapCircuit.cpp', 'SonogramMapCircuitParameters.cpp',
+	'SpectrumAnalyzer.cpp', 'SpectrumBinDivider.cpp',
+	'Stopwatch.cpp', 'Topology.cpp', 'RectGridTopology.cpp', 'Vane.cpp']
+ 
+CPPPATH = ['../include/sonotopy']
+env.Append(CPPPATH = CPPPATH)
+
+LibSonotopy = env.StaticLibrary(target = TARGET, source = SOURCE)
+
+env.Install(Prefix + '/lib', LibSonotopy)

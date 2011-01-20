@@ -1,0 +1,27 @@
+Import(['env', 'platform', 'PKG_CONFIG'])
+
+TARGET = 'unitTests'
+
+SOURCE = ['unitTests.cpp']
+
+CPPPATH = ['../include']
+env.Append(CPPPATH = CPPPATH)
+
+LIBLIST = [['UnitTest++', 'unittest++/UnitTest++.h']]
+
+# check the availability of libraries
+if not GetOption('clean'):
+	conf = Configure(env)
+	for (lib, headers) in LIBLIST:
+		if not conf.CheckLibWithHeader(lib, headers, 'c++'):
+			print "error: '%s' must be installed!" % lib
+			Exit(1)
+	env = conf.Finish()
+
+LIBS = ['sonotopy', 'UnitTest++']
+LIBPATH = ['../src']
+env.Append(LIBS = LIBS)
+env.Append(LIBPATH = LIBPATH)
+
+env.Program(target = TARGET, source = SOURCE)
+

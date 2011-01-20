@@ -1,0 +1,41 @@
+Import(['env', 'platform', 'PKG_CONFIG'])
+
+TARGET = 'Demo'
+
+SOURCE = ['Demo.cpp', 
+	'Frame.cpp',
+	'GlWindow.cpp',
+	'IsolineExtractor.cpp',
+	'IsolineRenderer.cpp']
+
+CPPPATH = ['../include']
+env.Append(CPPPATH = CPPPATH)
+
+LIBPATH = ['../src']
+env.Append(LIBPATH = LIBPATH)
+
+LIBLIST = [['portaudio', 'portaudio.h'],
+	   ['sndfile', 'sndfile.h'],
+	   ['sonotopy', 'sonotopy.hpp']]
+
+if platform == 'posix':
+	LIBLIST += [['glut', 'GL/glut.h']]
+elif platform == 'darwin':
+	env.Append(FRAMEWORKS = ['OpenGL', 'GLUT'])
+
+try:
+	for lib in ['portaudio-2.0', 'sndfile']:
+		env.MergeFlags(['!%s --cflags --libs %s' % (PKG_CONFIG, lib)])
+except:
+	pass
+
+# check the availability of libraries
+if not GetOption('clean'):
+	conf = Configure(env)
+	for (lib, headers) in LIBLIST:
+		if not conf.CheckLibWithHeader(lib, headers, 'c++'):
+			print "error: '%s' must be installed!" % lib
+			Exit(1)
+	env = conf.Finish()
+
+env.Program(target = TARGET, source = SOURCE)
