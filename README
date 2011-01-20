@@ -23,12 +23,11 @@ Typical uses:
 - artistic explorations of interactions between sound and other senses
 
 Key features:
-- implements a psychoacoustical model of the human hearing system,
+- implements a simple psychoacoustical model of the human hearing system,
   resulting in a "natural" response
 - adaptivity: the underlying mechanisms constantly adapt to the
   current input, using biologically inspired algorithms (neural networks)
-- efficient implementation in C++, supporting real-time processing,
-  low latency and making it suitable for embedded platforms
+- efficient implementation in C++, supporting real-time processing
 - high-level API: complex processing and large parameter sets are
   hidden behind simple abstractions
 - cross-platform: the library compiles and runs on Linux, Mac OS X and Windows
@@ -38,3 +37,14 @@ Key features:
 The algorithms in the library are not intented to represent a true
 model of the human auditory system. Instead, the main motivator behind
 its development has been to explore artistic applications.
+
+//////////////////////////////////////////////////////////////////////////////
+
+INSTALLATION
+
+Sonotopy is built using Scons:
+http://www.scons.org/
+
+To compile, run "scons" in the root directory.
+
+To install the library and header files, run "sudo scons install".
