@@ -67,6 +67,6 @@ Sonotopy is bundled with a demo.
 
 To build the demo, run "scons examples".
 
-To execute the demo, run "examples/Demo". For usage instructions, run
-"examples/Demo -h".
+To execute the demo, run "build/release/examples/Demo". For usage 
+instructions, run Demo with the -h flag.
 
