@@ -4,8 +4,15 @@ platform = env['PLATFORM']
 
 Prefix = ARGUMENTS.get('Prefix','/usr/local')
 
-env = Environment(CCFLAGS = '-Wall -pedantic -O3 -ffast-math -fPIC ')
+env = Environment(CCFLAGS = '-Wall -pedantic -ffast-math -fPIC ')
 env.MergeFlags(ARGUMENTS.get('CCFLAGS', '').split())
+
+DEBUG = int(ARGUMENTS.get('DEBUG', '0'))
+if DEBUG:
+	CCFLAGS = '-ggdb2 -O0 -DDEBUG=1 '
+else:
+	CCFLAGS = '-g0 -O3 '
+env.Append(CCFLAGS = CCFLAGS)
 
 CPPPATH = ['include']
 env.Append(CPPPATH = CPPPATH)
@@ -36,13 +43,16 @@ if not GetOption('clean'):
 
 if GetOption('clean'):
 	targets = ['src', 'unittests', 'examples']
+	env.Clean('build', 'build')
 else:
 	targets = ['src']
-	if COMMAND_LINE_TARGETS:
-		targets.extend(COMMAND_LINE_TARGETS)
+	targets.extend([t for t in COMMAND_LINE_TARGETS if t in ['unittests', 'examples']])
 
-SConscript(dirs = targets, exports = ['env', 'platform',
-	'PKG_CONFIG', 'Prefix'])
+variant_dir = ['release', 'debug'][DEBUG]
+
+for t in targets:
+	SConscript(dirs = t, exports = ['env', 'platform',
+		'PKG_CONFIG', 'Prefix'], variant_dir = 'build/%s/%s' % (variant_dir, t), duplicate = 0)
 
 env.Install(Prefix + '/include', 'include/sonotopy')
 env.Alias('install', Prefix)

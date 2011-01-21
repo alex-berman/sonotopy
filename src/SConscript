@@ -10,7 +10,7 @@ SOURCE = ['BeatTracker.cpp', 'CircleMapCircuit.cpp',
 	'SpectrumAnalyzer.cpp', 'SpectrumBinDivider.cpp',
 	'Stopwatch.cpp', 'Topology.cpp', 'RectGridTopology.cpp', 'Vane.cpp']
  
-CPPPATH = ['../include/sonotopy']
+CPPPATH = ['../../../include/sonotopy']
 env.Append(CPPPATH = CPPPATH)
 
 LibSonotopy = env.StaticLibrary(target = TARGET, source = SOURCE)
