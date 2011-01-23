@@ -24,8 +24,9 @@ namespace sonotopy {
 
 class GridMapCircuit : public SonogramMapCircuit
 {
-  public:
-    GridMapCircuit(const AudioParameters &, const GridMapCircuitParameters &);
+public:
+  GridMapCircuit(const AudioParameters &, const GridMapCircuitParameters &);
+  float getActivation(unsigned int x, unsigned int y);
 };
 
 }

@@ -40,6 +40,11 @@ SonogramMapCircuit::~SonogramMapCircuit() {
   delete activationPattern;
 }
 
+const SonogramMap::ActivationPattern* SonogramMapCircuit::getActivationPattern() {
+  sonogramMap->getActivationPattern(activationPattern);
+  return activationPattern;
+}
+
 void SonogramMapCircuit::createSpectrumAnalyzer() {
   spectrumAnalyzer = new SpectrumAnalyzer();
 }

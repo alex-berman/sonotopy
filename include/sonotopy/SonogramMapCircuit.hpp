@@ -32,13 +32,13 @@ public:
   ~SonogramMapCircuit();
   void feedAudio(const float *audio, unsigned long numFrames);
   const SonogramMap *getSonogramMap() { return sonogramMap; }
-  SonogramMap::ActivationPattern* getActivationPattern() { return activationPattern; }
+  const SonogramMap::ActivationPattern* getActivationPattern();
   const SpectrumAnalyzer* getSpectrumAnalyzer() { return spectrumAnalyzer; }
   const Sonogram* getSonogram() { return sonogram; }
   const SpectrumBinDivider* getSpectrumBinDivider() { return spectrumBinDivider; }
   void setSpectrumIntegrationTimeMs(float);
 
-private:
+protected:
   void createSonogramMap();
   void createSpectrumAnalyzer();
   void createSpectrumBinDivider();

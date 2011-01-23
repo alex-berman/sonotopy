@@ -101,7 +101,8 @@ void SonogramMap::getActivationPattern(ActivationPattern *activationPattern) con
   range = max - min;
   if(range > 0) {
     ActivationPattern::iterator activationPatternNode = activationPattern->begin();
-    for(SOM::Output::const_iterator somOutputNode = somOutput.begin(); somOutputNode != somOutput.end(); somOutputNode++) {
+    for(SOM::Output::const_iterator somOutputNode = somOutput.begin();
+	somOutputNode != somOutput.end(); somOutputNode++) {
       *activationPatternNode = ((float)*somOutputNode - min) / range;
       activationPatternNode++;
     }

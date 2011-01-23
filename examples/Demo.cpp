@@ -216,13 +216,11 @@ void Demo::initializeAudioProcessing() {
   sonogramGridMapWidth = gridTopology->getGridWidth();
   sonogramGridMapHeight = gridTopology->getGridHeight();
   sonogram = sonogramGridMapCircuit->getSonogram();
-  gridMapActivationPattern = sonogramGridMapCircuit->getActivationPattern();
   sonogramMapCircuitInputBuffer = new float [audioParameters.bufferSize];
 
   sonogramCircleMapCircuit = new CircleMapCircuit(audioParameters, circleMapCircuitParameters);
   sonogramCircleMap = sonogramCircleMapCircuit->getSonogramMap();
   circleTopology = (CircleTopology*) sonogramCircleMap->getTopology();
-  circleMapActivationPattern = sonogramCircleMapCircuit->getActivationPattern();
 
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
   vane = new Vane(audioParameters);
@@ -408,8 +406,8 @@ void Demo::glDisplay() {
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
 
-  sonogramGridMap->getActivationPattern(gridMapActivationPattern);
-  sonogramCircleMap->getActivationPattern(circleMapActivationPattern);
+  gridMapActivationPattern = sonogramGridMapCircuit->getActivationPattern();
+  circleMapActivationPattern = sonogramCircleMapCircuit->getActivationPattern();
 
   switch(sceneNum) {
     case Scene_Mixed:
@@ -610,8 +608,7 @@ void Demo::SmoothSonogramGridMapFrame::render() {
 }
 
 void Demo::SmoothSonogramGridMapFrame::setColorFromActivationPattern(int x, int y) {
-  int topologyNodeId = parent->gridTopology->gridCoordinatesToId(x, y);
-  float v = (*parent->gridMapActivationPattern)[topologyNodeId];
+  float v = parent->sonogramGridMapCircuit->getActivation((unsigned int)x, (unsigned int)y);
   glColor3f(v, v, v);
 }
 

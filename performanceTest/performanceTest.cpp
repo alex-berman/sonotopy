@@ -120,7 +120,6 @@ void PerformanceTest::initializeAudioProcessing() {
   if(testSonogramMap) {
     sonogramGridMapCircuit = new GridMapCircuit(audioParameters, sonogramGridMapCircuitParameters);
     sonogramGridMapCircuitAudioInputBuffer = new float [audioParameters.bufferSize];
-    activationPattern = sonogramGridMapCircuit->getActivationPattern();
   }
 }
 
@@ -136,7 +135,7 @@ void PerformanceTest::processAudioBuffer() {
   }
 
   sonogramGridMapCircuit->feedAudio(sonogramGridMapCircuitAudioInputBuffer, audioParameters.bufferSize);
-  sonogramGridMapCircuit->getSonogramMap()->getActivationPattern(activationPattern);
+  activationPattern = sonogramGridMapCircuit->getActivationPattern();
 }
 
 void PerformanceTest::readAudioBufferFromFile() {

@@ -16,6 +16,8 @@
 #include <sonotopy/sonotopy.hpp>
 #include <sndfile.h>
 
+using namespace sonotopy;
+
 class PerformanceTest {
 public:
   PerformanceTest(int _argc, char **_argv);

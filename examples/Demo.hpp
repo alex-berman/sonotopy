@@ -205,8 +205,8 @@ private:
   bool normalizeSpectrum;
   GridMapCircuitParameters gridMapCircuitParameters;
   RectGridTopology *gridTopology;
-  SonogramMapCircuit *sonogramGridMapCircuit;
-  SonogramMap::ActivationPattern *gridMapActivationPattern;
+  GridMapCircuit *sonogramGridMapCircuit;
+  const SonogramMap::ActivationPattern *gridMapActivationPattern;
   const SonogramMap *sonogramGridMap;
   int sonogramGridMapWidth;
   int sonogramGridMapHeight;
@@ -215,8 +215,8 @@ private:
   const Sonogram *sonogram;
   CircleMapCircuitParameters circleMapCircuitParameters;
   CircleTopology *circleTopology;
-  SonogramMapCircuit *sonogramCircleMapCircuit;
-  SonogramMap::ActivationPattern *circleMapActivationPattern;
+  CircleMapCircuit *sonogramCircleMapCircuit;
+  const SonogramMap::ActivationPattern *circleMapActivationPattern;
   const SonogramMap *sonogramCircleMap;
   BeatTracker *beatTracker;
   Vane *vane;
