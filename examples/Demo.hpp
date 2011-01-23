@@ -204,7 +204,6 @@ private:
   AudioParameters audioParameters;
   bool normalizeSpectrum;
   GridMapCircuitParameters gridMapCircuitParameters;
-  RectGridTopology *gridTopology;
   GridMapCircuit *sonogramGridMapCircuit;
   const SonogramMap::ActivationPattern *gridMapActivationPattern;
   const SonogramMap *sonogramGridMap;

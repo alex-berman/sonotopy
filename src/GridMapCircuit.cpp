@@ -30,5 +30,5 @@ GridMapCircuit::GridMapCircuit(const AudioParameters &_audioParameters,
 float GridMapCircuit::getActivation(unsigned int x, unsigned int y) {
   unsigned int nodeId = ((RectGridTopology*) topology)->gridCoordinatesToId(x, y);
   getActivationPattern();
-  return (*activationPattern)[nodeId];
+  return (*currentActivationPattern)[nodeId];
 }

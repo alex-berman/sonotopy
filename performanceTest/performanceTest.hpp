@@ -49,6 +49,6 @@ private:
   float *sonogramGridMapCircuitAudioInputBuffer;
   SNDFILE *audioInputFile;
   float *audioFileBuffer;
-  SonogramMap::ActivationPattern *activationPattern;
+  const SonogramMap::ActivationPattern *activationPattern;
   Stopwatch stopwatch;
 };

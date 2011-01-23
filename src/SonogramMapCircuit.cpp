@@ -30,6 +30,7 @@ SonogramMapCircuit::SonogramMapCircuit(Topology *_topology,
   createSonogram();
   createSonogramMap();
   elapsedTimeSecs = 0.0f;
+  activationPatternOutdated = false;
 }
 
 SonogramMapCircuit::~SonogramMapCircuit() {
@@ -37,12 +38,17 @@ SonogramMapCircuit::~SonogramMapCircuit() {
   delete spectrumAnalyzer;
   delete sonogram;
   delete sonogramMap;
-  delete activationPattern;
+  delete currentActivationPattern;
+  delete nextActivationPattern;
 }
 
 const SonogramMap::ActivationPattern* SonogramMapCircuit::getActivationPattern() {
-  sonogramMap->getActivationPattern(activationPattern);
-  return activationPattern;
+  if(activationPatternOutdated) {
+    sonogramMap->getActivationPattern(nextActivationPattern);
+    *currentActivationPattern = *nextActivationPattern;
+    activationPatternOutdated = false;
+  }
+  return currentActivationPattern;
 }
 
 void SonogramMapCircuit::createSpectrumAnalyzer() {
@@ -63,7 +69,8 @@ void SonogramMapCircuit::createSonogramMap() {
   sonogramMap = new SonogramMap(topology,
                                 sonogramMapCircuitParameters.sonogramHistoryLength,
                                 spectrumBinDivider->getNumBins());
-  activationPattern = sonogramMap->createActivationPattern();
+  currentActivationPattern = sonogramMap->createActivationPattern();
+  nextActivationPattern = sonogramMap->createActivationPattern();
 }
 
 void SonogramMapCircuit::feedAudio(const float *audio, unsigned long numFrames) {
@@ -75,6 +82,7 @@ void SonogramMapCircuit::feedAudio(const float *audio, unsigned long numFrames) 
   setSonogramMapTrainingParameters(numFrames);
   sonogramMap->feedSonogram(sonogram, sonogramMapCircuitParameters.enableLiveTraining);
   elapsedTimeSecs += (float) numFrames / audioParameters.sampleRate;
+  activationPatternOutdated = true;
 }
 
 void SonogramMapCircuit::setSonogramMapTrainingParameters(unsigned long numFrames) {

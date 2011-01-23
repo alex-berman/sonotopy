@@ -51,13 +51,17 @@ protected:
   AudioParameters audioParameters;
   SonogramMapCircuitParameters sonogramMapCircuitParameters;
   SonogramMap *sonogramMap;
-  SonogramMap::ActivationPattern *activationPattern;
+  SonogramMap::ActivationPattern *currentActivationPattern;
+  SonogramMap::ActivationPattern *nextActivationPattern;
   SpectrumAnalyzer *spectrumAnalyzer;
   SpectrumBinDivider *spectrumBinDivider;
   Sonogram *sonogram;
   const float *spectrum;
   const float *spectrumBinValues;
   float elapsedTimeSecs;
+
+private:
+  bool activationPatternOutdated;
 };
 
 }

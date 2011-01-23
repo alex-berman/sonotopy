@@ -212,9 +212,8 @@ void Demo::initializeAudioProcessing() {
   sonogramGridMap = sonogramGridMapCircuit->getSonogramMap();
   spectrumAnalyzer = sonogramGridMapCircuit->getSpectrumAnalyzer();
   spectrumBinDivider = sonogramGridMapCircuit->getSpectrumBinDivider();
-  gridTopology = (RectGridTopology*) sonogramGridMap->getTopology();
-  sonogramGridMapWidth = gridTopology->getGridWidth();
-  sonogramGridMapHeight = gridTopology->getGridHeight();
+  sonogramGridMapWidth = gridMapCircuitParameters.gridWidth;
+  sonogramGridMapHeight = gridMapCircuitParameters.gridHeight;
   sonogram = sonogramGridMapCircuit->getSonogram();
   sonogramMapCircuitInputBuffer = new float [audioParameters.bufferSize];
 
