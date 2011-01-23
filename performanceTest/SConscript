@@ -1,0 +1,26 @@
+Import(['env', 'platform', 'PKG_CONFIG'])
+
+TARGET = 'performanceTest'
+
+SOURCE = ['performanceTest.cpp']
+
+CPPPATH = ['../include']
+env.Append(CPPPATH = CPPPATH)
+
+LIBLIST = [['sndfile', 'sndfile.h']]
+
+# check the availability of libraries
+if not GetOption('clean'):
+	conf = Configure(env)
+	for (lib, headers) in LIBLIST:
+		if not conf.CheckLibWithHeader(lib, headers, 'c'):
+			print "error: '%s' must be installed!" % lib
+			Exit(1)
+	env = conf.Finish()
+
+LIBS = ['sonotopy', 'sndfile']
+LIBPATH = ['../src']
+env.Append(LIBS = LIBS)
+env.Append(LIBPATH = LIBPATH)
+
+env.Program(target = TARGET, source = SOURCE)
