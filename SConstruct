@@ -55,5 +55,6 @@ for t in targets:
 	SConscript(dirs = t, exports = ['env', 'platform',
 		'PKG_CONFIG', 'Prefix'], variant_dir = 'build/%s/%s' % (variant_dir, t), duplicate = 0)
 
-env.Install(Prefix + '/include', 'include/sonotopy')
+env.Install(Prefix + '/include/sonotopy', Glob('include/sonotopy/*.hpp'))
 env.Alias('install', Prefix)
+
