@@ -13,49 +13,45 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _SonogramMapCircuit_hpp_
-#define _SonogramMapCircuit_hpp_
+#ifndef _SpectrumMapCircuit_hpp_
+#define _SpectrumMapCircuit_hpp_
 
 #include "AudioParameters.hpp"
-#include "SonogramMapCircuitParameters.hpp"
-#include "SonogramMap.hpp"
+#include "SpectrumMapCircuitParameters.hpp"
+#include "SpectrumMap.hpp"
 #include "SpectrumAnalyzer.hpp"
 #include "SpectrumBinDivider.hpp"
-#include "Sonogram.hpp"
 #include "SOM.hpp"
 
 namespace sonotopy {
 
-class SonogramMapCircuit {
+class SpectrumMapCircuit {
 public:
-  SonogramMapCircuit(Topology *, const AudioParameters &, const SonogramMapCircuitParameters &);
-  ~SonogramMapCircuit();
+  SpectrumMapCircuit(Topology *, const AudioParameters &, const SpectrumMapCircuitParameters &);
+  ~SpectrumMapCircuit();
   void feedAudio(const float *audio, unsigned long numFrames);
-  const SonogramMap *getSonogramMap() { return sonogramMap; }
-  const SonogramMap::ActivationPattern* getActivationPattern();
+  const SpectrumMap *getSpectrumMap() { return spectrumMap; }
+  const SpectrumMap::ActivationPattern* getActivationPattern();
   const SpectrumAnalyzer* getSpectrumAnalyzer() { return spectrumAnalyzer; }
-  const Sonogram* getSonogram() { return sonogram; }
   const SpectrumBinDivider* getSpectrumBinDivider() { return spectrumBinDivider; }
   void setSpectrumIntegrationTimeMs(float);
 
 protected:
-  void createSonogramMap();
+  void createSpectrumMap();
   void createSpectrumAnalyzer();
   void createSpectrumBinDivider();
-  void createSonogram();
   void createSOM();
-  void setSonogramMapTrainingParameters(unsigned long numFrames);
+  void setSpectrumMapTrainingParameters(unsigned long numFrames);
   float getLearningParameter(float adaptationTimeSecs, unsigned long numFrames);
 
   Topology *topology;
   AudioParameters audioParameters;
-  SonogramMapCircuitParameters sonogramMapCircuitParameters;
-  SonogramMap *sonogramMap;
-  SonogramMap::ActivationPattern *currentActivationPattern;
-  SonogramMap::ActivationPattern *nextActivationPattern;
+  SpectrumMapCircuitParameters spectrumMapCircuitParameters;
+  SpectrumMap *spectrumMap;
+  SpectrumMap::ActivationPattern *currentActivationPattern;
+  SpectrumMap::ActivationPattern *nextActivationPattern;
   SpectrumAnalyzer *spectrumAnalyzer;
   SpectrumBinDivider *spectrumBinDivider;
-  Sonogram *sonogram;
   const float *spectrum;
   const float *spectrumBinValues;
   float elapsedTimeSecs;

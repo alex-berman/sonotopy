@@ -20,7 +20,7 @@ using namespace sonotopy;
 
 GridMapCircuit::GridMapCircuit(const AudioParameters &_audioParameters,
                                const GridMapCircuitParameters &_gridMapCircuitParameters)
-                               : SonogramMapCircuit(new RectGridTopology(_gridMapCircuitParameters.gridWidth,
+                               : SpectrumMapCircuit(new RectGridTopology(_gridMapCircuitParameters.gridWidth,
 									 _gridMapCircuitParameters.gridHeight),
                                                     _audioParameters,
                                                     _gridMapCircuitParameters)

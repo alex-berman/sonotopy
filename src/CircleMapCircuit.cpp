@@ -20,7 +20,7 @@ using namespace sonotopy;
 
 CircleMapCircuit::CircleMapCircuit(const AudioParameters &_audioParameters,
                                    const CircleMapCircuitParameters &_circleMapCircuitParameters)
-                                   : SonogramMapCircuit(new CircleTopology(_circleMapCircuitParameters.numNodes),
+                                   : SpectrumMapCircuit(new CircleTopology(_circleMapCircuitParameters.numNodes),
                                                         _audioParameters,
                                                         _circleMapCircuitParameters)
 {

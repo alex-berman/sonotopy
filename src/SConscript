@@ -5,8 +5,8 @@ TARGET = 'sonotopy'
 SOURCE = ['BeatTracker.cpp', 'CircleMapCircuit.cpp',
 	'CircleMapCircuitParameters.cpp', 'CircleTopology.cpp', 'CircularBuffer.cpp',
 	'GridMapCircuit.cpp', 'GridMapCircuitParameters.cpp', 'Normalizer.cpp',
-	'SOM.cpp', 'Smoother.cpp', 'Sonogram.cpp', 'SonogramMap.cpp',
-	'SonogramMapCircuit.cpp', 'SonogramMapCircuitParameters.cpp',
+	'SOM.cpp', 'Smoother.cpp', 'SpectrumMap.cpp',
+	'SpectrumMapCircuit.cpp', 'SpectrumMapCircuitParameters.cpp',
 	'SpectrumAnalyzer.cpp', 'SpectrumBinDivider.cpp',
 	'Stopwatch.cpp', 'Topology.cpp', 'RectGridTopology.cpp', 'Vane.cpp']
  

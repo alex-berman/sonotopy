@@ -13,25 +13,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _SonogramMap_hpp_
-#define _SonogramMap_hpp_
+#ifndef _SpectrumMap_hpp_
+#define _SpectrumMap_hpp_
 
-#include "Sonogram.hpp"
 #include "Topology.hpp"
 #include "SOM.hpp"
 #include <vector>
 
 namespace sonotopy {
 
-class SonogramMap {
+class SpectrumMap {
 public:
   typedef std::vector<float> ActivationPattern;
 
-  SonogramMap(Topology *, int sonogramHistoryLength, int spectrumResolution);
-  ~SonogramMap();
+  SpectrumMap(Topology *, int spectrumResolution);
+  ~SpectrumMap();
   void setNeighbourhoodParameter(float neighbourhoodParameter);
   void setLearningParameter(float learningParameter);
-  void feedSonogram(const Sonogram *, bool train = false);
+  void feedSpectrum(const float *, bool train = false);
   ActivationPattern* createActivationPattern() const;
   int getLastWinner() const;
   void getActivationPattern(ActivationPattern *) const;
@@ -41,14 +40,12 @@ private:
   void createSom();
   void createSomInput();
   void createSomOutput();
-  void sonogramToSomInput(const Sonogram *);
+  void spectrumToSomInput(const float *);
   void getMinAndMax(const std::vector<double> &values, float &min, float &max) const;
 
   SOM *som;
   Topology *topology;
-  int sonogramHistoryLength;
   int spectrumResolution;
-  unsigned int sonogramSize;
   SOM::Sample somInput;
   SOM::Output somOutput;
 };

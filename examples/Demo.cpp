@@ -28,7 +28,7 @@ Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
   argc = _argc;
   argv = _argv;
   audioFileBuffer = NULL;
-  sonogramMapCircuitInputBuffer = NULL;
+  spectrumMapCircuitInputBuffer = NULL;
   audioDevice = 0;
 
   SPACING = 5;
@@ -46,7 +46,7 @@ Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
 Demo::~Demo() {
   if(useAudioInputFile) sf_close(audioInputFile);
   if(audioFileBuffer) delete audioFileBuffer;
-  if(sonogramMapCircuitInputBuffer) delete sonogramMapCircuitInputBuffer;
+  if(spectrumMapCircuitInputBuffer) delete spectrumMapCircuitInputBuffer;
 }
 
 void Demo::processCommandLineArguments() {
@@ -208,18 +208,17 @@ void Demo::openAudioStream() {
 void Demo::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
 
-  sonogramGridMapCircuit = new GridMapCircuit(audioParameters, gridMapCircuitParameters);
-  sonogramGridMap = sonogramGridMapCircuit->getSonogramMap();
-  spectrumAnalyzer = sonogramGridMapCircuit->getSpectrumAnalyzer();
-  spectrumBinDivider = sonogramGridMapCircuit->getSpectrumBinDivider();
-  sonogramGridMapWidth = gridMapCircuitParameters.gridWidth;
-  sonogramGridMapHeight = gridMapCircuitParameters.gridHeight;
-  sonogram = sonogramGridMapCircuit->getSonogram();
-  sonogramMapCircuitInputBuffer = new float [audioParameters.bufferSize];
+  gridMapCircuit = new GridMapCircuit(audioParameters, gridMapCircuitParameters);
+  gridMap = gridMapCircuit->getSpectrumMap();
+  spectrumAnalyzer = gridMapCircuit->getSpectrumAnalyzer();
+  spectrumBinDivider = gridMapCircuit->getSpectrumBinDivider();
+  gridMapWidth = gridMapCircuitParameters.gridWidth;
+  gridMapHeight = gridMapCircuitParameters.gridHeight;
+  spectrumMapCircuitInputBuffer = new float [audioParameters.bufferSize];
 
-  sonogramCircleMapCircuit = new CircleMapCircuit(audioParameters, circleMapCircuitParameters);
-  sonogramCircleMap = sonogramCircleMapCircuit->getSonogramMap();
-  circleTopology = (CircleTopology*) sonogramCircleMap->getTopology();
+  circleMapCircuit = new CircleMapCircuit(audioParameters, circleMapCircuitParameters);
+  circleMap = circleMapCircuit->getSpectrumMap();
+  circleTopology = (CircleTopology*) circleMap->getTopology();
 
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
   vane = new Vane(audioParameters);
@@ -255,13 +254,12 @@ void Demo::initializeGraphics() {
   waveformFrame = new WaveformFrame(this);
   spectrumFrame = new SpectrumFrame(this);
   spectrumBinsFrame = new SpectrumBinsFrame(this);
-  sonogramFrame = new SonogramFrame(this);
-  sonogramGridMapFrame = new SonogramGridMapFrame(this);
-  enlargedSonogramGridMapFrame = new SmoothSonogramGridMapFrame(this);
+  gridMapFrame = new GridMapFrame(this);
+  enlargedGridMapFrame = new SmoothGridMapFrame(this);
   beatTrackerFrame = new BeatTrackerFrame(this);
   isolinesFrame = new IsolinesFrame(this);
-  sonogramCircleMapFrame = new SonogramCircleMapFrame(this);
-  enlargedSonogramCircleMapFrame = new SmoothSonogramCircleMapFrame(this);
+  circleMapFrame = new CircleMapFrame(this);
+  enlargedCircleMapFrame = new SmoothCircleMapFrame(this);
 
   for(int i = 0; i < 20; i++)
     dancers.push_back(Dancer(this));
@@ -294,7 +292,6 @@ void Demo::resizeFrames() {
   int y2 = y1 + rowHeight + SPACING;
   int y3 = y2 + rowHeight + SPACING;
   int columnWidth = rowHeight;
-  int beatTrackerWidth = columnWidth / 2;
 
   switch(sceneNum) {
     case Scene_Mixed:
@@ -304,30 +301,27 @@ void Demo::resizeFrames() {
       spectrumFrame->setSize(displayWidth, rowHeight);
       spectrumFrame->setPosition(SPACING, y1);
 
-      spectrumBinsFrame->setSize(displayWidth - beatTrackerWidth - SPACING, rowHeight);
+      spectrumBinsFrame->setSize(displayWidth, rowHeight);
       spectrumBinsFrame->setPosition(SPACING, y2);
 
-      beatTrackerFrame->setSize(beatTrackerWidth, rowHeight);
-      beatTrackerFrame->setPosition(SPACING + displayWidth - beatTrackerWidth, y2);
+      beatTrackerFrame->setSize(columnWidth / 2, rowHeight);
+      beatTrackerFrame->setPosition(SPACING, y3);
 
-      sonogramFrame->setSize(columnWidth, rowHeight);
-      sonogramFrame->setPosition(SPACING, y3);
+      circleMapFrame->setSize(columnWidth, rowHeight);
+      circleMapFrame->setPosition(SPACING + displayWidth - columnWidth*2 - SPACING, y3);
 
-      sonogramCircleMapFrame->setSize(columnWidth, rowHeight);
-      sonogramCircleMapFrame->setPosition(SPACING + displayWidth - columnWidth*2 - SPACING, y3);
-
-      sonogramGridMapFrame->setSize(columnWidth, rowHeight);
-      sonogramGridMapFrame->setPosition(SPACING + displayWidth - columnWidth, y3);
+      gridMapFrame->setSize(columnWidth, rowHeight);
+      gridMapFrame->setPosition(SPACING + displayWidth - columnWidth, y3);
       break;
 
-    case Scene_EnlargedSonogramCircleMap:
-      enlargedSonogramCircleMapFrame->setSize(singleFrameSize, singleFrameSize);
-      enlargedSonogramCircleMapFrame->setPosition(singleFrameOffsetLeft, singleFrameOffsetTop);
+    case Scene_EnlargedCircleMap:
+      enlargedCircleMapFrame->setSize(singleFrameSize, singleFrameSize);
+      enlargedCircleMapFrame->setPosition(singleFrameOffsetLeft, singleFrameOffsetTop);
       break;
 
-    case Scene_EnlargedSonogramGridMap:
-      enlargedSonogramGridMapFrame->setSize(singleFrameSize, singleFrameSize);
-      enlargedSonogramGridMapFrame->setPosition(singleFrameOffsetLeft, singleFrameOffsetTop);
+    case Scene_EnlargedGridMap:
+      enlargedGridMapFrame->setSize(singleFrameSize, singleFrameSize);
+      enlargedGridMapFrame->setPosition(singleFrameOffsetLeft, singleFrameOffsetTop);
       break;
 
     case Scene_Isolines:
@@ -357,12 +351,12 @@ int Demo::audioCallback(float *inputBuffer, float *outputBuffer, unsigned long f
     inputPtr = inputBuffer;
   }
 
-  float *sonogramMapCircuitInputBufferPtr = sonogramMapCircuitInputBuffer;
+  float *spectrumMapCircuitInputBufferPtr = spectrumMapCircuitInputBuffer;
   float *outputPtr = (float *) outputBuffer;
 
   unsigned long i = 0;
   while(i < audioParameters.bufferSize) {
-    *sonogramMapCircuitInputBufferPtr++ = *inputPtr;
+    *spectrumMapCircuitInputBufferPtr++ = *inputPtr;
     if(echoAudio) {
       *outputPtr++ = *inputPtr++;
       *outputPtr++ = *inputPtr++;
@@ -373,9 +367,9 @@ int Demo::audioCallback(float *inputBuffer, float *outputBuffer, unsigned long f
     i++;
   }
 
-  sonogramGridMapCircuit->feedAudio(sonogramMapCircuitInputBuffer, audioParameters.bufferSize);
-  sonogramCircleMapCircuit->feedAudio(sonogramMapCircuitInputBuffer, audioParameters.bufferSize);
-  vane->feedAudio(sonogramMapCircuitInputBuffer, audioParameters.bufferSize);
+  gridMapCircuit->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
+  circleMapCircuit->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
+  vane->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
 
   float timeIncrement = (float) audioParameters.bufferSize / audioParameters.sampleRate;
@@ -405,17 +399,16 @@ void Demo::glDisplay() {
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
 
-  gridMapActivationPattern = sonogramGridMapCircuit->getActivationPattern();
-  circleMapActivationPattern = sonogramCircleMapCircuit->getActivationPattern();
+  gridMapActivationPattern = gridMapCircuit->getActivationPattern();
+  circleMapActivationPattern = circleMapCircuit->getActivationPattern();
 
   switch(sceneNum) {
     case Scene_Mixed:
       waveformFrame->display();
       spectrumFrame->display();
       spectrumBinsFrame->display();
-      sonogramFrame->display();
-      sonogramGridMapFrame->display();
-      sonogramCircleMapFrame->display();
+      gridMapFrame->display();
+      circleMapFrame->display();
       beatTrackerFrame->display();
       break;
 
@@ -423,12 +416,12 @@ void Demo::glDisplay() {
       renderVaneScene();
       break;
 
-    case Scene_EnlargedSonogramCircleMap:
-      enlargedSonogramCircleMapFrame->display();
+    case Scene_EnlargedCircleMap:
+      enlargedCircleMapFrame->display();
       break;
 
-    case Scene_EnlargedSonogramGridMap:
-      enlargedSonogramGridMapFrame->display();
+    case Scene_EnlargedGridMap:
+      enlargedGridMapFrame->display();
       break;
 
     case Scene_Isolines:
@@ -458,7 +451,7 @@ void Demo::WaveformFrame::render() {
   glShadeModel(GL_FLAT);
   glBegin(GL_POINTS);
   for(int i = 0; i < width; i++) {
-    x = parent->sonogramMapCircuitInputBuffer[(int) (parent->audioParameters.bufferSize * i / width)];
+    x = parent->spectrumMapCircuitInputBuffer[(int) (parent->audioParameters.bufferSize * i / width)];
     vertex2i(i, (int) ((x + 1) / 2 * height));
   }
   glEnd();
@@ -515,57 +508,24 @@ void Demo::SpectrumBinsFrame::render() {
   }
 }
 
-Demo::SonogramFrame::SonogramFrame(Demo *_parent) {
+Demo::GridMapFrame::GridMapFrame(Demo *_parent) {
   parent = _parent;
 }
 
-void Demo::SonogramFrame::render() {
-  const Sonogram::SonogramData *sonogramData = parent->sonogram->getSonogramData();
-  Sonogram::SonogramData::Iterator sonogramDataIterator = sonogramData->begin();
-  float w;
-  int historyLength = parent->sonogram->getHistoryLength();
-  int numBins = parent->sonogram->getSpectrumResolution();
-  glShadeModel(GL_FLAT);
-  for(int i = 0; i < historyLength; i++) {
-    for(int j = 0; j < numBins; j++) {
-      int x1, x2, py1, py2;
-      x1 = (int) (i * width / historyLength);
-      x2 = (int) ((i+1) * width /historyLength);
-      py1 = (int) (j * height / numBins);
-      py2 = (int) ((j+1) * height / numBins);
-      w = *(sonogramDataIterator->value);
-      if(parent->normalizeSpectrum) w = normalizer.normalize(w);
-      glColor3f(w, w, w);
-      glBegin(GL_POLYGON);
-      vertex2i(x1, py1);
-      vertex2i(x1, py2);
-      vertex2i(x2, py2);
-      vertex2i(x2, py1);
-      vertex2i(x1, py1);
-      glEnd();
-      ++sonogramDataIterator;
-    }
-  }
-}
-
-Demo::SonogramGridMapFrame::SonogramGridMapFrame(Demo *_parent) {
-  parent = _parent;
-}
-
-void Demo::SonogramGridMapFrame::render() {
+void Demo::GridMapFrame::render() {
   static float v;
   static int x1, x2, py1, py2;
   glShadeModel(GL_FLAT);
-  SonogramMap::ActivationPattern::const_iterator activationPatternIterator = parent->gridMapActivationPattern->begin();
-  for(int y = 0; y < parent->sonogramGridMapWidth; y++) {
-    for(int x = 0; x < parent->sonogramGridMapHeight; x++) {
+  SpectrumMap::ActivationPattern::const_iterator activationPatternIterator = parent->gridMapActivationPattern->begin();
+  for(int y = 0; y < parent->gridMapWidth; y++) {
+    for(int x = 0; x < parent->gridMapHeight; x++) {
       v = *activationPatternIterator;
       glColor3f(v, v, v);
       glBegin(GL_POLYGON);
-      x1 = (int) (width * x / parent->sonogramGridMapWidth);
-      x2 = (int) (width * (x+1) / parent->sonogramGridMapWidth);
-      py1 = (int) (y * height / parent->sonogramGridMapHeight);
-      py2 = (int) ((y+1) * height / parent->sonogramGridMapHeight);
+      x1 = (int) (width * x / parent->gridMapWidth);
+      x2 = (int) (width * (x+1) / parent->gridMapWidth);
+      py1 = (int) (y * height / parent->gridMapHeight);
+      py2 = (int) ((y+1) * height / parent->gridMapHeight);
       vertex2i(x1, py1);
       vertex2i(x1, py2);
       vertex2i(x2, py2);
@@ -577,19 +537,19 @@ void Demo::SonogramGridMapFrame::render() {
   }
 }
 
-Demo::SmoothSonogramGridMapFrame::SmoothSonogramGridMapFrame(Demo *_parent) {
+Demo::SmoothGridMapFrame::SmoothGridMapFrame(Demo *_parent) {
   parent = _parent;
 }
 
-void Demo::SmoothSonogramGridMapFrame::render() {
+void Demo::SmoothGridMapFrame::render() {
   static int x1, x2, py1, py2;
   glShadeModel(GL_SMOOTH);
-  for(int y = 0; y < parent->sonogramGridMapWidth-1; y++) {
-    for(int x = 0; x < parent->sonogramGridMapHeight-1; x++) {
-      x1 = (int) (width * x / (parent->sonogramGridMapWidth-1));
-      x2 = (int) (width * (x+1) / (parent->sonogramGridMapWidth-1));
-      py1 = (int) (y * height / (parent->sonogramGridMapHeight-1));
-      py2 = (int) ((y+1) * height / (parent->sonogramGridMapHeight-1));
+  for(int y = 0; y < parent->gridMapWidth-1; y++) {
+    for(int x = 0; x < parent->gridMapHeight-1; x++) {
+      x1 = (int) (width * x / (parent->gridMapWidth-1));
+      x2 = (int) (width * (x+1) / (parent->gridMapWidth-1));
+      py1 = (int) (y * height / (parent->gridMapHeight-1));
+      py2 = (int) ((y+1) * height / (parent->gridMapHeight-1));
       glBegin(GL_POLYGON);
       setColorFromActivationPattern(x, y);
       vertex2i(x1, py1);
@@ -606,17 +566,17 @@ void Demo::SmoothSonogramGridMapFrame::render() {
   }
 }
 
-void Demo::SmoothSonogramGridMapFrame::setColorFromActivationPattern(int x, int y) {
-  float v = parent->sonogramGridMapCircuit->getActivation((unsigned int)x, (unsigned int)y);
+void Demo::SmoothGridMapFrame::setColorFromActivationPattern(int x, int y) {
+  float v = parent->gridMapCircuit->getActivation((unsigned int)x, (unsigned int)y);
   glColor3f(v, v, v);
 }
 
-Demo::SonogramCircleMapFrame::SonogramCircleMapFrame(Demo *_parent) {
+Demo::CircleMapFrame::CircleMapFrame(Demo *_parent) {
   parent = _parent;
   numNodes = parent->circleTopology->getNumNodes();
 }
 
-void Demo::SonogramCircleMapFrame::render() {
+void Demo::CircleMapFrame::render() {
   static float v, c;
   static int x1, y1, x2, y2;
   int centreX = width / 2;
@@ -624,7 +584,7 @@ void Demo::SonogramCircleMapFrame::render() {
   int radius = (int) (width * 0.4);
   float angleSpan = 2 * M_PI / numNodes;
   glShadeModel(GL_FLAT);
-  SonogramMap::ActivationPattern::const_iterator activationPatternIterator = parent->circleMapActivationPattern->begin();
+  SpectrumMap::ActivationPattern::const_iterator activationPatternIterator = parent->circleMapActivationPattern->begin();
   CircleTopology::Node node;
   for(int i = 0; i < numNodes; i++) {
     v = *activationPatternIterator;
@@ -655,13 +615,13 @@ void Demo::SonogramCircleMapFrame::render() {
   glEnd();
 }
 
-Demo::SmoothSonogramCircleMapFrame::SmoothSonogramCircleMapFrame(Demo *_parent) {
+Demo::SmoothCircleMapFrame::SmoothCircleMapFrame(Demo *_parent) {
   parent = _parent;
   numNodes = parent->circleTopology->getNumNodes();
   angleIncrement = 2 * M_PI / numNodes;
 }
 
-void Demo::SmoothSonogramCircleMapFrame::render() {
+void Demo::SmoothCircleMapFrame::render() {
   int numPoints = 100;
   float c;
   float a;
@@ -685,7 +645,7 @@ void Demo::SmoothSonogramCircleMapFrame::render() {
   glEnd();
 }
 
-float Demo::SmoothSonogramCircleMapFrame::getColorAtAngle(float angle) {
+float Demo::SmoothCircleMapFrame::getColorAtAngle(float angle) {
   angle = fmodf(angle, 2 * M_PI);
   int nodeId1 = (int) (angle / angleIncrement);
   int nodeId2 = (nodeId1 + 1) % numNodes;
@@ -804,8 +764,8 @@ bool Demo::Dancer::outOfBounds(const Point &p) {
 
 Demo::IsolinesFrame::IsolinesFrame(Demo *_parent) {
   parent = _parent;
-  activationPatternAsTwoDimArray = new TwoDimArray<float>(parent->sonogramGridMapWidth, parent->sonogramGridMapHeight);
-  isolineExtractor = new IsolineExtractor(parent->sonogramGridMapWidth, parent->sonogramGridMapHeight);
+  activationPatternAsTwoDimArray = new TwoDimArray<float>(parent->gridMapWidth, parent->gridMapHeight);
+  isolineExtractor = new IsolineExtractor(parent->gridMapWidth, parent->gridMapHeight);
   isolineRenderer = new IsolineRenderer(isolineExtractor);
   lineWidthFactor = 0.1f;
   isocurvesHistoryLength = 7;
@@ -859,8 +819,8 @@ void Demo::IsolinesFrame::renderDrawableIsocurveSetHistory() {
       for(vector<IsolineExtractor::Point>::iterator v = curve->points.begin(); v != curve->points.end(); v++) {
         cx = v->x;
         cy = v->y;
-        px = (int) (width * cx / (parent->sonogramGridMapWidth-1));
-        py = (int) (height * cy / (parent->sonogramGridMapHeight-1));
+        px = (int) (width * cx / (parent->gridMapWidth-1));
+        py = (int) (height * cy / (parent->gridMapHeight-1));
         vertex2i(px, py);
       }
       glEnd();

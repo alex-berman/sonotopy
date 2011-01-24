@@ -16,13 +16,13 @@
 #ifndef CIRCLEMAPCIRCUIT_HPP
 #define CIRCLEMAPCIRCUIT_HPP
 
-#include "SonogramMapCircuit.hpp"
+#include "SpectrumMapCircuit.hpp"
 #include "AudioParameters.hpp"
 #include "CircleMapCircuitParameters.hpp"
 
 namespace sonotopy {
 
-class CircleMapCircuit : public SonogramMapCircuit
+class CircleMapCircuit : public SpectrumMapCircuit
 {
   public:
     CircleMapCircuit(const AudioParameters &, const CircleMapCircuitParameters &);

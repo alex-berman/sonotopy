@@ -13,18 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "SonogramMap.hpp"
+#include "SpectrumMap.hpp"
 #include <math.h>
 
 using namespace sonotopy;
 using namespace std;
 
-SonogramMap::SonogramMap(Topology *_topology, int _sonogramHistoryLength, int _spectrumResolution)
+SpectrumMap::SpectrumMap(Topology *_topology, int _spectrumResolution)
 {
   topology = _topology;
-  sonogramHistoryLength = _sonogramHistoryLength;
   spectrumResolution = _spectrumResolution;
-  sonogramSize = sonogramHistoryLength * spectrumResolution;
 
   createSom();
   createSomInput();
@@ -34,39 +32,39 @@ SonogramMap::SonogramMap(Topology *_topology, int _sonogramHistoryLength, int _s
   setLearningParameter(0.5);
 }
 
-SonogramMap::~SonogramMap() {
+SpectrumMap::~SpectrumMap() {
   delete som;
 }
 
-Topology* SonogramMap::getTopology() const {
+Topology* SpectrumMap::getTopology() const {
   return topology;
 }
 
-void SonogramMap::createSom() {
-  som = new SOM(sonogramSize, topology);
+void SpectrumMap::createSom() {
+  som = new SOM(spectrumResolution, topology);
   som->setRandomModelValues(0.0, 0.0001);
 }
 
-void SonogramMap::createSomInput() {
-  for(unsigned int i = 0; i < sonogramSize; i++)
+void SpectrumMap::createSomInput() {
+  for(int i = 0; i < spectrumResolution; i++)
     somInput.push_back(0);
 }
 
-void SonogramMap::createSomOutput() {
+void SpectrumMap::createSomOutput() {
   for(unsigned int i = 0; i < topology->getNumNodes(); i++)
     somOutput.push_back(0);
 }
 
-void SonogramMap::setNeighbourhoodParameter(float neighbourhoodParameter) {
+void SpectrumMap::setNeighbourhoodParameter(float neighbourhoodParameter) {
   som->setNeighbourhoodParameter(neighbourhoodParameter);
 }
 
-void SonogramMap::setLearningParameter(float learningParameter) {
+void SpectrumMap::setLearningParameter(float learningParameter) {
   som->setLearningParameter(learningParameter);
 }
 
-void SonogramMap::feedSonogram(const Sonogram *sonogram, bool train) {
-  sonogramToSomInput(sonogram);
+void SpectrumMap::feedSpectrum(const float *spectrum, bool train) {
+  spectrumToSomInput(spectrum);
   if(train) {
     som->train(somInput);
     som->getLastOutput(somOutput);
@@ -76,26 +74,26 @@ void SonogramMap::feedSonogram(const Sonogram *sonogram, bool train) {
   }
 }
 
-void SonogramMap::sonogramToSomInput(const Sonogram *sonogram) {
+void SpectrumMap::spectrumToSomInput(const float *spectrum) {
   SOM::Sample::iterator somInputPtr = somInput.begin();
-  const Sonogram::SonogramData *sonogramData = sonogram->getSonogramData();
-  for(Sonogram::SonogramData::Iterator i = sonogramData->begin(); i != sonogramData->end(); i++) {
-    *somInputPtr++ = (double) *(i->value);
+  const float *spectrumPtr = spectrum;
+  for(int i = 0; i < spectrumResolution; i++) {
+    *somInputPtr++ = (double) *spectrumPtr++;
   }
 }
 
-int SonogramMap::getLastWinner() const {
+int SpectrumMap::getLastWinner() const {
   return som->getLastWinner();
 }
 
-SonogramMap::ActivationPattern* SonogramMap::createActivationPattern() const {
+SpectrumMap::ActivationPattern* SpectrumMap::createActivationPattern() const {
   vector<float> *pattern = new vector<float>();
   for(unsigned int i = 0; i < topology->getNumNodes(); i++)
     pattern->push_back(0);
   return pattern;
 }
 
-void SonogramMap::getActivationPattern(ActivationPattern *activationPattern) const {
+void SpectrumMap::getActivationPattern(ActivationPattern *activationPattern) const {
   float min, max, range;
   getMinAndMax(somOutput, min, max);
   range = max - min;
@@ -112,7 +110,7 @@ void SonogramMap::getActivationPattern(ActivationPattern *activationPattern) con
   }
 }
 
-void SonogramMap::getMinAndMax(const vector<double> &values, float &min, float &max) const {
+void SpectrumMap::getMinAndMax(const vector<double> &values, float &min, float &max) const {
   float value;
   vector<double>::const_iterator i = values.begin();
   min = max = (float) *i;

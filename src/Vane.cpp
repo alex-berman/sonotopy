@@ -33,7 +33,7 @@ Vane::~Vane() {
 void Vane::createCircleMapCircuit() {
   circleMapCircuit = new CircleMapCircuit(audioParameters, circleMapCircuitParameters);
   spectrumBinDivider = circleMapCircuit->getSpectrumBinDivider();
-  circleMap = circleMapCircuit->getSonogramMap();
+  circleMap = circleMapCircuit->getSpectrumMap();
   circleTopology = (CircleTopology*) circleMap->getTopology();
 }
 

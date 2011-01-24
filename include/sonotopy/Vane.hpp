@@ -17,7 +17,6 @@
 #define _VANE_HPP_
 
 #include "AudioParameters.hpp"
-#include "SonogramMapCircuitParameters.hpp"
 #include "CircleMapCircuitParameters.hpp"
 #include "CircleMapCircuit.hpp"
 #include "CircleTopology.hpp"
@@ -41,7 +40,7 @@ private:
   CircleMapCircuit *circleMapCircuit;
   AudioParameters audioParameters;
   CircleMapCircuitParameters circleMapCircuitParameters;
-  const SonogramMap *circleMap;
+  const SpectrumMap *circleMap;
   CircleTopology *circleTopology;
   const SpectrumBinDivider *spectrumBinDivider;
   float angle;

@@ -24,7 +24,7 @@ PerformanceTest::PerformanceTest(int _argc, char **_argv) {
   argv = _argv;
   audioInputFile = NULL;
   audioFileBuffer = NULL;
-  sonogramGridMapCircuitAudioInputBuffer = NULL;
+  gridMapCircuitAudioInputBuffer = NULL;
 
   processCommandLineArguments();
   openAudioInputFile();
@@ -37,13 +37,13 @@ PerformanceTest::PerformanceTest(int _argc, char **_argv) {
 PerformanceTest::~PerformanceTest() {
   if(audioInputFile) sf_close(audioInputFile);
   if(audioFileBuffer) delete audioFileBuffer;
-  if(sonogramGridMapCircuitAudioInputBuffer) delete sonogramGridMapCircuitAudioInputBuffer;
+  if(gridMapCircuitAudioInputBuffer) delete gridMapCircuitAudioInputBuffer;
 }
 
 void PerformanceTest::processCommandLineArguments() {
   numTestTypes = 0;
   numIterations = 1;
-  testSonogramMap = false;
+  testSpectrumMap = false;
   audioInputFilename = NULL;
   int argnr = 1;
   char **argptr = argv + 1;
@@ -57,7 +57,7 @@ void PerformanceTest::processCommandLineArguments() {
         audioInputFilename = *argptr;
       }
       else if(strcmp(argflag, "sm") == 0) {
-        testSonogramMap = true;
+        testSpectrumMap = true;
         numTestTypes++;
       }
       else if(strcmp(argflag, "n") == 0) {
@@ -92,7 +92,7 @@ void PerformanceTest::usage() {
 
   printf("Options:\n\n");
 
-  printf(" -sm           Test sonogram map\n");
+  printf(" -sm           Test spectrum map\n");
   printf(" -f <WAV file> Use audio file as input\n");
   printf(" -n <N>        Run N number of iterations\n");
 
@@ -117,25 +117,25 @@ void PerformanceTest::openAudioInputFile() {
 }
 
 void PerformanceTest::initializeAudioProcessing() {
-  if(testSonogramMap) {
-    sonogramGridMapCircuit = new GridMapCircuit(audioParameters, sonogramGridMapCircuitParameters);
-    sonogramGridMapCircuitAudioInputBuffer = new float [audioParameters.bufferSize];
+  if(testSpectrumMap) {
+    gridMapCircuit = new GridMapCircuit(audioParameters, gridMapCircuitParameters);
+    gridMapCircuitAudioInputBuffer = new float [audioParameters.bufferSize];
   }
 }
 
 void PerformanceTest::processAudioBuffer() {
   float *inputPtr = audioFileBuffer;
-  float *sonogramGridMapCircuitAudioInputBufferPtr = sonogramGridMapCircuitAudioInputBuffer;
+  float *gridMapCircuitAudioInputBufferPtr = gridMapCircuitAudioInputBuffer;
 
   unsigned long i = 0;
   while(i < audioParameters.bufferSize) {
-    *sonogramGridMapCircuitAudioInputBufferPtr++ = *inputPtr;
+    *gridMapCircuitAudioInputBufferPtr++ = *inputPtr;
     inputPtr += 2;
     i++;
   }
 
-  sonogramGridMapCircuit->feedAudio(sonogramGridMapCircuitAudioInputBuffer, audioParameters.bufferSize);
-  activationPattern = sonogramGridMapCircuit->getActivationPattern();
+  gridMapCircuit->feedAudio(gridMapCircuitAudioInputBuffer, audioParameters.bufferSize);
+  activationPattern = gridMapCircuit->getActivationPattern();
 }
 
 void PerformanceTest::readAudioBufferFromFile() {

@@ -61,48 +61,39 @@ private:
     Normalizer normalizer;
   };
 
-  class SonogramFrame : public Frame {
+  class GridMapFrame : public Frame {
   public:
-    SonogramFrame(Demo *);
-    void render();
-  private:
-    Demo *parent;
-    Normalizer normalizer;
-  };
-
-  class SonogramGridMapFrame : public Frame {
-  public:
-    SonogramGridMapFrame(Demo *);
-    ~SonogramGridMapFrame();
+    GridMapFrame(Demo *);
+    ~GridMapFrame();
     void render();
   private:
     Demo *parent;
   };
 
-  class SmoothSonogramGridMapFrame : public Frame {
+  class SmoothGridMapFrame : public Frame {
   public:
-    SmoothSonogramGridMapFrame(Demo *);
-    ~SmoothSonogramGridMapFrame();
+    SmoothGridMapFrame(Demo *);
+    ~SmoothGridMapFrame();
     void render();
   private:
     void setColorFromActivationPattern(int x, int y);
     Demo *parent;
   };
 
-  class SonogramCircleMapFrame : public Frame {
+  class CircleMapFrame : public Frame {
   public:
-    SonogramCircleMapFrame(Demo *);
-    ~SonogramCircleMapFrame();
+    CircleMapFrame(Demo *);
+    ~CircleMapFrame();
     void render();
   private:
     Demo *parent;
     int numNodes;
   };
 
-  class SmoothSonogramCircleMapFrame : public Frame {
+  class SmoothCircleMapFrame : public Frame {
   public:
-    SmoothSonogramCircleMapFrame(Demo *);
-    ~SmoothSonogramCircleMapFrame();
+    SmoothCircleMapFrame(Demo *);
+    ~SmoothCircleMapFrame();
     void render();
   private:
     float getColorAtAngle(float);
@@ -173,8 +164,8 @@ private:
   enum {
     Scene_Mixed = 0,
     Scene_Vane,
-    Scene_EnlargedSonogramCircleMap,
-    Scene_EnlargedSonogramGridMap,
+    Scene_EnlargedCircleMap,
+    Scene_EnlargedGridMap,
     Scene_Isolines,
     numScenes
   };
@@ -204,35 +195,33 @@ private:
   AudioParameters audioParameters;
   bool normalizeSpectrum;
   GridMapCircuitParameters gridMapCircuitParameters;
-  GridMapCircuit *sonogramGridMapCircuit;
-  const SonogramMap::ActivationPattern *gridMapActivationPattern;
-  const SonogramMap *sonogramGridMap;
-  int sonogramGridMapWidth;
-  int sonogramGridMapHeight;
+  GridMapCircuit *gridMapCircuit;
+  const SpectrumMap::ActivationPattern *gridMapActivationPattern;
+  const SpectrumMap *gridMap;
+  int gridMapWidth;
+  int gridMapHeight;
   const SpectrumAnalyzer *spectrumAnalyzer;
   const SpectrumBinDivider *spectrumBinDivider;
-  const Sonogram *sonogram;
   CircleMapCircuitParameters circleMapCircuitParameters;
   CircleTopology *circleTopology;
-  CircleMapCircuit *sonogramCircleMapCircuit;
-  const SonogramMap::ActivationPattern *circleMapActivationPattern;
-  const SonogramMap *sonogramCircleMap;
+  CircleMapCircuit *circleMapCircuit;
+  const SpectrumMap::ActivationPattern *circleMapActivationPattern;
+  const SpectrumMap *circleMap;
   BeatTracker *beatTracker;
   Vane *vane;
   SNDFILE *audioInputFile;
   float *audioFileBuffer;
   PaStream *paStream;
   int audioDevice;
-  float *sonogramMapCircuitInputBuffer;
+  float *spectrumMapCircuitInputBuffer;
   int sceneNum;
   WaveformFrame *waveformFrame;
   SpectrumFrame *spectrumFrame;
   SpectrumBinsFrame *spectrumBinsFrame;
-  SonogramFrame *sonogramFrame;
-  SonogramGridMapFrame *sonogramGridMapFrame;
-  SmoothSonogramGridMapFrame *enlargedSonogramGridMapFrame;
-  SmoothSonogramCircleMapFrame *enlargedSonogramCircleMapFrame;
-  SonogramCircleMapFrame *sonogramCircleMapFrame;
+  GridMapFrame *gridMapFrame;
+  SmoothGridMapFrame *enlargedGridMapFrame;
+  SmoothCircleMapFrame *enlargedCircleMapFrame;
+  CircleMapFrame *circleMapFrame;
   BeatTrackerFrame *beatTrackerFrame;
   IsolinesFrame *isolinesFrame;
   unsigned long frameCount;

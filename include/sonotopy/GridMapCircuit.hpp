@@ -16,13 +16,13 @@
 #ifndef GRIDMAPCIRCUIT_HPP
 #define GRIDMAPCIRCUIT_HPP
 
-#include "SonogramMapCircuit.hpp"
+#include "SpectrumMapCircuit.hpp"
 #include "AudioParameters.hpp"
 #include "GridMapCircuitParameters.hpp"
 
 namespace sonotopy {
 
-class GridMapCircuit : public SonogramMapCircuit
+class GridMapCircuit : public SpectrumMapCircuit
 {
 public:
   GridMapCircuit(const AudioParameters &, const GridMapCircuitParameters &);

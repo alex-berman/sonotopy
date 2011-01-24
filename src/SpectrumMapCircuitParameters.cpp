@@ -13,29 +13,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _SonogramMapCircuitParameters_hpp_
-#define _SonogramMapCircuitParameters_hpp_
+#include "SpectrumMapCircuitParameters.hpp"
 
-#include "Sonogram.hpp"
-#include "SpectrumAnalyzer.hpp"
-#include "SpectrumBinDivider.hpp"
-#include <vector>
+using namespace sonotopy;
 
-namespace sonotopy {
-
-class SonogramMapCircuitParameters {
-public:
-  SonogramMapCircuitParameters();
-
-  bool enableLiveTraining;
-  float initialTrainingLengthSecs;
-  float initialNeighbourhoodParameter;
-  float initialAdaptationTimeSecs;
-  float normalNeighbourhoodParameter;
-  float normalAdaptationTimeSecs;
-  int sonogramHistoryLength;
-};
-
+SpectrumMapCircuitParameters::SpectrumMapCircuitParameters() {
+  initialNeighbourhoodParameter = 1.0f;
+  normalNeighbourhoodParameter = 0.1f;
+  enableLiveTraining = true;
+  initialAdaptationTimeSecs = 0.05f;
+  initialTrainingLengthSecs = 10.0;
+  normalAdaptationTimeSecs = 3.0f;
 }
-
-#endif

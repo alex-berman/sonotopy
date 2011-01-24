@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sonotopy/sonotopy.hpp>
+#include <sonotopy/TwoDimArray.hpp>
 #include "math.h" // M_PI
 #include <algorithm>
 #include <stdio.h>
@@ -346,17 +347,16 @@ TEST(CircleSOM) {
   CHECK(      topology.getDistance(4, 7) < topology.getDistance(4, 0));
 }
 
-TEST(SonogramMap) {
+TEST(SpectrumMap) {
   unsigned int gridWidth = 3;
   unsigned int gridHeight = 3;
-  int historyLength = 2;
   int spectrumResolution = 10;
   RectGridTopology topology(gridWidth, gridHeight);
-  SonogramMap sonogramMap(&topology, historyLength, spectrumResolution);
-  SonogramMap::ActivationPattern *activationPattern = sonogramMap.createActivationPattern();
+  SpectrumMap spectrumMap(&topology, spectrumResolution);
+  SpectrumMap::ActivationPattern *activationPattern = spectrumMap.createActivationPattern();
   CHECK_EQUAL((size_t)9, activationPattern->size());
 
-  sonogramMap.getActivationPattern(activationPattern);
+  spectrumMap.getActivationPattern(activationPattern);
   CHECK_EQUAL((size_t)9, activationPattern->size());
 }
 
