@@ -101,7 +101,7 @@ void SpectrumMap::getActivationPattern(ActivationPattern *activationPattern) con
     ActivationPattern::iterator activationPatternNode = activationPattern->begin();
     for(SOM::Output::const_iterator somOutputNode = somOutput.begin();
 	somOutputNode != somOutput.end(); somOutputNode++) {
-      *activationPatternNode = ((float)*somOutputNode - min) / range;
+      *activationPatternNode = 1.0f - ((float)*somOutputNode - min) / range;
       activationPatternNode++;
     }
   }
