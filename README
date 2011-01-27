@@ -12,10 +12,11 @@ Sonotopy is a C++ library for perceptually analyzing the contents of
 an acoustic signal in real time. Its primary use is to map sound
 streams such as music or voice to a visual or other kind of output.
 
-The library consists of methods to extract high-level features from an
-acoustic waveform. These numeric feature values can be interpreted as
-e.g. shapes, colors or motion parameters. The library also gives
-access to lower levels of processing such as spectral distribution.
+The library consists of novel techniques to extract high-level
+features from an acoustic waveform. These numeric feature values can
+be interpreted as e.g. shapes, colors or motion parameters. The
+library also gives access to lower levels of processing such as
+spectral distribution.
 
 Typical uses:
 - visualization of music, beat-sensitive visuals

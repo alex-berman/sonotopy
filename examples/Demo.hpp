@@ -24,6 +24,8 @@
 
 class Demo : public GlWindow {
 public:
+  const static float activationPatternContrast;
+
   Demo(int _argc, char **_argv);
   ~Demo();
   int audioCallback(float *inputBuffer, float *outputBuffer, unsigned long framesPerBuffer);
@@ -67,6 +69,8 @@ private:
     ~GridMapFrame();
     void render();
   private:
+    void renderActivationPattern();
+    void renderWinner();
     Demo *parent;
   };
 

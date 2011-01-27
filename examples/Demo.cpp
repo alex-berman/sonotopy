@@ -23,6 +23,8 @@ using namespace sonotopy;
 
 Demo *demo;
 
+const float Demo::activationPatternContrast = 15.0f;
+
 Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
   demo = this;
   argc = _argc;
@@ -513,13 +515,20 @@ Demo::GridMapFrame::GridMapFrame(Demo *_parent) {
 }
 
 void Demo::GridMapFrame::render() {
+  glShadeModel(GL_FLAT);
+  renderActivationPattern();
+  renderWinner();
+}
+
+void Demo::GridMapFrame::renderActivationPattern() {
   static float v;
   static int x1, x2, py1, py2;
-  glShadeModel(GL_FLAT);
-  SpectrumMap::ActivationPattern::const_iterator activationPatternIterator = parent->gridMapActivationPattern->begin();
+  SpectrumMap::ActivationPattern::const_iterator activationPatternIterator =
+    parent->gridMapActivationPattern->begin();
   for(int y = 0; y < parent->gridMapWidth; y++) {
     for(int x = 0; x < parent->gridMapHeight; x++) {
       v = *activationPatternIterator;
+      v = pow(v, activationPatternContrast);
       glColor3f(v, v, v);
       glBegin(GL_POLYGON);
       x1 = (int) (width * x / parent->gridMapWidth);
@@ -535,6 +544,24 @@ void Demo::GridMapFrame::render() {
       activationPatternIterator++;
     }
   }
+}
+
+void Demo::GridMapFrame::renderWinner() {
+  float wx, wy;
+  int x1, y1, x2, y2;
+  parent->gridMapCircuit->getWinnerPosition(wx, wy);
+  x1 = (int) (width  * (wx+0.2) / parent->gridMapWidth);
+  y1 = (int) (height * (wy+0.2) / parent->gridMapHeight);
+  x2 = (int) (width  * (wx+0.8) / parent->gridMapWidth);
+  y2 = (int) (height * (wy+0.8) / parent->gridMapHeight);
+  glColor3f(1, 0, 0);
+  glBegin(GL_POLYGON);
+  vertex2i(x1, y1);
+  vertex2i(x2, y1);
+  vertex2i(x2, y2);
+  vertex2i(x1, y2);
+  vertex2i(x1, y1);
+  glEnd();
 }
 
 Demo::SmoothGridMapFrame::SmoothGridMapFrame(Demo *_parent) {
@@ -568,6 +595,7 @@ void Demo::SmoothGridMapFrame::render() {
 
 void Demo::SmoothGridMapFrame::setColorFromActivationPattern(int x, int y) {
   float v = parent->gridMapCircuit->getActivation((unsigned int)x, (unsigned int)y);
+  v = pow(v, activationPatternContrast);
   glColor3f(v, v, v);
 }
 

@@ -75,6 +75,10 @@ void SpectrumMapCircuit::feedAudio(const float *audio, unsigned long numFrames) 
   activationPatternOutdated = true;
 }
 
+int SpectrumMapCircuit::getLastWinner() const {
+  return spectrumMap->getLastWinner();
+}
+
 void SpectrumMapCircuit::setSpectrumMapTrainingParameters(unsigned long numFrames) {
   float neighbourhoodParameter;
   float adaptationTimeSecs;
