@@ -559,11 +559,12 @@ void Demo::GridMapFrame::renderActivationPattern() {
 void Demo::GridMapFrame::renderWinner() {
   float wx, wy;
   int x1, y1, x2, y2;
+  int s = (int) (width / parent->gridMapWidth / 2);
   parent->gridMapCircuit->getWinnerPosition(wx, wy);
-  x1 = (int) (width  * (wx+0.2) / parent->gridMapWidth);
-  y1 = (int) (height * (wy+0.2) / parent->gridMapHeight);
-  x2 = (int) (width  * (wx+0.8) / parent->gridMapWidth);
-  y2 = (int) (height * (wy+0.8) / parent->gridMapHeight);
+  x1 = (int) (width  * wx) - s;
+  y1 = (int) (height * wy) - s;
+  x2 = (int) (width  * wx) + s;
+  y2 = (int) (height * wy) + s;
   glColor3f(1, 0, 0);
   glBegin(GL_POLYGON);
   vertex2i(x1, y1);
@@ -616,8 +617,8 @@ void Demo::GridMapTrajectoryFrame::updateTrace() {
   Point p;
   float wx, wy;
   parent->gridMapCircuit->getWinnerPosition(wx, wy);
-  p.x = wx / parent->gridMapWidth * width;
-  p.y = wy / parent->gridMapHeight * height;
+  p.x = wx * width;
+  p.y = wy * height;
   trace.push_back(p);
   if(trace.size() > 5)
     trace.erase(trace.begin());

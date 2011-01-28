@@ -25,6 +25,7 @@ GridMapCircuit::GridMapCircuit(const AudioParameters &_audioParameters,
                                                     _audioParameters,
                                                     _gridMapCircuitParameters)
 {
+  gridMapCircuitParameters = _gridMapCircuitParameters;
 }
 
 float GridMapCircuit::getActivation(unsigned int x, unsigned int y) {
@@ -34,6 +35,9 @@ float GridMapCircuit::getActivation(unsigned int x, unsigned int y) {
 }
 
 void GridMapCircuit::getWinnerPosition(float &x, float &y) {
+  static float gridX, gridY;
   moveTopologyCursorTowardsWinner();
-  ((RectGridTopology*) topology)->getCursorPosition(x, y);
+  ((RectGridTopology*) topology)->getCursorPosition(gridX, gridY);
+  x = (gridX + 0.5) / gridMapCircuitParameters.gridWidth;
+  y = (gridY + 0.5) / gridMapCircuitParameters.gridHeight;
 }
