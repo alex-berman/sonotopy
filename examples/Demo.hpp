@@ -84,6 +84,22 @@ private:
     Demo *parent;
   };
 
+  class GridMapTrajectoryFrame : public Frame {
+  public:
+    GridMapTrajectoryFrame(Demo *);
+    ~GridMapTrajectoryFrame();
+    void render();
+  private:
+    Demo *parent;
+    typedef struct {
+      float x;
+      float y;
+    } Point;
+    std::vector<Point> trace;
+    void updateTrace();
+    void renderTrace();
+  };
+
   class CircleMapFrame : public Frame {
   public:
     CircleMapFrame(Demo *);
@@ -170,6 +186,7 @@ private:
     Scene_Vane,
     Scene_EnlargedCircleMap,
     Scene_EnlargedGridMap,
+    Scene_GridMapTrajectory,
     Scene_Isolines,
     numScenes
   };
@@ -224,6 +241,7 @@ private:
   SpectrumBinsFrame *spectrumBinsFrame;
   GridMapFrame *gridMapFrame;
   SmoothGridMapFrame *enlargedGridMapFrame;
+  GridMapTrajectoryFrame *gridMapTrajectoryFrame;
   SmoothCircleMapFrame *enlargedCircleMapFrame;
   CircleMapFrame *circleMapFrame;
   BeatTrackerFrame *beatTrackerFrame;

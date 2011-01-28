@@ -258,6 +258,7 @@ void Demo::initializeGraphics() {
   spectrumBinsFrame = new SpectrumBinsFrame(this);
   gridMapFrame = new GridMapFrame(this);
   enlargedGridMapFrame = new SmoothGridMapFrame(this);
+  gridMapTrajectoryFrame = new GridMapTrajectoryFrame(this);
   beatTrackerFrame = new BeatTrackerFrame(this);
   isolinesFrame = new IsolinesFrame(this);
   circleMapFrame = new CircleMapFrame(this);
@@ -324,6 +325,11 @@ void Demo::resizeFrames() {
     case Scene_EnlargedGridMap:
       enlargedGridMapFrame->setSize(singleFrameSize, singleFrameSize);
       enlargedGridMapFrame->setPosition(singleFrameOffsetLeft, singleFrameOffsetTop);
+      break;
+
+    case Scene_GridMapTrajectory:
+      gridMapTrajectoryFrame->setSize(singleFrameSize, singleFrameSize);
+      gridMapTrajectoryFrame->setPosition(singleFrameOffsetLeft, singleFrameOffsetTop);
       break;
 
     case Scene_Isolines:
@@ -424,6 +430,10 @@ void Demo::glDisplay() {
 
     case Scene_EnlargedGridMap:
       enlargedGridMapFrame->display();
+      break;
+
+    case Scene_GridMapTrajectory:
+      gridMapTrajectoryFrame->display();
       break;
 
     case Scene_Isolines:
@@ -591,6 +601,46 @@ void Demo::SmoothGridMapFrame::render() {
       glEnd();
     }
   }
+}
+
+Demo::GridMapTrajectoryFrame::GridMapTrajectoryFrame(Demo *_parent) {
+  parent = _parent;
+}
+
+void Demo::GridMapTrajectoryFrame::render() {
+  updateTrace();
+  renderTrace();
+}
+
+void Demo::GridMapTrajectoryFrame::updateTrace() {
+  Point p;
+  float wx, wy;
+  parent->gridMapCircuit->getWinnerPosition(wx, wy);
+  p.x = wx / parent->gridMapWidth * width;
+  p.y = wy / parent->gridMapHeight * height;
+  trace.push_back(p);
+  if(trace.size() > 5)
+    trace.erase(trace.begin());
+}
+
+void Demo::GridMapTrajectoryFrame::renderTrace() {
+  float c;
+  glShadeModel(GL_SMOOTH);
+  glLineWidth(3.0f);
+  glBegin(GL_LINE_STRIP);
+  vector<Point>::iterator pos = trace.begin();
+  glColor3f(0, 0, 0);
+  vertex2f(pos->x, pos->y);
+  pos++;
+  int traceSize = trace.size();
+  int n = 1;
+  for(;pos != trace.end(); pos++) {
+    c = (float) (n + 1) / traceSize;
+    glColor3f(c, c, c);
+    vertex2f(pos->x, pos->y);
+    n++;
+  }
+  glEnd();
 }
 
 void Demo::SmoothGridMapFrame::setColorFromActivationPattern(int x, int y) {
@@ -761,8 +811,8 @@ void Demo::Dancer::updateTrace() {
 void Demo::Dancer::renderTrace() {
   float c;
   glShadeModel(GL_SMOOTH);
-  glBegin(GL_LINE_STRIP);
   glLineWidth(2.0f);
+  glBegin(GL_LINE_STRIP);
   vector<Point>::iterator pos = trace.begin();
   glColor3f(0, 0, 0);
   glVertex2f(pos->x, pos->y);
