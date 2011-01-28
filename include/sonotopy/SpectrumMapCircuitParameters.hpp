@@ -32,6 +32,7 @@ public:
   float initialAdaptationTimeSecs;
   float normalNeighbourhoodParameter;
   float normalAdaptationTimeSecs;
+  float trajectorySmoothness;
 };
 
 }

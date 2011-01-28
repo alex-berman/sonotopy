@@ -29,6 +29,7 @@ SpectrumMapCircuit::SpectrumMapCircuit(Topology *_topology,
   createSpectrumBinDivider();
   createSpectrumMap();
   elapsedTimeSecs = 0.0f;
+  previousCursorUpdateTimeSecs = 0.0f;
   activationPatternOutdated = false;
 }
 
@@ -75,7 +76,7 @@ void SpectrumMapCircuit::feedAudio(const float *audio, unsigned long numFrames) 
   activationPatternOutdated = true;
 }
 
-int SpectrumMapCircuit::getLastWinner() const {
+int SpectrumMapCircuit::getWinnerId() const {
   return spectrumMap->getLastWinner();
 }
 
@@ -109,4 +110,25 @@ float SpectrumMapCircuit::getLearningParameter(float adaptationTimeSecs, unsigne
 
 void SpectrumMapCircuit::setSpectrumIntegrationTimeMs(float integrationTimeMs) {
   spectrumBinDivider->setIntegrationTimeMs(integrationTimeMs);
+}
+
+void SpectrumMapCircuit::moveTopologyCursorTowardsWinner() {
+  int winnerId = getWinnerId();
+  if(previousCursorUpdateTimeSecs <= 0.0f) {
+    topology->placeCursorAtNode(winnerId);
+  }
+  else {
+    if(spectrumMapCircuitParameters.trajectorySmoothness > 0) {
+      float deltaSecs = elapsedTimeSecs - previousCursorUpdateTimeSecs;
+      float amount = deltaSecs / spectrumMapCircuitParameters.trajectorySmoothness;
+      if(amount > 1)
+	topology->placeCursorAtNode(winnerId);
+      else
+	topology->moveCursorTowardsNode(winnerId, amount);
+    }
+    else {
+      topology->placeCursorAtNode(winnerId);
+    }
+  }
+  previousCursorUpdateTimeSecs = elapsedTimeSecs;
 }

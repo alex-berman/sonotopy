@@ -29,23 +29,14 @@ public:
   ~Vane();
   void feedAudio(const float *audio, unsigned long numFrames);
   float getAngle() const;
-  void setResponseTimeMs(float);
 
 private:
   void createCircleMapCircuit();
-  void calculateAngle();
-  void rotateTowards(float angle);
 
-  Topology *topology;
+  CircleTopology *topology;
   CircleMapCircuit *circleMapCircuit;
   AudioParameters audioParameters;
   CircleMapCircuitParameters circleMapCircuitParameters;
-  const SpectrumMap *circleMap;
-  CircleTopology *circleTopology;
-  const SpectrumBinDivider *spectrumBinDivider;
-  float angle;
-  float responseTimeMs;
-  float responseFactor;
 };
 
 }

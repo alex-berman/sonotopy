@@ -22,8 +22,6 @@ Vane::Vane(const AudioParameters &_audioParameters, const CircleMapCircuitParame
   audioParameters = _audioParameters;
   circleMapCircuitParameters = _circleMapCircuitParameters;
   createCircleMapCircuit();
-  setResponseTimeMs(0.1);
-  angle = 0;
 }
 
 Vane::~Vane() {
@@ -32,41 +30,12 @@ Vane::~Vane() {
 
 void Vane::createCircleMapCircuit() {
   circleMapCircuit = new CircleMapCircuit(audioParameters, circleMapCircuitParameters);
-  spectrumBinDivider = circleMapCircuit->getSpectrumBinDivider();
-  circleMap = circleMapCircuit->getSpectrumMap();
-  circleTopology = (CircleTopology*) circleMap->getTopology();
 }
 
 void Vane::feedAudio(const float *audio, unsigned long numFrames) {
   circleMapCircuit->feedAudio(audio, numFrames);
-  calculateAngle();
 }
 
-void Vane::calculateAngle() {
-  int winnerId = circleMap->getLastWinner();
-  CircleTopology::Node node = circleTopology->getNode(winnerId);
-  rotateTowards(node.angle);
-}
-
-void Vane::setResponseTimeMs(float _responseTimeMs) {
-  responseTimeMs = _responseTimeMs;
-  if(responseTimeMs > 0) {
-    responseFactor = 1000 * audioParameters.bufferSize / audioParameters.sampleRate / responseTimeMs;
-    if(responseFactor >= 1)
-      responseFactor = 1;
-  }
-}
-
-float Vane::getAngle() const { return angle; }
-
-void Vane::rotateTowards(float targetAngle) {
-  if(responseTimeMs <= 0) {
-    angle = targetAngle;
-  }
-  else {
-    if(fabsf(angle - targetAngle) < M_PI)
-      angle += (targetAngle - angle) * responseFactor;
-    else
-      angle -= (2 * M_PI - targetAngle + angle) * responseFactor;
-  }
+float Vane::getAngle() const {
+  return circleMapCircuit->getWinnerAngle();
 }

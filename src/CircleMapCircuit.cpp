@@ -26,3 +26,7 @@ CircleMapCircuit::CircleMapCircuit(const AudioParameters &_audioParameters,
 {
 }
 
+float CircleMapCircuit::getWinnerAngle() {
+  moveTopologyCursorTowardsWinner();
+  return ((CircleTopology*)topology)->getCursorAngle();
+}

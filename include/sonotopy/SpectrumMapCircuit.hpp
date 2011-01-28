@@ -30,12 +30,13 @@ public:
   SpectrumMapCircuit(Topology *, const AudioParameters &, const SpectrumMapCircuitParameters &);
   ~SpectrumMapCircuit();
   void feedAudio(const float *audio, unsigned long numFrames);
-  int getLastWinner() const;
+  int getWinnerId() const;
   const SpectrumMap *getSpectrumMap() { return spectrumMap; }
   const SpectrumMap::ActivationPattern* getActivationPattern();
   const SpectrumAnalyzer* getSpectrumAnalyzer() { return spectrumAnalyzer; }
   const SpectrumBinDivider* getSpectrumBinDivider() { return spectrumBinDivider; }
   void setSpectrumIntegrationTimeMs(float);
+  void moveTopologyCursorTowardsWinner();
 
 protected:
   void createSpectrumMap();
@@ -56,6 +57,7 @@ protected:
   const float *spectrum;
   const float *spectrumBinValues;
   float elapsedTimeSecs;
+  float previousCursorUpdateTimeSecs;
 
 private:
   bool activationPatternOutdated;

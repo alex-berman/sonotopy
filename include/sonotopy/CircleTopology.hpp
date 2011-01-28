@@ -31,12 +31,16 @@ public:
   unsigned int getNumNodes();
   float getDistance(unsigned int sourceNodeId, unsigned int targetNodeId);
   Node getNode(unsigned int nodeId);
+  void placeCursorAtNode(unsigned int nodeId);
+  void moveCursorTowardsNode(unsigned int nodeId, float amount);
+  float getCursorAngle();
 
 private:
   unsigned int numNodes;
   float maxDistance;
   float fullAngle;
   std::vector<Node> nodes;
+  float cursorAngle;
 };
 
 }

@@ -31,6 +31,8 @@ public:
   void setVicinityFactor(float);
   virtual unsigned int getNumNodes() { return 0; }
   virtual float getDistance(unsigned int sourceNodeId, unsigned int targetNodeId) { return 0.0f; }
+  virtual void placeCursorAtNode(unsigned int nodeId) {}
+  virtual void moveCursorTowardsNode(unsigned int nodeId, float amount) {}
 
 private:
   float vicinityFactor;

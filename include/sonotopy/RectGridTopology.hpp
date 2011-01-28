@@ -33,14 +33,18 @@ public:
   unsigned int getGridWidth() { return gridWidth; }
   unsigned int getGridHeight() { return gridHeight; }
   Node getNode(unsigned int nodeId);
+  void placeCursorAtNode(unsigned int nodeId);
+  void moveCursorTowardsNode(unsigned int nodeId, float amount);
   unsigned int gridCoordinatesToId(unsigned int x, unsigned int y);
   void idToGridCoordinates(unsigned int id, unsigned int &x, unsigned int &y);
+  void getCursorPosition(float &x, float &y);
 
 private:
   unsigned int gridWidth;
   unsigned int gridHeight;
   unsigned int numNodes;
   unsigned int maxDistance;
+  float cursorX, cursorY;
 };
 
 }

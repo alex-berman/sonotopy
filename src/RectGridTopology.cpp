@@ -57,3 +57,20 @@ RectGridTopology::Node RectGridTopology::getNode(unsigned int nodeId) {
   idToGridCoordinates(nodeId, node.x, node.y);
   return node;
 }
+
+void RectGridTopology::placeCursorAtNode(unsigned int nodeId) {
+  Node node = getNode(nodeId);
+  cursorX = node.x;
+  cursorY = node.y;
+}
+
+void RectGridTopology::moveCursorTowardsNode(unsigned int nodeId, float amount) {
+  Node targetNode = getNode(nodeId);
+  cursorX += (targetNode.x - cursorX) * amount;
+  cursorY += (targetNode.y - cursorY) * amount;
+}
+
+void RectGridTopology::getCursorPosition(float &x, float &y) {
+  x = cursorX;
+  y = cursorY;
+}

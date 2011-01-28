@@ -47,3 +47,19 @@ float CircleTopology::getDistance(unsigned int sourceNodeId, unsigned int target
 CircleTopology::Node CircleTopology::getNode(unsigned int nodeId) {
   return nodes[nodeId];
 }
+
+float CircleTopology::getCursorAngle() {
+  return cursorAngle;
+}
+
+void CircleTopology::placeCursorAtNode(unsigned int nodeId) {
+  cursorAngle = nodes[nodeId].angle;
+}
+
+void CircleTopology::moveCursorTowardsNode(unsigned int nodeId, float amount) {
+  float targetAngle = nodes[nodeId].angle;
+  if(fabsf(cursorAngle - targetAngle) < M_PI)
+    cursorAngle += (targetAngle - cursorAngle) * amount;
+  else
+    cursorAngle -= (2 * M_PI - targetAngle + cursorAngle) * amount;
+}

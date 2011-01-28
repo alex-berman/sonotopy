@@ -24,4 +24,5 @@ SpectrumMapCircuitParameters::SpectrumMapCircuitParameters() {
   initialAdaptationTimeSecs = 0.05f;
   initialTrainingLengthSecs = 10.0;
   normalAdaptationTimeSecs = 3.0f;
+  trajectorySmoothness = 0.1f;
 }
