@@ -4,6 +4,9 @@ Original author: Alexander Berman (see http://nimations.com)
 
 Github repo: https://github.com/alex-berman/sonotopy
 
+Contact: alex@nimations.com
+
+
 //////////////////////////////////////////////////////////////////////////////
 
 Sonotopy: the mapping of sound (from Latin sonus for sound, topica for place)
@@ -40,6 +43,32 @@ The algorithms in the library are not intented to represent a true
 model of the human auditory system. Instead, the main motivator behind
 its development has been to explore artistic applications.
 
+
+//////////////////////////////////////////////////////////////////////////////
+
+ROADMAP (preliminary)
+
+- Integrate with Fluxus (http://www.pawfal.org/fluxus/)
+- Integrate with Pure Data (http://puredata.info/)
+- Integrate with Max (http://cycling74.com/products/maxmspjitter/)
+- Integrate with Processing (http://processing.org/)
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+CONTRIBUTING
+
+Anyone is welcome to contribute to the project. Currently, the main
+areas where contributions are requested are:
+
+- Using the library and providing feedback to further development
+- Building demos and applications
+- Integration with other software (see the roadmap above)
+- Developments of the library core (ideas and/or implementation)
+
+But this list can easily be extended; if you have other ideas, get in touch.
+
+
 //////////////////////////////////////////////////////////////////////////////
 
 REQUIREMENTS
@@ -52,6 +81,7 @@ Sonotopy requires FFTW3:
 http://www.fftw.org/
 (or: apt-get install libfftw3-dev)
 
+
 //////////////////////////////////////////////////////////////////////////////
 
 INSTALLATION
@@ -60,14 +90,12 @@ To build the library, run "scons" in the root directory.
 
 To install the library and header files, run "sudo scons install".
 
+
 //////////////////////////////////////////////////////////////////////////////
 
 EXAMPLES
 
-Sonotopy is bundled with a demo.
-
-To build the demo, run "scons examples".
+Sonotopy is bundled with a demo. To build the demo, run "scons examples".
 
 To execute the demo, run "build/release/examples/Demo". For usage 
 instructions, run Demo with the -h flag.
-
