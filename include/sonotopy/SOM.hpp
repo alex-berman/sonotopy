@@ -37,6 +37,8 @@ public:
   uint getLastWinner() const;
   void getOutput(const Sample &input, Output &output) const;
   void getLastOutput(Output &output) const;
+  double getOutputMin() const;
+  double getOutputMax() const;
   void setModel(uint modelIndex, const Sample &);
   void setAllModels(const Sample &);
   void setRandomModelValues(double min = 0, double max = 1);
@@ -82,6 +84,7 @@ protected:
   double maxDistance; // max distance in euclidian space between two samples
   uint lastWinnerId;
   Output lastOutput;
+  double outputMin, outputMax;
 };
 
 }

@@ -122,3 +122,11 @@ void SpectrumMap::getMinAndMax(const vector<double> &values, float &min, float &
       max = value;
   }
 }
+
+float SpectrumMap::getErrorMin() const {
+  return som->getOutputMin();
+}
+
+float SpectrumMap::getErrorMax() const {
+  return som->getOutputMax();
+}

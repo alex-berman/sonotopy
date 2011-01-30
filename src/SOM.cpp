@@ -27,7 +27,8 @@ SOM::SOM(uint _inputSize, Topology *_topology) {
   topology = _topology;
   numModels = topology->getNumNodes();
   setLearningParameter(0.5);
-
+  outputMin = 0;
+  outputMax = 0;
   maxDistance = ::sqrt((float)inputSize); // sqrt(1² + 1² ... inputSize times)
   createModels();
 }
@@ -94,25 +95,36 @@ void SOM::train(const Sample &input) {
 
 SOM::uint SOM::getWinnerAndStoreOutput(const Sample &input, Output &output) {
   uint winnerId = 0;
-  double diff;
+  double distance, localDistanceMin = 0, localDistanceMax = 0;
+  double modelOutput, localOutputMin = 0, localOutputMax = 0;
   Model *model;
-  Sample::const_iterator samplePtr;
 
-  lastOutput.clear();
-  double closest = 0;
+  output.clear();
   uint modelId = 0;
   for(vector<Model*>::iterator i = models.begin(); i != models.end(); ++i) {
     model = *i;
-    diff = model->getDistance(input);
-    samplePtr = input.begin();
-    if(i == models.begin() || diff < closest) {
-      closest = diff;
+    distance = model->getDistance(input);
+    modelOutput = (float) (::sqrt(distance) / maxDistance);
+    if(i == models.begin()) {
+      localDistanceMin = localDistanceMax = distance;
       winnerId = modelId;
+      localOutputMin = localOutputMax = modelOutput;
     }
-    lastOutput.push_back((float) (::sqrt(diff) / maxDistance));
+    else if(distance < localDistanceMin) {
+      localDistanceMin = distance;
+      winnerId = modelId;
+      localOutputMin = modelOutput;
+    }
+    else if(distance > localDistanceMax) {
+      localDistanceMax = distance;
+      localOutputMax = modelOutput;
+    }
+    output.push_back(modelOutput);
     modelId++;
   }
 
+  outputMin = localOutputMin;
+  outputMax = localOutputMax;
   return winnerId;
 }
 
@@ -122,6 +134,14 @@ void SOM::getOutput(const Sample &input, Output &output) const {
 
 void SOM::getLastOutput(Output &output) const {
   output = lastOutput;
+}
+
+double SOM::getOutputMin() const {
+  return outputMin;
+}
+
+double SOM::getOutputMax() const {
+  return outputMax;
 }
 
 void SOM::setModel(uint modelIndex, const Sample &sample) {
@@ -184,12 +204,12 @@ double SOM::Model::getDistance(const Sample &input) {
   double *valuePtr = values;
   Sample::const_iterator samplePtr = input.begin();
   double d;
-  double diff = 0;
+  double distance = 0;
   for(uint k = 0; k < inputSize; k++) {
     d = *valuePtr++ - *samplePtr++;
-    diff += d * d;
+    distance += d * d;
   }
-  return diff;
+  return distance;
 }
 
 void SOM::Model::set(const Sample &sample) {

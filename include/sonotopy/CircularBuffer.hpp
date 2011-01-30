@@ -24,6 +24,7 @@ public:
   CircularBuffer(unsigned long size);
   ~CircularBuffer();
   void write(unsigned long n, const T *); // put n items at the end and move the writehead forward
+  void write(const T); // put one item at the end and move the writehead forward
   void read(unsigned long n, T *); // read n items from the readhead, without moving the readhead forward
   void moveReadHead(unsigned long n); // move the readhead forward n items
 

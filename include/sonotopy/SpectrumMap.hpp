@@ -35,6 +35,8 @@ public:
   int getLastWinner() const;
   void getActivationPattern(ActivationPattern *) const;
   Topology* getTopology() const;
+  float getErrorMin() const;
+  float getErrorMax() const;
 
 private:
   void createSom();

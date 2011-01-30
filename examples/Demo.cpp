@@ -55,6 +55,7 @@ void Demo::processCommandLineArguments() {
   useAudioInputFile = false;
   echoAudio = false;
   showFPS = false;
+  plotError = false;
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -85,6 +86,9 @@ void Demo::processCommandLineArguments() {
       else if(strcmp(argflag, "showfps") == 0) {
         showFPS = true;
       }
+      else if(strcmp(argflag, "error") == 0) {
+        plotError = true;
+      }
       else {
         printf("Unknown option %s\n\n", argflag);
         usage();
@@ -106,7 +110,7 @@ void Demo::usage() {
 
   printf(" -f <WAV file> Use audio file as input\n");
   printf(" -b <N>        Set audio buffer size to N (default: %ld)\n", audioParameters.bufferSize);
-  printf(" -d <N>        Use audio device number N\n");
+  printf(" -d <name>     Use specified audio device\n");
   printf(" -echo         Echo audio input back to output\n");
   printf(" -showfps      Output frame rate to console\n");
 
@@ -236,19 +240,19 @@ void Demo::initializeAudioProcessing() {
 
 void Demo::glSpecial(int key, int x, int y) {
   switch(key) {
-    case GLUT_KEY_RIGHT:
-      if(sceneNum == (numScenes - 1))
-        moveToScene(0);
-      else
-        moveToScene(sceneNum + 1);
-      break;
+  case GLUT_KEY_RIGHT:
+    if(sceneNum == (numScenes - 1))
+      moveToScene(0);
+    else
+      moveToScene(sceneNum + 1);
+    break;
 
-    case GLUT_KEY_LEFT:
-      if(sceneNum == 0)
-        moveToScene(numScenes - 1);
-      else
-        moveToScene(sceneNum - 1);
-      break;
+  case GLUT_KEY_LEFT:
+    if(sceneNum == 0)
+      moveToScene(numScenes - 1);
+    else
+      moveToScene(sceneNum - 1);
+    break;
   }
 }
 
@@ -271,6 +275,8 @@ void Demo::initializeGraphics() {
   isolinesFrame = new IsolinesFrame(this);
   circleMapFrame = new CircleMapFrame(this);
   enlargedCircleMapFrame = new SmoothCircleMapFrame(this);
+  circleMapErrorPlotter = new ErrorPlotter(circleMap);
+  gridMapErrorPlotter = new ErrorPlotter(gridMap);
 
   for(int i = 0; i < 20; i++)
     dancers.push_back(Dancer(this));
@@ -387,6 +393,11 @@ int Demo::audioCallback(float *inputBuffer, float *outputBuffer, unsigned long f
   circleMapCircuit->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
   vane->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
+
+  if(plotError) {
+    circleMapErrorPlotter->update();
+    gridMapErrorPlotter->update();
+  }
 
   return 0;
 }
@@ -615,6 +626,9 @@ void Demo::SmoothGridMapFrame::render() {
       glEnd();
     }
   }
+
+  if(parent->plotError)
+    parent->gridMapErrorPlotter->render(this);
 }
 
 Demo::GridMapTrajectoryFrame::GridMapTrajectoryFrame(Demo *_parent) {
@@ -735,6 +749,9 @@ void Demo::SmoothCircleMapFrame::render() {
     vertex2i(x, y);
   }
   glEnd();
+
+  if(parent->plotError)
+    parent->circleMapErrorPlotter->render(this);
 }
 
 float Demo::SmoothCircleMapFrame::getColorAtAngle(float angle) {
@@ -919,6 +936,66 @@ void Demo::IsolinesFrame::renderDrawableIsocurveSetHistory() {
       glEnd();
     }
     ip++;
+  }
+}
+
+Demo::ErrorPlotter::ErrorPlotter(const SpectrumMap *_map) {
+  map = _map;
+  bufferSize = 1000;
+  buffer = new float [bufferSize];
+  circularBufferMin = new CircularBuffer<float> (bufferSize);
+  circularBufferMax = new CircularBuffer<float> (bufferSize);
+  maxValue = 0;
+  smootherMin.setResponseFactor(0.01);
+  smootherMax.setResponseFactor(0.01);
+}
+
+Demo::ErrorPlotter::~ErrorPlotter() {
+  delete [] buffer;
+  delete circularBufferMin;
+  delete circularBufferMax;
+}
+
+void Demo::ErrorPlotter::update() {
+  circularBufferMin->write(smootherMin.smooth(map->getErrorMin()));
+  circularBufferMin->moveReadHead(1);
+  circularBufferMax->write(smootherMax.smooth(map->getErrorMax()));
+  circularBufferMax->moveReadHead(1);
+}
+
+void Demo::ErrorPlotter::render(Frame *frame) {
+  int i = 0;
+  float y;
+  int width = frame->getWidth();
+  int height = frame->getHeight();
+
+  circularBufferMax->read(bufferSize, buffer);
+  for(int x = 0; x < width; x++) {
+    i = (int) (bufferSize * x / width);
+    y = buffer[i];
+    if(y > maxValue) maxValue = y;
+  }
+
+  if(maxValue > 0) {
+    glShadeModel(GL_FLAT);
+    glBegin(GL_POINTS);
+    glColor3f(1, 0, 0);
+    for(int x = 0; x < width; x++) {
+      i = (int) (bufferSize * x / width);
+      y = buffer[i];
+      frame->vertex2i(x, (int) ((1 - y / maxValue) * height));
+    }
+    glEnd();
+
+    circularBufferMin->read(bufferSize, buffer);
+    glBegin(GL_POINTS);
+    glColor3f(0, 1, 0);
+    for(int x = 0; x < width; x++) {
+      i = (int) (bufferSize * x / width);
+      y = buffer[i];
+      frame->vertex2i(x, (int) ((1 - y / maxValue) * height));
+    }
+    glEnd();
   }
 }
 

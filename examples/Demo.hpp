@@ -36,6 +36,24 @@ public:
   int getWindowHeight() { return windowHeight; }
 
 private:
+  class ErrorPlotter {
+  public:
+    ErrorPlotter(const SpectrumMap *);
+    ~ErrorPlotter();
+    void update();
+    void render(Frame *);
+
+  private:
+    const SpectrumMap *map;
+    Frame *frame;
+    float *buffer;
+    CircularBuffer<float> *circularBufferMin;
+    CircularBuffer<float> *circularBufferMax;
+    int bufferSize;
+    float maxValue;
+    Smoother smootherMin, smootherMax;
+  };
+
   class WaveformFrame : public Frame {
   public:
     WaveformFrame(Demo *);
@@ -253,4 +271,7 @@ private:
   bool echoAudio;
   float timeOfPreviousDisplay;
   float timeIncrement;
+  bool plotError;
+  ErrorPlotter *circleMapErrorPlotter;
+  ErrorPlotter *gridMapErrorPlotter;
 };

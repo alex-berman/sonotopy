@@ -41,12 +41,17 @@ template <class T>
 void CircularBuffer<T>::write(unsigned long numItems, const T *items) {
   T *readPtr1 = (T *) items;
   for(unsigned long i = 0; i < numItems; i++) {
-    *writePtr++ = *readPtr1++;
-    writePos++;
-    if(writePos == size) {
-      writePos = 0;
-      writePtr = buffer;
-    }
+    write(*readPtr1++);
+  }
+}
+
+template <class T>
+void CircularBuffer<T>::write(const T item) {
+  *writePtr++ = item;
+  writePos++;
+  if(writePos == size) {
+    writePos = 0;
+    writePtr = buffer;
   }
 }
 
