@@ -360,6 +360,19 @@ TEST(SpectrumMap) {
   CHECK_EQUAL((size_t)9, activationPattern->size());
 }
 
+TEST(GridMapCircuit_repeat_getWinnerPosition) {
+  AudioParameters audioParameters;
+  GridMapCircuitParameters gridMapCircuitParameters;
+  GridMapCircuit gridMapCircuit(audioParameters, gridMapCircuitParameters);
+  float x, y;
+  float *audio = new float [audioParameters.bufferSize];
+  gridMapCircuit.feedAudio(audio, audioParameters.bufferSize);
+  gridMapCircuit.getWinnerPosition(x, y);
+  gridMapCircuit.getWinnerPosition(x, y);
+  gridMapCircuit.getWinnerPosition(x, y);
+  delete [] audio;
+}
+
 TEST(NormalizerImmediate) {
   Normalizer normalizer;
   float precision = 0.0001;
