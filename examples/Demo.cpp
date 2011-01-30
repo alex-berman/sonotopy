@@ -633,7 +633,7 @@ void Demo::GridMapTrajectoryFrame::updateTrace() {
   p.x = wx * width;
   p.y = wy * height;
   trace.push_back(p);
-  if(trace.size() > 5)
+  if(trace.size() > 10)
     trace.erase(trace.begin());
 }
 
@@ -768,8 +768,9 @@ void Demo::BeatTrackerFrame::render() {
 }
 
 void Demo::updateVaneScene() {
+  float timeIncrementSecs = timeIncrement / 1000;
   for(vector<Dancer>::iterator dancer = dancers.begin(); dancer != dancers.end(); dancer++)
-    dancer->update(timeIncrement / 1000);
+    dancer->update(timeIncrementSecs);
 }
 
 void Demo::renderVaneScene() {
