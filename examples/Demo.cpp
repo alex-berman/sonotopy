@@ -31,7 +31,7 @@ Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
   argv = _argv;
   audioFileBuffer = NULL;
   spectrumMapCircuitInputBuffer = NULL;
-  audioDevice = 0;
+  audioDeviceName = NULL;
 
   SPACING = 5;
   SINGLE_FRAME_RELATIVE_SIZE = 0.8;
@@ -77,7 +77,7 @@ void Demo::processCommandLineArguments() {
       }
       else if(strcmp(argflag, "d") == 0) {
         argnr++; argptr++;
-        audioDevice = atoi(*argptr);
+        audioDeviceName = *argptr;
       }
       else if(strcmp(argflag, "echo") == 0) {
         echoAudio = true;
@@ -157,38 +157,46 @@ static int Demo_portaudioCallback(
 
 void Demo::openAudioStream() {
   int numInputChannels = 2;
-  int numOutputChannels = 2;
-  int inputDevice = audioDevice;
-  int outputDevice = audioDevice;
+  int numOutputChannels = echoAudio ? 2 : 0;
+  int audioDeviceId = 0;
   PaStreamParameters outputParameters;
   PaStreamParameters inputParameters;
   PaError err;
   void *callbackUserData = (void *) this;
 
-  /* List all devices */
   const PaDeviceInfo *deviceInfo;
   int numDevices = Pa_GetDeviceCount();
+
+  if(audioDeviceName != NULL) {
+    for(int i=0; i<numDevices; i++) {
+      deviceInfo = Pa_GetDeviceInfo(i);
+      if(strncmp(audioDeviceName, deviceInfo->name, strlen(audioDeviceName)) == 0)
+	audioDeviceId = i;
+    }
+  }
   for(int i=0; i<numDevices; i++) {
     deviceInfo = Pa_GetDeviceInfo(i);
     printf("device %d%s: '%s', %d in, %d out\n",
-      i, (i == audioDevice) ? " SELECTED" : "",
+      i, (i == audioDeviceId) ? " SELECTED" : "",
       deviceInfo->name, deviceInfo->maxInputChannels, deviceInfo->maxOutputChannels);
   }
 
   bzero(&inputParameters, sizeof(inputParameters));
   inputParameters.channelCount = numInputChannels;
-  inputParameters.device = inputDevice;
+  inputParameters.device = audioDeviceId;
   inputParameters.sampleFormat = paFloat32;
 
-  bzero(&outputParameters, sizeof(outputParameters));
-  outputParameters.channelCount = numOutputChannels;
-  outputParameters.device = outputDevice;
-  outputParameters.sampleFormat = paFloat32;
+  if(echoAudio) {
+    bzero(&outputParameters, sizeof(outputParameters));
+    outputParameters.channelCount = numOutputChannels;
+    outputParameters.device = audioDeviceId;
+    outputParameters.sampleFormat = paFloat32;
+  }
 
   err = Pa_OpenStream(
     &paStream,
     &inputParameters,
-    &outputParameters,
+    echoAudio ? &outputParameters : NULL,
     audioParameters.sampleRate,
     audioParameters.bufferSize,
     paNoFlag,
@@ -380,9 +388,6 @@ int Demo::audioCallback(float *inputBuffer, float *outputBuffer, unsigned long f
   vane->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
 
-  float timeIncrement = (float) audioParameters.bufferSize / audioParameters.sampleRate;
-  updateVaneScene(timeIncrement);
-
   return 0;
 }
 
@@ -399,8 +404,15 @@ void Demo::readAudioBufferFromFile() {
 }
 
 void Demo::glDisplay() {
-  if(frameCount == 0)
+  if(frameCount == 0) {
     stopwatch.start();
+    timeIncrement = 0;
+  }
+  else {
+    float timeOfThisDisplay = stopwatch.getElapsedMilliseconds();
+    timeIncrement = timeOfThisDisplay - timeOfPreviousDisplay;
+    timeOfPreviousDisplay = timeOfThisDisplay;
+  }
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_TEXTURE_2D);
@@ -421,6 +433,7 @@ void Demo::glDisplay() {
       break;
 
     case Scene_Vane:
+      updateVaneScene();
       renderVaneScene();
       break;
 
@@ -754,9 +767,9 @@ void Demo::BeatTrackerFrame::render() {
   glEnd();
 }
 
-void Demo::updateVaneScene(float timeIncrement) {
+void Demo::updateVaneScene() {
   for(vector<Dancer>::iterator dancer = dancers.begin(); dancer != dancers.end(); dancer++)
-    dancer->update(timeIncrement);
+    dancer->update(timeIncrement / 1000);
 }
 
 void Demo::renderVaneScene() {

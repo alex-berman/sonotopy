@@ -202,7 +202,7 @@ private:
   void readAudioBufferFromFile();
   void resizeFrames();
   void moveToScene(int _sceneNum);
-  void updateVaneScene(float timeIncrement);
+  void updateVaneScene();
   void renderVaneScene();
 
   Stopwatch stopwatch;
@@ -233,7 +233,7 @@ private:
   SNDFILE *audioInputFile;
   float *audioFileBuffer;
   PaStream *paStream;
-  int audioDevice;
+  const char *audioDeviceName;
   float *spectrumMapCircuitInputBuffer;
   int sceneNum;
   WaveformFrame *waveformFrame;
@@ -251,4 +251,6 @@ private:
   int windowWidth, windowHeight;
   std::vector<Dancer> dancers;
   bool echoAudio;
+  float timeOfPreviousDisplay;
+  float timeIncrement;
 };
