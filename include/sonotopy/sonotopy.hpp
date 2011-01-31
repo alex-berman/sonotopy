@@ -20,9 +20,9 @@
 #include <sonotopy/CircleMapCircuit.hpp>
 #include <sonotopy/GridMapCircuit.hpp>
 #include <sonotopy/Smoother.hpp>
-#include <sonotopy/Vane.hpp>
 #include <sonotopy/Normalizer.hpp>
 #include <sonotopy/Stopwatch.hpp>
+#include <sonotopy/CircleTopology.hpp>
 #include <sonotopy/RectGridTopology.hpp>
 
 #endif

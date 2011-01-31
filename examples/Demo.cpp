@@ -235,7 +235,6 @@ void Demo::initializeAudioProcessing() {
   circleTopology = (CircleTopology*) circleMap->getTopology();
 
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
-  vane = new Vane(audioParameters);
 }
 
 void Demo::glSpecial(int key, int x, int y) {
@@ -391,7 +390,6 @@ int Demo::audioCallback(float *inputBuffer, float *outputBuffer, unsigned long f
 
   gridMapCircuit->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
   circleMapCircuit->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
-  vane->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
 
   if(plotError) {
@@ -443,9 +441,9 @@ void Demo::glDisplay() {
       beatTrackerFrame->display();
       break;
 
-    case Scene_Vane:
-      updateVaneScene();
-      renderVaneScene();
+    case Scene_Dancers:
+      updateDancers();
+      renderDancers();
       break;
 
     case Scene_EnlargedCircleMap:
@@ -551,7 +549,7 @@ Demo::GridMapFrame::GridMapFrame(Demo *_parent) {
 void Demo::GridMapFrame::render() {
   glShadeModel(GL_FLAT);
   renderActivationPattern();
-  renderWinner();
+  renderCursor();
 }
 
 void Demo::GridMapFrame::renderActivationPattern() {
@@ -580,11 +578,11 @@ void Demo::GridMapFrame::renderActivationPattern() {
   }
 }
 
-void Demo::GridMapFrame::renderWinner() {
+void Demo::GridMapFrame::renderCursor() {
   float wx, wy;
   int x1, y1, x2, y2;
   int s = (int) (width / parent->gridMapWidth / 2);
-  parent->gridMapCircuit->getWinnerPosition(wx, wy);
+  parent->gridMapCircuit->getCursor(wx, wy);
   x1 = (int) (width  * wx) - s;
   y1 = (int) (height * wy) - s;
   x2 = (int) (width  * wx) + s;
@@ -643,7 +641,7 @@ void Demo::GridMapTrajectoryFrame::render() {
 void Demo::GridMapTrajectoryFrame::updateTrace() {
   Point p;
   float wx, wy;
-  parent->gridMapCircuit->getWinnerPosition(wx, wy);
+  parent->gridMapCircuit->getCursor(wx, wy);
   p.x = wx * width;
   p.y = wy * height;
   trace.push_back(p);
@@ -683,7 +681,7 @@ Demo::CircleMapFrame::CircleMapFrame(Demo *_parent) {
 }
 
 void Demo::CircleMapFrame::render() {
-  static float v, c;
+  static float c;
   static int x1, y1, x2, y2;
   int centreX = width / 2;
   int centreY = height / 2;
@@ -693,8 +691,7 @@ void Demo::CircleMapFrame::render() {
   SpectrumMap::ActivationPattern::const_iterator activationPatternIterator = parent->circleMapActivationPattern->begin();
   CircleTopology::Node node;
   for(int i = 0; i < numNodes; i++) {
-    v = *activationPatternIterator;
-    c = 1.0f - v;
+    c = *activationPatternIterator;
     node = parent->circleTopology->getNode(i);
     x1 = centreX + radius * cos(node.angle - angleSpan);
     y1 = centreY + radius * sin(node.angle - angleSpan);
@@ -709,8 +706,8 @@ void Demo::CircleMapFrame::render() {
     activationPatternIterator++;
   }
 
-  float angle = parent->vane->getAngle();
-  radius = parent->beatTracker->getIntensity() * width * 0.5;
+  float angle = parent->circleMapCircuit->getAngle();
+  radius = width * (0.1 + parent->beatTracker->getIntensity() * 0.3);
   x1 = centreX + radius * cos(angle);
   y1 = centreY + radius * sin(angle);
   glColor3f(1.0f, 0.0f, 0.0f);
@@ -784,13 +781,13 @@ void Demo::BeatTrackerFrame::render() {
   glEnd();
 }
 
-void Demo::updateVaneScene() {
+void Demo::updateDancers() {
   float timeIncrementSecs = timeIncrement / 1000;
   for(vector<Dancer>::iterator dancer = dancers.begin(); dancer != dancers.end(); dancer++)
     dancer->update(timeIncrementSecs);
 }
 
-void Demo::renderVaneScene() {
+void Demo::renderDancers() {
   for(vector<Dancer>::iterator dancer = dancers.begin(); dancer != dancers.end(); dancer++)
     dancer->render();
 }
@@ -805,7 +802,6 @@ void Demo::Dancer::reset() {
   speedFactor = 0.3 + 0.3 * (float) rand() / RAND_MAX;
   length = 0.03;
   angle = 0;
-  vaneAngle = 0;
   angleOffset = 2 * M_PI * (float) rand() / RAND_MAX;
   speedOffset = -(float) rand() / RAND_MAX * 0.2;
   trace.clear();
@@ -814,7 +810,7 @@ void Demo::Dancer::reset() {
 }
 
 void Demo::Dancer::update(float timeIncrement) {
-  angle = parent->vane->getAngle() + angleOffset;
+  angle = parent->circleMapCircuit->getAngle() + angleOffset;
   speed = (parent->beatTracker->getIntensity() + speedOffset) * speedFactor;
 
   float aspectRatio = (float) parent->windowHeight / parent->windowWidth;

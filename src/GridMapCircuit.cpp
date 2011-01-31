@@ -34,7 +34,7 @@ float GridMapCircuit::getActivation(unsigned int x, unsigned int y) {
   return (*currentActivationPattern)[nodeId];
 }
 
-void GridMapCircuit::getWinnerPosition(float &x, float &y) {
+void GridMapCircuit::getCursor(float &x, float &y) {
   static float gridX, gridY;
   moveTopologyCursorTowardsWinner();
   ((RectGridTopology*) topology)->getCursorPosition(gridX, gridY);

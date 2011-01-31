@@ -26,7 +26,7 @@ class CircleMapCircuit : public SpectrumMapCircuit
 {
 public:
   CircleMapCircuit(const AudioParameters &, const CircleMapCircuitParameters &);
-  float getWinnerAngle();
+  float getAngle();
 };
 
 }

@@ -360,16 +360,16 @@ TEST(SpectrumMap) {
   CHECK_EQUAL((size_t)9, activationPattern->size());
 }
 
-TEST(GridMapCircuit_repeat_getWinnerPosition) {
+TEST(GridMapCircuit_repeat_getCursor) {
   AudioParameters audioParameters;
   GridMapCircuitParameters gridMapCircuitParameters;
   GridMapCircuit gridMapCircuit(audioParameters, gridMapCircuitParameters);
   float x, y;
   float *audio = new float [audioParameters.bufferSize];
   gridMapCircuit.feedAudio(audio, audioParameters.bufferSize);
-  gridMapCircuit.getWinnerPosition(x, y);
-  gridMapCircuit.getWinnerPosition(x, y);
-  gridMapCircuit.getWinnerPosition(x, y);
+  gridMapCircuit.getCursor(x, y);
+  gridMapCircuit.getCursor(x, y);
+  gridMapCircuit.getCursor(x, y);
   delete [] audio;
 }
 
@@ -398,6 +398,65 @@ TEST(NormalizerWithAdaptation) {
   CHECK_CLOSE(0.666667, normalizer.normalize(0.4), precision);
   CHECK_CLOSE(0.8, normalizer.normalize(0.4), precision);
 }
+
+
+#define CheckAngleSubtraction(p, q, result) \
+  CHECK_CLOSE(result * M_PI*2, topology.subtractAngle(p * M_PI*2, q * M_PI*2), 0.0001);
+
+TEST(CircleTopologyAngleSubtraction) {
+  CircleTopology topology(1);
+
+  CheckAngleSubtraction(0.2, 0.2, 0.0);
+  CheckAngleSubtraction(0.8, 0.8, 0.0);
+
+  CheckAngleSubtraction(0.2, 0.1, 0.1);
+  CheckAngleSubtraction(0.1, 0.2, -0.1);
+  CheckAngleSubtraction(0.9, 0.8, 0.1);
+  CheckAngleSubtraction(0.8, 0.9, -0.1);
+
+  CheckAngleSubtraction(0.9, 0.1, -0.2);
+  CheckAngleSubtraction(0.1, 0.9, 0.2);
+
+  CheckAngleSubtraction(0.8, 0.2, -0.4);
+  CheckAngleSubtraction(0.2, 0.8, 0.4);
+}
+
+
+#define CheckClampAngle(in, out) \
+  CHECK_CLOSE(out, topology.clampAngle(in), 0.0001)
+
+TEST(CircleTopologyClampAngle) {
+  CircleTopology topology(1);
+  CheckClampAngle( 0.1 * 2*M_PI, 0.1 * 2*M_PI);
+  CheckClampAngle(-0.1 * 2*M_PI, 0.9 * 2*M_PI);
+  CheckClampAngle( 1.1 * 2*M_PI, 0.1 * 2*M_PI);
+  CheckClampAngle(-1.1 * 2*M_PI, 0.9 * 2*M_PI);
+  CheckClampAngle( 2.1 * 2*M_PI, 0.1 * 2*M_PI);
+  CheckClampAngle(-2.1 * 2*M_PI, 0.9 * 2*M_PI);
+}
+
+
+TEST(CircleMapCircuitAngle) {
+  float precision = 0.0001;
+  AudioParameters audioParameters;
+  CircleMapCircuitParameters circleMapCircuitParameters;
+  CircleMapCircuit circleMapCircuit(audioParameters, circleMapCircuitParameters);
+  circleMapCircuitParameters.trajectorySmoothness = 0;
+  float *audio = new float [audioParameters.bufferSize];
+  CircleTopology *topology = (CircleTopology*) circleMapCircuit.getSpectrumMap()->getTopology();
+  CircleTopology::Node node;
+
+  circleMapCircuit.feedAudio(audio, audioParameters.bufferSize);
+  node = topology->getNode(circleMapCircuit.getWinnerId());
+  CHECK_CLOSE(circleMapCircuit.getAngle(), node.angle, precision);
+
+  circleMapCircuit.feedAudio(audio, audioParameters.bufferSize);
+  node = topology->getNode(circleMapCircuit.getWinnerId());
+  CHECK_CLOSE(circleMapCircuit.getAngle(), node.angle, precision);
+
+  delete [] audio;
+}
+
 
 int main()
 {

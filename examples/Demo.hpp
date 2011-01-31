@@ -88,7 +88,7 @@ private:
     void render();
   private:
     void renderActivationPattern();
-    void renderWinner();
+    void renderCursor();
     Demo *parent;
   };
 
@@ -171,7 +171,6 @@ private:
     Point currentPos;
     std::vector<Point> trace;
     float angleOffset;
-    float vaneAngle;
     float angle;
     float speed;
     float speedOffset;
@@ -201,7 +200,7 @@ private:
 
   enum {
     Scene_Mixed = 0,
-    Scene_Vane,
+    Scene_Dancers,
     Scene_EnlargedCircleMap,
     Scene_EnlargedGridMap,
     Scene_GridMapTrajectory,
@@ -220,8 +219,8 @@ private:
   void readAudioBufferFromFile();
   void resizeFrames();
   void moveToScene(int _sceneNum);
-  void updateVaneScene();
-  void renderVaneScene();
+  void updateDancers();
+  void renderDancers();
 
   Stopwatch stopwatch;
   int SPACING;
@@ -247,7 +246,6 @@ private:
   const SpectrumMap::ActivationPattern *circleMapActivationPattern;
   const SpectrumMap *circleMap;
   BeatTracker *beatTracker;
-  Vane *vane;
   SNDFILE *audioInputFile;
   float *audioFileBuffer;
   PaStream *paStream;

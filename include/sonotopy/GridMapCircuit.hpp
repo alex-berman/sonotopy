@@ -27,7 +27,7 @@ class GridMapCircuit : public SpectrumMapCircuit
 public:
   GridMapCircuit(const AudioParameters &, const GridMapCircuitParameters &);
   float getActivation(unsigned int x, unsigned int y);
-  void getWinnerPosition(float &x, float &y);
+  void getCursor(float &x, float &y);
 
 private:
   GridMapCircuitParameters gridMapCircuitParameters;

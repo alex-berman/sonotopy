@@ -58,8 +58,23 @@ void CircleTopology::placeCursorAtNode(unsigned int nodeId) {
 
 void CircleTopology::moveCursorTowardsNode(unsigned int nodeId, float amount) {
   float targetAngle = nodes[nodeId].angle;
-  if(fabsf(cursorAngle - targetAngle) < M_PI)
-    cursorAngle += (targetAngle - cursorAngle) * amount;
+  cursorAngle += subtractAngle(targetAngle, cursorAngle) * amount;
+  cursorAngle = clampAngle(cursorAngle);
+}
+
+float CircleTopology::subtractAngle(float x, float y) {
+  if(fabsf(x - y) < M_PI)
+    return x - y;
+  else if(x > y)
+    return -(fullAngle - x + y);
   else
-    cursorAngle -= (2 * M_PI - targetAngle + cursorAngle) * amount;
+    return fullAngle + x - y;
+}
+
+float CircleTopology::clampAngle(float x) {
+  while(x < 0)
+    x += fullAngle;
+  while(x > fullAngle)
+    x -= fullAngle;
+  return x;
 }

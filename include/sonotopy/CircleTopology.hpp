@@ -34,6 +34,8 @@ public:
   void placeCursorAtNode(unsigned int nodeId);
   void moveCursorTowardsNode(unsigned int nodeId, float amount);
   float getCursorAngle();
+  float subtractAngle(float, float);
+  float clampAngle(float);
 
 private:
   unsigned int numNodes;
