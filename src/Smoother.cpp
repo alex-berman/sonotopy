@@ -18,14 +18,21 @@
 using namespace sonotopy;
 
 Smoother::Smoother() {
-  currentValue = 0;
+  initialized = false;
 }
 
 float Smoother::smooth(float newValue) {
-  currentValue += (newValue - currentValue) * responseFactor;
+  if(initialized)
+    currentValue += (newValue - currentValue) * responseFactor;
+  else {
+    currentValue = newValue;
+    initialized = true;
+  }
   return currentValue;
 }
 
 void Smoother::setResponseFactor(float _responseFactor) {
   responseFactor = _responseFactor;
+  if(responseFactor > 1)
+    responseFactor = 1;
 }

@@ -27,6 +27,7 @@ public:
 private:
   float responseFactor;
   float currentValue;
+  bool initialized;
 };
 
 }
