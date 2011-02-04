@@ -13,21 +13,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef GRIDMAPCIRCUITPARAMETERS_HPP
-#define GRIDMAPCIRCUITPARAMETERS_HPP
+#include "CircleMap.hpp"
+#include "CircleTopology.hpp"
 
-#include "SpectrumMapCircuitParameters.hpp"
+using namespace sonotopy;
 
-namespace sonotopy {
-
-class GridMapCircuitParameters : public SpectrumMapCircuitParameters
+CircleMap::CircleMap(const AudioParameters &_audioParameters,
+		     const CircleMapParameters &_circleMapParameters)
+  : SpectrumMap(new CircleTopology(_circleMapParameters.numNodes),
+		_audioParameters,
+		_circleMapParameters)
 {
-  public:
-    GridMapCircuitParameters();
-    int gridWidth;
-    int gridHeight;
-};
-
 }
 
-#endif // GRIDMAPCIRCUITPARAMETERS_HPP
+float CircleMap::getAngle() {
+  moveTopologyCursorTowardsWinner();
+  return ((CircleTopology*)topology)->getCursorAngle();
+}

@@ -13,31 +13,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "GridMapCircuit.hpp"
+#include "GridMap.hpp"
 #include "RectGridTopology.hpp"
 
 using namespace sonotopy;
 
-GridMapCircuit::GridMapCircuit(const AudioParameters &_audioParameters,
-                               const GridMapCircuitParameters &_gridMapCircuitParameters)
-                               : SpectrumMapCircuit(new RectGridTopology(_gridMapCircuitParameters.gridWidth,
-									 _gridMapCircuitParameters.gridHeight),
-                                                    _audioParameters,
-                                                    _gridMapCircuitParameters)
+GridMap::GridMap(const AudioParameters &_audioParameters,
+		 const GridMapParameters &_gridMapParameters)
+  : SpectrumMap(new RectGridTopology(_gridMapParameters.gridWidth,
+				     _gridMapParameters.gridHeight),
+		_audioParameters,
+		_gridMapParameters)
 {
-  gridMapCircuitParameters = _gridMapCircuitParameters;
+  gridMapParameters = _gridMapParameters;
 }
 
-float GridMapCircuit::getActivation(unsigned int x, unsigned int y) {
+float GridMap::getActivation(unsigned int x, unsigned int y) {
   unsigned int nodeId = ((RectGridTopology*) topology)->gridCoordinatesToId(x, y);
   getActivationPattern();
   return (*currentActivationPattern)[nodeId];
 }
 
-void GridMapCircuit::getCursor(float &x, float &y) {
+void GridMap::getCursor(float &x, float &y) {
   static float gridX, gridY;
   moveTopologyCursorTowardsWinner();
   ((RectGridTopology*) topology)->getCursorPosition(gridX, gridY);
-  x = (gridX + 0.5) / gridMapCircuitParameters.gridWidth;
-  y = (gridY + 0.5) / gridMapCircuitParameters.gridHeight;
+  x = (gridX + 0.5) / gridMapParameters.gridWidth;
+  y = (gridY + 0.5) / gridMapParameters.gridHeight;
 }

@@ -13,17 +13,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "CircleMapCircuitParameters.hpp"
+#include "GridMapParameters.hpp"
 
 using namespace sonotopy;
 
-CircleMapCircuitParameters::CircleMapCircuitParameters()
+GridMapParameters::GridMapParameters()
 {
-  numNodes = 50;
+  gridWidth = 30;
+  gridHeight = 30;
   initialNeighbourhoodParameter = 1.0f;
-  normalNeighbourhoodParameter = 0.2f;
+  normalNeighbourhoodParameter = 0.05f;
   initialAdaptationTimeSecs = 0.03f;
-  initialTrainingLengthSecs = 10.0;
-  normalAdaptationTimeSecs = 5.0f;
+  initialTrainingLengthSecs = 7.0;
+  normalAdaptationTimeSecs = 2.3f;
 }
-

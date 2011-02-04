@@ -13,21 +13,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef CIRCLEMAPCIRCUITPARAMETERS_HPP
-#define CIRCLEMAPCIRCUITPARAMETERS_HPP
+#ifndef GRIDMAP_HPP
+#define GRIDMAP_HPP
 
-#include "SpectrumMapCircuitParameters.hpp"
+#include "SpectrumMap.hpp"
+#include "AudioParameters.hpp"
+#include "GridMapParameters.hpp"
 
 namespace sonotopy {
 
-class CircleMapCircuitParameters : public SpectrumMapCircuitParameters
+class GridMap : public SpectrumMap
 {
-  public:
-    CircleMapCircuitParameters();
-    int numNodes;
+public:
+  GridMap(const AudioParameters &, const GridMapParameters &);
+  float getActivation(unsigned int x, unsigned int y);
+  void getCursor(float &x, float &y);
+
+private:
+  GridMapParameters gridMapParameters;
 };
 
 }
 
-#endif // CIRCLEMAPCIRCUITPARAMETERS_HPP
-
+#endif // GRIDMAP_HPP

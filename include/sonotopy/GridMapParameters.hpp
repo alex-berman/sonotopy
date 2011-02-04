@@ -13,17 +13,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "GridMapCircuitParameters.hpp"
+#ifndef GRIDMAPPARAMETERS_HPP
+#define GRIDMAPPARAMETERS_HPP
 
-using namespace sonotopy;
+#include "SpectrumMapParameters.hpp"
 
-GridMapCircuitParameters::GridMapCircuitParameters()
+namespace sonotopy {
+
+class GridMapParameters : public SpectrumMapParameters
 {
-  gridWidth = 30;
-  gridHeight = 30;
-  initialNeighbourhoodParameter = 1.0f;
-  normalNeighbourhoodParameter = 0.05f;
-  initialAdaptationTimeSecs = 0.03f;
-  initialTrainingLengthSecs = 7.0;
-  normalAdaptationTimeSecs = 2.3f;
+  public:
+    GridMapParameters();
+    int gridWidth;
+    int gridHeight;
+};
+
 }
+
+#endif // GRIDMAPPARAMETERS_HPP

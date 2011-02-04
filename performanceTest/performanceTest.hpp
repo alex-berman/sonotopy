@@ -44,11 +44,11 @@ private:
   bool testSpectrumMap;
   bool audioFileAtEnd;
   AudioParameters audioParameters;
-  GridMapCircuitParameters gridMapCircuitParameters;
-  GridMapCircuit *gridMapCircuit;
-  float *gridMapCircuitAudioInputBuffer;
+  GridMapParameters gridMapParameters;
+  GridMap *gridMap;
+  float *gridMapAudioInputBuffer;
   SNDFILE *audioInputFile;
   float *audioFileBuffer;
-  const SpectrumMap::ActivationPattern *activationPattern;
+  const SOM::ActivationPattern *activationPattern;
   Stopwatch stopwatch;
 };

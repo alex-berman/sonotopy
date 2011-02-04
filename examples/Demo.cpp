@@ -30,7 +30,7 @@ Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
   argc = _argc;
   argv = _argv;
   audioFileBuffer = NULL;
-  spectrumMapCircuitInputBuffer = NULL;
+  spectrumMapInputBuffer = NULL;
   audioDeviceName = NULL;
 
   SPACING = 5;
@@ -48,7 +48,7 @@ Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
 Demo::~Demo() {
   if(useAudioInputFile) sf_close(audioInputFile);
   if(audioFileBuffer) delete audioFileBuffer;
-  if(spectrumMapCircuitInputBuffer) delete spectrumMapCircuitInputBuffer;
+  if(spectrumMapInputBuffer) delete spectrumMapInputBuffer;
 }
 
 void Demo::processCommandLineArguments() {
@@ -222,16 +222,14 @@ void Demo::openAudioStream() {
 void Demo::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
 
-  gridMapCircuit = new GridMapCircuit(audioParameters, gridMapCircuitParameters);
-  gridMap = gridMapCircuit->getSpectrumMap();
-  spectrumAnalyzer = gridMapCircuit->getSpectrumAnalyzer();
-  spectrumBinDivider = gridMapCircuit->getSpectrumBinDivider();
-  gridMapWidth = gridMapCircuitParameters.gridWidth;
-  gridMapHeight = gridMapCircuitParameters.gridHeight;
-  spectrumMapCircuitInputBuffer = new float [audioParameters.bufferSize];
+  gridMap = new GridMap(audioParameters, gridMapParameters);
+  spectrumAnalyzer = gridMap->getSpectrumAnalyzer();
+  spectrumBinDivider = gridMap->getSpectrumBinDivider();
+  gridMapWidth = gridMapParameters.gridWidth;
+  gridMapHeight = gridMapParameters.gridHeight;
+  spectrumMapInputBuffer = new float [audioParameters.bufferSize];
 
-  circleMapCircuit = new CircleMapCircuit(audioParameters, circleMapCircuitParameters);
-  circleMap = circleMapCircuit->getSpectrumMap();
+  circleMap = new CircleMap(audioParameters, circleMapParameters);
   circleTopology = (CircleTopology*) circleMap->getTopology();
 
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
@@ -372,12 +370,12 @@ int Demo::audioCallback(float *inputBuffer, float *outputBuffer, unsigned long f
     inputPtr = inputBuffer;
   }
 
-  float *spectrumMapCircuitInputBufferPtr = spectrumMapCircuitInputBuffer;
+  float *spectrumMapInputBufferPtr = spectrumMapInputBuffer;
   float *outputPtr = (float *) outputBuffer;
 
   unsigned long i = 0;
   while(i < audioParameters.bufferSize) {
-    *spectrumMapCircuitInputBufferPtr++ = *inputPtr;
+    *spectrumMapInputBufferPtr++ = *inputPtr;
     if(echoAudio) {
       *outputPtr++ = *inputPtr++;
       *outputPtr++ = *inputPtr++;
@@ -388,8 +386,8 @@ int Demo::audioCallback(float *inputBuffer, float *outputBuffer, unsigned long f
     i++;
   }
 
-  gridMapCircuit->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
-  circleMapCircuit->feedAudio(spectrumMapCircuitInputBuffer, audioParameters.bufferSize);
+  gridMap->feedAudio(spectrumMapInputBuffer, audioParameters.bufferSize);
+  circleMap->feedAudio(spectrumMapInputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
 
   if(plotError) {
@@ -428,8 +426,8 @@ void Demo::glDisplay() {
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
 
-  gridMapActivationPattern = gridMapCircuit->getActivationPattern();
-  circleMapActivationPattern = circleMapCircuit->getActivationPattern();
+  gridMapActivationPattern = gridMap->getActivationPattern();
+  circleMapActivationPattern = circleMap->getActivationPattern();
 
   switch(sceneNum) {
     case Scene_Mixed:
@@ -485,7 +483,7 @@ void Demo::WaveformFrame::render() {
   glShadeModel(GL_FLAT);
   glBegin(GL_POINTS);
   for(int i = 0; i < width; i++) {
-    x = parent->spectrumMapCircuitInputBuffer[(int) (parent->audioParameters.bufferSize * i / width)];
+    x = parent->spectrumMapInputBuffer[(int) (parent->audioParameters.bufferSize * i / width)];
     vertex2i(i, (int) ((x + 1) / 2 * height));
   }
   glEnd();
@@ -555,7 +553,7 @@ void Demo::GridMapFrame::render() {
 void Demo::GridMapFrame::renderActivationPattern() {
   static float v;
   static int x1, x2, py1, py2;
-  SpectrumMap::ActivationPattern::const_iterator activationPatternIterator =
+  SOM::ActivationPattern::const_iterator activationPatternIterator =
     parent->gridMapActivationPattern->begin();
   for(int y = 0; y < parent->gridMapWidth; y++) {
     for(int x = 0; x < parent->gridMapHeight; x++) {
@@ -582,7 +580,7 @@ void Demo::GridMapFrame::renderCursor() {
   float wx, wy;
   int x1, y1, x2, y2;
   int s = (int) (width / parent->gridMapWidth / 2);
-  parent->gridMapCircuit->getCursor(wx, wy);
+  parent->gridMap->getCursor(wx, wy);
   x1 = (int) (width  * wx) - s;
   y1 = (int) (height * wy) - s;
   x2 = (int) (width  * wx) + s;
@@ -641,7 +639,7 @@ void Demo::GridMapTrajectoryFrame::render() {
 void Demo::GridMapTrajectoryFrame::updateTrace() {
   Point p;
   float wx, wy;
-  parent->gridMapCircuit->getCursor(wx, wy);
+  parent->gridMap->getCursor(wx, wy);
   p.x = wx * width;
   p.y = wy * height;
   trace.push_back(p);
@@ -670,7 +668,7 @@ void Demo::GridMapTrajectoryFrame::renderTrace() {
 }
 
 void Demo::SmoothGridMapFrame::setColorFromActivationPattern(int x, int y) {
-  float v = parent->gridMapCircuit->getActivation((unsigned int)x, (unsigned int)y);
+  float v = parent->gridMap->getActivation((unsigned int)x, (unsigned int)y);
   v = pow(v, activationPatternContrast);
   glColor3f(v, v, v);
 }
@@ -688,7 +686,7 @@ void Demo::CircleMapFrame::render() {
   int radius = (int) (width * 0.4);
   float angleSpan = 2 * M_PI / numNodes;
   glShadeModel(GL_FLAT);
-  SpectrumMap::ActivationPattern::const_iterator activationPatternIterator = parent->circleMapActivationPattern->begin();
+  SOM::ActivationPattern::const_iterator activationPatternIterator = parent->circleMapActivationPattern->begin();
   CircleTopology::Node node;
   for(int i = 0; i < numNodes; i++) {
     c = *activationPatternIterator;
@@ -706,7 +704,7 @@ void Demo::CircleMapFrame::render() {
     activationPatternIterator++;
   }
 
-  float angle = parent->circleMapCircuit->getAngle();
+  float angle = parent->circleMap->getAngle();
   radius = width * (0.1 + parent->beatTracker->getIntensity() * 0.3);
   x1 = centreX + radius * cos(angle);
   y1 = centreY + radius * sin(angle);
@@ -810,7 +808,7 @@ void Demo::Dancer::reset() {
 }
 
 void Demo::Dancer::update(float timeIncrement) {
-  angle = parent->circleMapCircuit->getAngle() + angleOffset;
+  angle = parent->circleMap->getAngle() + angleOffset;
   speed = (parent->beatTracker->getIntensity() + speedOffset) * speedFactor;
 
   float aspectRatio = (float) parent->windowHeight / parent->windowWidth;

@@ -16,7 +16,11 @@
 #ifndef _SpectrumMap_hpp_
 #define _SpectrumMap_hpp_
 
+#include "AudioParameters.hpp"
+#include "SpectrumMapParameters.hpp"
 #include "Topology.hpp"
+#include "SpectrumAnalyzer.hpp"
+#include "SpectrumBinDivider.hpp"
 #include "SOM.hpp"
 #include <vector>
 
@@ -24,32 +28,46 @@ namespace sonotopy {
 
 class SpectrumMap {
 public:
-  typedef std::vector<float> ActivationPattern;
-
-  SpectrumMap(Topology *, int spectrumResolution);
+  SpectrumMap(Topology *, const AudioParameters &, const SpectrumMapParameters &);
   ~SpectrumMap();
-  void setNeighbourhoodParameter(float neighbourhoodParameter);
-  void setLearningParameter(float learningParameter);
-  void feedSpectrum(const float *, bool train = false);
-  ActivationPattern* createActivationPattern() const;
-  int getLastWinner() const;
-  void getActivationPattern(ActivationPattern *) const;
+  void feedAudio(const float *audio, unsigned long numFrames);
+  int getWinnerId() const;
+  const SpectrumAnalyzer* getSpectrumAnalyzer() { return spectrumAnalyzer; }
+  const SpectrumBinDivider* getSpectrumBinDivider() { return spectrumBinDivider; }
+  const SOM::ActivationPattern* getActivationPattern();
   Topology* getTopology() const;
+  void setSpectrumIntegrationTimeMs(float);
+  void moveTopologyCursorTowardsWinner();
   float getErrorMin() const;
   float getErrorMax() const;
 
-private:
+protected:
+  void createSpectrumAnalyzer();
+  void createSpectrumBinDivider();
   void createSom();
   void createSomInput();
   void createSomOutput();
+  void feedSpectrumToSom(const float *spectrum, bool train);
   void spectrumToSomInput(const float *);
-  void getMinAndMax(const std::vector<double> &values, float &min, float &max) const;
+  void setTrainingParameters(unsigned long numFrames);
+  float getLearningParameter(float adaptationTimeSecs, unsigned long numFrames);
 
+  AudioParameters audioParameters;
+  SpectrumMapParameters spectrumMapParameters;
   SOM *som;
   Topology *topology;
   int spectrumResolution;
   SOM::Sample somInput;
   SOM::Output somOutput;
+  SOM::ActivationPattern *currentActivationPattern;
+  SOM::ActivationPattern *nextActivationPattern;
+  SpectrumAnalyzer *spectrumAnalyzer;
+  SpectrumBinDivider *spectrumBinDivider;
+  const float *spectrum;
+  const float *spectrumBinValues;
+  float elapsedTimeSecs;
+  float previousCursorUpdateTimeSecs;
+  bool activationPatternOutdated;
 };
 
 }

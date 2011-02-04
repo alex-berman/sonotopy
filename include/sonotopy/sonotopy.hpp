@@ -17,8 +17,8 @@
 #define _sonotopy_hpp_
 
 #include <sonotopy/BeatTracker.hpp>
-#include <sonotopy/CircleMapCircuit.hpp>
-#include <sonotopy/GridMapCircuit.hpp>
+#include <sonotopy/CircleMap.hpp>
+#include <sonotopy/GridMap.hpp>
 #include <sonotopy/Smoother.hpp>
 #include <sonotopy/Normalizer.hpp>
 #include <sonotopy/Stopwatch.hpp>

@@ -23,32 +23,35 @@ namespace sonotopy {
 
 class SOM {
 public:
-  typedef std::vector<double> Sample;
-  typedef std::vector<double> Output;
+  typedef std::vector<float> Sample;
+  typedef std::vector<float> Output;
+  typedef std::vector<float> ActivationPattern;
   typedef unsigned int uint;
 
   SOM(uint inputSize, Topology *);
   ~SOM();
-  Sample createSample(const double *) const;
-  void setNeighbourhoodParameter(double); // 0-1
-  void setLearningParameter(double); // 0-1
+  Sample createSample(const float *) const;
+  ActivationPattern* createActivationPattern() const;
+  void setNeighbourhoodParameter(float); // 0-1
+  void setLearningParameter(float); // 0-1
   void train(const Sample &input);
   uint getWinner(const Sample &input) const;
   uint getLastWinner() const;
   void getOutput(const Sample &input, Output &output) const;
   void getLastOutput(Output &output) const;
-  double getOutputMin() const;
-  double getOutputMax() const;
+  float getOutputMin() const;
+  float getOutputMax() const;
+  void getActivationPattern(ActivationPattern *) const;
   void setModel(uint modelIndex, const Sample &);
   void setAllModels(const Sample &);
-  void setRandomModelValues(double min = 0, double max = 1);
+  void setRandomModelValues(float min = 0, float max = 1);
 
 protected:
   class Model;
 
   typedef struct {
     Model *model;
-    double strength; // from 0 to 1 where 1 is nearest neighbour
+    float strength; // from 0 to 1 where 1 is nearest neighbour
   } Neighbour;
 
   class Model {
@@ -56,18 +59,18 @@ protected:
     Model(const SOM *som, uint id);
     ~Model();
     void updateToInput(const Sample &input);
-    void moveTowards(const std::vector<double > &sample, double amount);
-    double getDistance(const Sample &input);
+    void moveTowards(const std::vector<float > &sample, float amount);
+    float getDistance(const Sample &input);
     void set(const Sample &);
-    void setRandomValues(double min, double max);
+    void setRandomValues(float min, float max);
     void updateNeighbourList();
   private:
     const SOM *parent;
     uint id;
     uint inputSize;
-    double *values;
+    float *values;
     std::vector<Neighbour> neighbours;
-    double neighbourhoodParameter;
+    float neighbourhoodParameter;
   };
 
   void createModels();
@@ -78,13 +81,13 @@ protected:
   uint inputSize;
   Topology *topology;
   uint numModels;
-  double neighbourhoodParameter;
-  double learningParameter;
+  float neighbourhoodParameter;
+  float learningParameter;
   std::vector<Model *> models;
-  double maxDistance; // max distance in euclidian space between two samples
+  float maxDistance; // max distance in euclidian space between two samples
   uint lastWinnerId;
   Output lastOutput;
-  double outputMin, outputMax;
+  float outputMin, outputMax;
 };
 
 }

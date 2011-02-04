@@ -2,11 +2,10 @@ Import('env', 'platform', 'Prefix')
 
 TARGET = 'sonotopy'
 
-SOURCE = ['BeatTracker.cpp', 'CircleMapCircuit.cpp',
-	'CircleMapCircuitParameters.cpp', 'CircleTopology.cpp', 'CircularBuffer.cpp',
-	'GridMapCircuit.cpp', 'GridMapCircuitParameters.cpp', 'Normalizer.cpp',
-	'SOM.cpp', 'Smoother.cpp', 'SpectrumMap.cpp',
-	'SpectrumMapCircuit.cpp', 'SpectrumMapCircuitParameters.cpp',
+SOURCE = ['BeatTracker.cpp', 'CircleMap.cpp',
+	'CircleMapParameters.cpp', 'CircleTopology.cpp', 'CircularBuffer.cpp',
+	'GridMap.cpp', 'GridMapParameters.cpp', 'Normalizer.cpp',
+	'SOM.cpp', 'Smoother.cpp', 'SpectrumMap.cpp', 'SpectrumMapParameters.cpp',
 	'SpectrumAnalyzer.cpp', 'SpectrumBinDivider.cpp',
 	'Stopwatch.cpp', 'Topology.cpp', 'RectGridTopology.cpp']
  

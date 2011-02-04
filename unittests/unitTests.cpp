@@ -168,9 +168,9 @@ TEST(RectGridSOM) {
   unsigned int inputSize = 2;
   unsigned int gridWidth = 3;
   unsigned int gridHeight = 3;
-  double normalModelValue[] = { 0.5, 0.5 };
-  double inputValue[]       = { 0.9, 0.8 };
-  double winnerModelValue[] = { 0.6, 0.6 };
+  float normalModelValue[] = { 0.5, 0.5 };
+  float inputValue[]       = { 0.9, 0.8 };
+  float winnerModelValue[] = { 0.6, 0.6 };
   float precision = 0.0001f;
   unsigned int winnerId;
   SOM::Output output;
@@ -347,29 +347,28 @@ TEST(CircleSOM) {
   CHECK(      topology.getDistance(4, 7) < topology.getDistance(4, 0));
 }
 
-TEST(SpectrumMap) {
+TEST(SpectrumMap_size_of_ActivationPattern) {
   unsigned int gridWidth = 3;
   unsigned int gridHeight = 3;
-  int spectrumResolution = 10;
   RectGridTopology topology(gridWidth, gridHeight);
-  SpectrumMap spectrumMap(&topology, spectrumResolution);
-  SpectrumMap::ActivationPattern *activationPattern = spectrumMap.createActivationPattern();
-  CHECK_EQUAL((size_t)9, activationPattern->size());
+  AudioParameters audioParameters;
+  SpectrumMapParameters spectrumMapParameters;
+  SpectrumMap spectrumMap(&topology, audioParameters, spectrumMapParameters);
 
-  spectrumMap.getActivationPattern(activationPattern);
+  const SOM::ActivationPattern *activationPattern = spectrumMap.getActivationPattern();
   CHECK_EQUAL((size_t)9, activationPattern->size());
 }
 
-TEST(GridMapCircuit_repeat_getCursor) {
+TEST(GridMap_repeat_getCursor) {
   AudioParameters audioParameters;
-  GridMapCircuitParameters gridMapCircuitParameters;
-  GridMapCircuit gridMapCircuit(audioParameters, gridMapCircuitParameters);
+  GridMapParameters gridMapParameters;
+  GridMap gridMap(audioParameters, gridMapParameters);
   float x, y;
   float *audio = new float [audioParameters.bufferSize];
-  gridMapCircuit.feedAudio(audio, audioParameters.bufferSize);
-  gridMapCircuit.getCursor(x, y);
-  gridMapCircuit.getCursor(x, y);
-  gridMapCircuit.getCursor(x, y);
+  gridMap.feedAudio(audio, audioParameters.bufferSize);
+  gridMap.getCursor(x, y);
+  gridMap.getCursor(x, y);
+  gridMap.getCursor(x, y);
   delete [] audio;
 }
 
@@ -436,23 +435,23 @@ TEST(CircleTopologyClampAngle) {
 }
 
 
-TEST(CircleMapCircuitAngle) {
+TEST(CircleMapAngle) {
   float precision = 0.0001;
   AudioParameters audioParameters;
-  CircleMapCircuitParameters circleMapCircuitParameters;
-  CircleMapCircuit circleMapCircuit(audioParameters, circleMapCircuitParameters);
-  circleMapCircuitParameters.trajectorySmoothness = 0;
+  CircleMapParameters circleMapParameters;
+  CircleMap circleMap(audioParameters, circleMapParameters);
+  circleMapParameters.trajectorySmoothness = 0;
   float *audio = new float [audioParameters.bufferSize];
-  CircleTopology *topology = (CircleTopology*) circleMapCircuit.getSpectrumMap()->getTopology();
+  CircleTopology *topology = (CircleTopology*) circleMap.getTopology();
   CircleTopology::Node node;
 
-  circleMapCircuit.feedAudio(audio, audioParameters.bufferSize);
-  node = topology->getNode(circleMapCircuit.getWinnerId());
-  CHECK_CLOSE(circleMapCircuit.getAngle(), node.angle, precision);
+  circleMap.feedAudio(audio, audioParameters.bufferSize);
+  node = topology->getNode(circleMap.getWinnerId());
+  CHECK_CLOSE(circleMap.getAngle(), node.angle, precision);
 
-  circleMapCircuit.feedAudio(audio, audioParameters.bufferSize);
-  node = topology->getNode(circleMapCircuit.getWinnerId());
-  CHECK_CLOSE(circleMapCircuit.getAngle(), node.angle, precision);
+  circleMap.feedAudio(audio, audioParameters.bufferSize);
+  node = topology->getNode(circleMap.getWinnerId());
+  CHECK_CLOSE(circleMap.getAngle(), node.angle, precision);
 
   delete [] audio;
 }

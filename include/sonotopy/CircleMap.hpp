@@ -13,20 +13,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "CircleMapCircuit.hpp"
-#include "CircleTopology.hpp"
+#ifndef CIRCLEMAP_HPP
+#define CIRCLEMAP_HPP
 
-using namespace sonotopy;
+#include "SpectrumMap.hpp"
+#include "AudioParameters.hpp"
+#include "CircleMapParameters.hpp"
 
-CircleMapCircuit::CircleMapCircuit(const AudioParameters &_audioParameters,
-                                   const CircleMapCircuitParameters &_circleMapCircuitParameters)
-                                   : SpectrumMapCircuit(new CircleTopology(_circleMapCircuitParameters.numNodes),
-                                                        _audioParameters,
-                                                        _circleMapCircuitParameters)
+namespace sonotopy {
+
+class CircleMap : public SpectrumMap
 {
+public:
+  CircleMap(const AudioParameters &, const CircleMapParameters &);
+  float getAngle();
+};
+
 }
 
-float CircleMapCircuit::getAngle() {
-  moveTopologyCursorTowardsWinner();
-  return ((CircleTopology*)topology)->getCursorAngle();
-}
+#endif // CIRCLEMAP_HPP
+

@@ -47,27 +47,27 @@ void SOM::deleteModels() {
     delete *i;
 }
 
-SOM::Sample SOM::createSample(const double *values) const {
+SOM::Sample SOM::createSample(const float *values) const {
   Sample sample(inputSize);
-  const double *valuePtr = values;
+  const float *valuePtr = values;
   Sample::iterator samplePtr = sample.begin();
   for(uint k = 0; k < inputSize; k++)
     *samplePtr++ = *valuePtr++;
   return sample;
 }
 
-void SOM::setNeighbourhoodParameter(double _neighbourhoodParameter) {
+void SOM::setNeighbourhoodParameter(float _neighbourhoodParameter) {
   neighbourhoodParameter = _neighbourhoodParameter;
-  topology->setVicinityFactor((float)neighbourhoodParameter);
+  topology->setVicinityFactor(neighbourhoodParameter);
 }
 
-void SOM::setLearningParameter(double x) {
+void SOM::setLearningParameter(float x) {
   learningParameter = x;
 }
 
 SOM::uint SOM::getWinner(const Sample &input) const {
-  double diff;
-  double closest = 0;
+  float diff;
+  float closest = 0;
   uint winner = 0;
   uint modelIndex = 0;
   Model *model;
@@ -95,8 +95,8 @@ void SOM::train(const Sample &input) {
 
 SOM::uint SOM::getWinnerAndStoreOutput(const Sample &input, Output &output) {
   uint winnerId = 0;
-  double distance, localDistanceMin = 0, localDistanceMax = 0;
-  double modelOutput, localOutputMin = 0, localOutputMax = 0;
+  float distance, localDistanceMin = 0, localDistanceMax = 0;
+  float modelOutput, localOutputMin = 0, localOutputMax = 0;
   Model *model;
 
   output.clear();
@@ -136,11 +136,11 @@ void SOM::getLastOutput(Output &output) const {
   output = lastOutput;
 }
 
-double SOM::getOutputMin() const {
+float SOM::getOutputMin() const {
   return outputMin;
 }
 
-double SOM::getOutputMax() const {
+float SOM::getOutputMax() const {
   return outputMax;
 }
 
@@ -156,7 +156,7 @@ void SOM::setAllModels(const Sample &sample) {
   }
 }
 
-void SOM::setRandomModelValues(double min, double max) {
+void SOM::setRandomModelValues(float min, float max) {
   Model *model;
   for(vector<Model*>::iterator i = models.begin(); i != models.end(); ++i) {
     model = *i;
@@ -173,7 +173,7 @@ SOM::Model::Model(const SOM *_parent, uint _id) {
   id = _id;
   parent = _parent;
   inputSize = parent->inputSize;
-  values = new double [inputSize];
+  values = new float [inputSize];
   neighbourhoodParameter = 0;
 }
 
@@ -182,7 +182,7 @@ SOM::Model::~Model() {
 }
 
 void SOM::Model::updateToInput(const SOM::Sample &input) {
-  double learningParameter = parent->learningParameter;
+  float learningParameter = parent->learningParameter;
   moveTowards(input, learningParameter);
 
   updateNeighbourList();
@@ -190,8 +190,8 @@ void SOM::Model::updateToInput(const SOM::Sample &input) {
     i->model->moveTowards(input, learningParameter * i->strength);
 }
 
-void SOM::Model::moveTowards(const std::vector<double > &sample, double amount) {
-  double *valuePtr = values;
+void SOM::Model::moveTowards(const std::vector<float > &sample, float amount) {
+  float *valuePtr = values;
   Sample::const_iterator samplePtr = sample.begin();
   for(uint k = 0; k < inputSize; k++) {
     *valuePtr += amount * (*samplePtr - *valuePtr);
@@ -200,11 +200,11 @@ void SOM::Model::moveTowards(const std::vector<double > &sample, double amount) 
   }
 }
 
-double SOM::Model::getDistance(const Sample &input) {
-  double *valuePtr = values;
+float SOM::Model::getDistance(const Sample &input) {
+  float *valuePtr = values;
   Sample::const_iterator samplePtr = input.begin();
-  double d;
-  double distance = 0;
+  float d;
+  float distance = 0;
   for(uint k = 0; k < inputSize; k++) {
     d = *valuePtr++ - *samplePtr++;
     distance += d * d;
@@ -213,16 +213,16 @@ double SOM::Model::getDistance(const Sample &input) {
 }
 
 void SOM::Model::set(const Sample &sample) {
-  double *valuePtr = values;
+  float *valuePtr = values;
   Sample::const_iterator samplePtr = sample.begin();
   for(uint k = 0; k < inputSize; k++)
     *valuePtr++ = *samplePtr++;
 }
 
-void SOM::Model::setRandomValues(double min, double max) {
-  double *valuePtr = values;
+void SOM::Model::setRandomValues(float min, float max) {
+  float *valuePtr = values;
   for(uint k = 0; k < inputSize; k++)
-    *valuePtr++ = min + (max - min) * (double) rand() / RAND_MAX;
+    *valuePtr++ = min + (max - min) * (float) rand() / RAND_MAX;
 }
 
 void SOM::Model::updateNeighbourList() {
@@ -237,5 +237,27 @@ void SOM::Model::updateNeighbourList() {
       neighbours.push_back(neighbour);
     }
     neighbourhoodParameter = parent->neighbourhoodParameter;
+  }
+}
+
+SOM::ActivationPattern *SOM::createActivationPattern() const {
+  vector<float> *pattern = new vector<float>();
+  for(unsigned int i = 0; i < numModels; i++)
+    pattern->push_back(0);
+  return pattern;
+}
+
+void SOM::getActivationPattern(ActivationPattern *activationPattern) const {
+  float range = outputMax - outputMin;
+  if(range > 0) {
+    ActivationPattern::iterator activationPatternNode = activationPattern->begin();
+    for(Output::const_iterator lastOutputNode = lastOutput.begin();
+	lastOutputNode != lastOutput.end(); lastOutputNode++) {
+      *activationPatternNode = 1.0f - (*lastOutputNode - outputMin) / range;
+      activationPatternNode++;
+    }
+  }
+  else {
+    fill(activationPattern->begin(), activationPattern->end(), 0);
   }
 }

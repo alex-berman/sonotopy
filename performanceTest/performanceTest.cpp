@@ -24,7 +24,7 @@ PerformanceTest::PerformanceTest(int _argc, char **_argv) {
   argv = _argv;
   audioInputFile = NULL;
   audioFileBuffer = NULL;
-  gridMapCircuitAudioInputBuffer = NULL;
+  gridMapAudioInputBuffer = NULL;
 
   processCommandLineArguments();
   openAudioInputFile();
@@ -37,7 +37,7 @@ PerformanceTest::PerformanceTest(int _argc, char **_argv) {
 PerformanceTest::~PerformanceTest() {
   if(audioInputFile) sf_close(audioInputFile);
   if(audioFileBuffer) delete audioFileBuffer;
-  if(gridMapCircuitAudioInputBuffer) delete gridMapCircuitAudioInputBuffer;
+  if(gridMapAudioInputBuffer) delete gridMapAudioInputBuffer;
 }
 
 void PerformanceTest::processCommandLineArguments() {
@@ -118,24 +118,24 @@ void PerformanceTest::openAudioInputFile() {
 
 void PerformanceTest::initializeAudioProcessing() {
   if(testSpectrumMap) {
-    gridMapCircuit = new GridMapCircuit(audioParameters, gridMapCircuitParameters);
-    gridMapCircuitAudioInputBuffer = new float [audioParameters.bufferSize];
+    gridMap = new GridMap(audioParameters, gridMapParameters);
+    gridMapAudioInputBuffer = new float [audioParameters.bufferSize];
   }
 }
 
 void PerformanceTest::processAudioBuffer() {
   float *inputPtr = audioFileBuffer;
-  float *gridMapCircuitAudioInputBufferPtr = gridMapCircuitAudioInputBuffer;
+  float *gridMapAudioInputBufferPtr = gridMapAudioInputBuffer;
 
   unsigned long i = 0;
   while(i < audioParameters.bufferSize) {
-    *gridMapCircuitAudioInputBufferPtr++ = *inputPtr;
+    *gridMapAudioInputBufferPtr++ = *inputPtr;
     inputPtr += 2;
     i++;
   }
 
-  gridMapCircuit->feedAudio(gridMapCircuitAudioInputBuffer, audioParameters.bufferSize);
-  activationPattern = gridMapCircuit->getActivationPattern();
+  gridMap->feedAudio(gridMapAudioInputBuffer, audioParameters.bufferSize);
+  activationPattern = gridMap->getActivationPattern();
 }
 
 void PerformanceTest::readAudioBufferFromFile() {

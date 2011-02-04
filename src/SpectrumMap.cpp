@@ -19,21 +19,31 @@
 using namespace sonotopy;
 using namespace std;
 
-SpectrumMap::SpectrumMap(Topology *_topology, int _spectrumResolution)
+SpectrumMap::SpectrumMap(Topology *_topology,
+			 const AudioParameters &_audioParameters,
+			 const SpectrumMapParameters &_spectrumMapParameters)
 {
   topology = _topology;
-  spectrumResolution = _spectrumResolution;
+  audioParameters = _audioParameters;
+  spectrumMapParameters = _spectrumMapParameters;
 
+  createSpectrumAnalyzer();
+  createSpectrumBinDivider();
   createSom();
   createSomInput();
   createSomOutput();
 
-  setNeighbourhoodParameter(0.5);
-  setLearningParameter(0.5);
+  elapsedTimeSecs = 0.0f;
+  previousCursorUpdateTimeSecs = 0.0f;
+  activationPatternOutdated = false;
 }
 
 SpectrumMap::~SpectrumMap() {
   delete som;
+  delete spectrumBinDivider;
+  delete spectrumAnalyzer;
+  delete currentActivationPattern;
+  delete nextActivationPattern;
 }
 
 Topology* SpectrumMap::getTopology() const {
@@ -43,6 +53,8 @@ Topology* SpectrumMap::getTopology() const {
 void SpectrumMap::createSom() {
   som = new SOM(spectrumResolution, topology);
   som->setRandomModelValues(0.0, 0.0001);
+  currentActivationPattern = som->createActivationPattern();
+  nextActivationPattern = som->createActivationPattern();
 }
 
 void SpectrumMap::createSomInput() {
@@ -55,15 +67,37 @@ void SpectrumMap::createSomOutput() {
     somOutput.push_back(0);
 }
 
-void SpectrumMap::setNeighbourhoodParameter(float neighbourhoodParameter) {
-  som->setNeighbourhoodParameter(neighbourhoodParameter);
+const SOM::ActivationPattern* SpectrumMap::getActivationPattern() {
+  if(activationPatternOutdated) {
+    som->getActivationPattern(nextActivationPattern);
+    *currentActivationPattern = *nextActivationPattern;
+    activationPatternOutdated = false;
+  }
+  return currentActivationPattern;
 }
 
-void SpectrumMap::setLearningParameter(float learningParameter) {
-  som->setLearningParameter(learningParameter);
+void SpectrumMap::createSpectrumAnalyzer() {
+  spectrumAnalyzer = new SpectrumAnalyzer();
 }
 
-void SpectrumMap::feedSpectrum(const float *spectrum, bool train) {
+void SpectrumMap::createSpectrumBinDivider() {
+  spectrumBinDivider = new SpectrumBinDivider(audioParameters.sampleRate,
+                                              spectrumAnalyzer->getSpectrumResolution());
+  spectrumResolution = spectrumBinDivider->getNumBins();
+}
+
+void SpectrumMap::feedAudio(const float *audio, unsigned long numFrames) {
+  spectrumAnalyzer->feedAudioFrames(audio, numFrames);
+  spectrum = spectrumAnalyzer->getSpectrum();
+  spectrumBinDivider->feedSpectrum(spectrum, numFrames);
+  spectrumBinValues = spectrumBinDivider->getBinValues();
+  setTrainingParameters(numFrames);
+  feedSpectrumToSom(spectrumBinValues, spectrumMapParameters.enableLiveTraining);
+  elapsedTimeSecs += (float) numFrames / audioParameters.sampleRate;
+  activationPatternOutdated = true;
+}
+
+void SpectrumMap::feedSpectrumToSom(const float *spectrum, bool train) {
   spectrumToSomInput(spectrum);
   if(train) {
     som->train(somInput);
@@ -82,45 +116,61 @@ void SpectrumMap::spectrumToSomInput(const float *spectrum) {
   }
 }
 
-int SpectrumMap::getLastWinner() const {
+int SpectrumMap::getWinnerId() const {
   return som->getLastWinner();
 }
 
-SpectrumMap::ActivationPattern* SpectrumMap::createActivationPattern() const {
-  vector<float> *pattern = new vector<float>();
-  for(unsigned int i = 0; i < topology->getNumNodes(); i++)
-    pattern->push_back(0);
-  return pattern;
-}
-
-void SpectrumMap::getActivationPattern(ActivationPattern *activationPattern) const {
-  float min, max, range;
-  getMinAndMax(somOutput, min, max);
-  range = max - min;
-  if(range > 0) {
-    ActivationPattern::iterator activationPatternNode = activationPattern->begin();
-    for(SOM::Output::const_iterator somOutputNode = somOutput.begin();
-	somOutputNode != somOutput.end(); somOutputNode++) {
-      *activationPatternNode = 1.0f - ((float)*somOutputNode - min) / range;
-      activationPatternNode++;
-    }
+void SpectrumMap::setTrainingParameters(unsigned long numFrames) {
+  float neighbourhoodParameter;
+  float adaptationTimeSecs;
+  float learningParameter;
+  if(elapsedTimeSecs < spectrumMapParameters.initialTrainingLengthSecs) {
+    float relativeInitiality = 1.0f - (elapsedTimeSecs / spectrumMapParameters.initialTrainingLengthSecs);
+    neighbourhoodParameter = spectrumMapParameters.normalNeighbourhoodParameter +
+      (spectrumMapParameters.initialNeighbourhoodParameter - spectrumMapParameters.normalNeighbourhoodParameter) * relativeInitiality;
+    adaptationTimeSecs = spectrumMapParameters.normalAdaptationTimeSecs +
+      (spectrumMapParameters.initialAdaptationTimeSecs - spectrumMapParameters.normalAdaptationTimeSecs) * relativeInitiality;
   }
   else {
-    fill(activationPattern->begin(), activationPattern->end(), 0);
+    neighbourhoodParameter = spectrumMapParameters.normalNeighbourhoodParameter;
+    adaptationTimeSecs = spectrumMapParameters.normalAdaptationTimeSecs;
   }
+  learningParameter = getLearningParameter(adaptationTimeSecs, numFrames);
+  som->setNeighbourhoodParameter(neighbourhoodParameter);
+  som->setLearningParameter(learningParameter);
 }
 
-void SpectrumMap::getMinAndMax(const vector<double> &values, float &min, float &max) const {
-  float value;
-  vector<double>::const_iterator i = values.begin();
-  min = max = (float) *i;
-  for(; i != values.end(); i++) {
-    value = (float) *i;
-    if(value < min)
-      min = value;
-    else if(value > max)
-      max = value;
+float SpectrumMap::getLearningParameter(float adaptationTimeSecs, unsigned long numFrames) {
+  float learningParameter = (float) numFrames / audioParameters.sampleRate / adaptationTimeSecs;
+  if(learningParameter >= 1)
+    return 1;
+  else
+    return learningParameter;
+}
+
+void SpectrumMap::setSpectrumIntegrationTimeMs(float integrationTimeMs) {
+  spectrumBinDivider->setIntegrationTimeMs(integrationTimeMs);
+}
+
+void SpectrumMap::moveTopologyCursorTowardsWinner() {
+  int winnerId = getWinnerId();
+  if(previousCursorUpdateTimeSecs <= 0.0f) {
+    topology->placeCursorAtNode(winnerId);
   }
+  else {
+    if(spectrumMapParameters.trajectorySmoothness > 0) {
+      float deltaSecs = elapsedTimeSecs - previousCursorUpdateTimeSecs;
+      float amount = deltaSecs / spectrumMapParameters.trajectorySmoothness;
+      if(amount > 1)
+	topology->placeCursorAtNode(winnerId);
+      else
+	topology->moveCursorTowardsNode(winnerId, amount);
+    }
+    else {
+      topology->placeCursorAtNode(winnerId);
+    }
+  }
+  previousCursorUpdateTimeSecs = elapsedTimeSecs;
 }
 
 float SpectrumMap::getErrorMin() const {
