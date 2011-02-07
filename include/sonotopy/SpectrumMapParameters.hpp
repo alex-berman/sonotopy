@@ -31,7 +31,8 @@ public:
   float neighbourhoodPlasticity;
   float neighbourhoodParameterMin;
   float trajectorySmoothness;
-  float errorThreshold;
+  float errorThresholdLow;
+  float errorThresholdHigh;
 };
 
 }

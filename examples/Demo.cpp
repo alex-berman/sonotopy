@@ -222,8 +222,10 @@ void Demo::openAudioStream() {
 void Demo::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
 
-  gridMapParameters.adaptationPlasticity = circleMapParameters.adaptationPlasticity = 10000.0f; // TEMP
-  gridMapParameters.neighbourhoodPlasticity = circleMapParameters.neighbourhoodPlasticity = 0.05f; // TEMP
+  gridMapParameters.adaptationPlasticity = circleMapParameters.adaptationPlasticity = 1000.0f; // TEMP
+  gridMapParameters.neighbourhoodPlasticity = circleMapParameters.neighbourhoodPlasticity = 1.0f; // TEMP
+  gridMapParameters.errorThresholdLow = circleMapParameters.errorThresholdLow   = 0.0001f; // TEMP
+  gridMapParameters.errorThresholdHigh = circleMapParameters.errorThresholdHigh = 0.0015f; // TEMP
 
   gridMap = new GridMap(audioParameters, gridMapParameters);
   spectrumAnalyzer = gridMap->getSpectrumAnalyzer();
@@ -608,7 +610,7 @@ Demo::SmoothGridMapFrame::SmoothGridMapFrame(Demo *_parent) {
 
 void Demo::SmoothGridMapFrame::render() {
   static int x1, x2, py1, py2;
-  //glShadeModel(GL_SMOOTH); // TEMP removed
+  glShadeModel(GL_SMOOTH);
   for(int y = 0; y < parent->gridMapWidth-1; y++) {
     for(int x = 0; x < parent->gridMapHeight-1; x++) {
       x1 = (int) (width * x / (parent->gridMapWidth-1));
@@ -656,7 +658,7 @@ void Demo::GridMapTrajectoryFrame::updateTrace() {
 
 void Demo::GridMapTrajectoryFrame::renderTrace() {
   float c;
-  //glShadeModel(GL_SMOOTH); // TEMP removed
+  glShadeModel(GL_SMOOTH);
   glLineWidth(3.0f);
   glBegin(GL_LINE_STRIP);
   vector<Point>::iterator pos = trace.begin();
@@ -738,7 +740,7 @@ void Demo::SmoothCircleMapFrame::render() {
   int centreY = height / 2;
   int radius = (int) (width * 0.4);
 
-  //glShadeModel(GL_SMOOTH); // TEMP removed
+  glShadeModel(GL_SMOOTH);
   glBegin(GL_TRIANGLE_FAN);
   glColor3f(1,1,1);
   vertex2i(centreX, centreY);

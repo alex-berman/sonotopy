@@ -36,8 +36,8 @@ SpectrumMap::SpectrumMap(Topology *_topology,
   elapsedTimeSecs = 0.0f;
   previousCursorUpdateTimeSecs = 0.0f;
   activationPatternOutdated = false;
-  errorLevel = 0.001; // TODO: parametrsize?
-  errorLevelSmoother.setResponseFactor(100.0f / audioParameters.bufferSize); // TODO: parametrsize
+  errorLevel = spectrumMapParameters.errorThresholdHigh;
+  errorLevelSmoother.setResponseFactor(500.0f / audioParameters.bufferSize); // TODO: parametrsize
 }
 
 SpectrumMap::~SpectrumMap() {
@@ -125,11 +125,17 @@ int SpectrumMap::getWinnerId() const {
 
 void SpectrumMap::setTrainingParameters(unsigned long numFrames) {
   float neighbourhoodParameter;
-  if(errorLevel < spectrumMapParameters.errorThreshold)
+  if(errorLevel < spectrumMapParameters.errorThresholdLow)
     neighbourhoodParameter = spectrumMapParameters.neighbourhoodParameterMin;
-  else
+  else if(errorLevel > spectrumMapParameters.errorThresholdHigh)
+    neighbourhoodParameter = 1.0f;
+  else {
+    float relativeError = (errorLevel - spectrumMapParameters.errorThresholdLow)
+      / (spectrumMapParameters.errorThresholdHigh - spectrumMapParameters.errorThresholdLow);
     neighbourhoodParameter = spectrumMapParameters.neighbourhoodParameterMin +
-      pow(errorLevel - spectrumMapParameters.errorThreshold, spectrumMapParameters.neighbourhoodPlasticity);
+      (1.0f - spectrumMapParameters.neighbourhoodParameterMin) *
+      pow(relativeError, spectrumMapParameters.neighbourhoodPlasticity);
+  }
   float adaptationTimeSecs =
     1.0f / (spectrumMapParameters.adaptationPlasticity * errorLevel);
   float learningParameter = getLearningParameter(adaptationTimeSecs, numFrames);

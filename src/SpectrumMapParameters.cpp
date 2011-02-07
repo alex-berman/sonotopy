@@ -22,6 +22,7 @@ SpectrumMapParameters::SpectrumMapParameters() {
   adaptationPlasticity = 1.0f;
   neighbourhoodPlasticity = 1.0f;
   neighbourhoodParameterMin = 0.1f;
-  errorThreshold = 0.0001f;
+  errorThresholdLow = 0.0001f;
+  errorThresholdHigh = 1.0f;
   trajectorySmoothness = 0.1f;
 }
