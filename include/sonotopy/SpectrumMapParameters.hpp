@@ -47,6 +47,7 @@ public:
   float neighbourhoodParameterMin;
   float errorThresholdLow;
   float errorThresholdHigh;
+  float errorIntegrationTimeMs;
 };
 
 }

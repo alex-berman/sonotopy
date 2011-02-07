@@ -983,7 +983,9 @@ Demo::ErrorPlotter::ErrorPlotter(const Demo *parent, const SpectrumMap *_map) {
   circularBufferMax = new CircularBuffer<float> (bufferSize);
   maxValue = 0;
   maxValueInGraph = 0;
-  float smootherResponseFactor = 10.0f / parent->audioParameters.bufferSize;
+  
+  float smootherResponseFactor = 1000 * parent->audioParameters.bufferSize
+    / parent->audioParameters.sampleRate / map->getSpectrumMapParameters().errorIntegrationTimeMs;
   smootherMin.setResponseFactor(smootherResponseFactor);
   smootherMax.setResponseFactor(smootherResponseFactor);
 }

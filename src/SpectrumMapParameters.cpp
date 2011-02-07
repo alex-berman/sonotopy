@@ -34,4 +34,5 @@ SpectrumMapParameters::SpectrumMapParameters() {
   neighbourhoodParameterMin = 0.1f;
   errorThresholdLow = 0.0001f;
   errorThresholdHigh = 1.0f;
+  errorIntegrationTimeMs = 1000.0f;
 }

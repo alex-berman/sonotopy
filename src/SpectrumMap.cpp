@@ -36,8 +36,14 @@ SpectrumMap::SpectrumMap(Topology *_topology,
   elapsedTimeSecs = 0.0f;
   previousCursorUpdateTimeSecs = 0.0f;
   activationPatternOutdated = false;
-  errorLevel = spectrumMapParameters.errorThresholdHigh;
-  errorLevelSmoother.setResponseFactor(500.0f / audioParameters.bufferSize); // TODO: parametrsize
+
+  if(spectrumMapParameters.adaptationStrategy == SpectrumMapParameters::ErrorDriven) {
+    errorLevel = spectrumMapParameters.errorThresholdHigh;
+    errorLevelSmoother.setResponseFactor(1000 * audioParameters.bufferSize
+					 / audioParameters.sampleRate / spectrumMapParameters.errorIntegrationTimeMs);
+  }
+  else
+    errorLevel = 0;
 }
 
 SpectrumMap::~SpectrumMap() {
@@ -50,6 +56,10 @@ SpectrumMap::~SpectrumMap() {
 
 Topology* SpectrumMap::getTopology() const {
   return topology;
+}
+
+SpectrumMapParameters SpectrumMap::getSpectrumMapParameters() const {
+  return spectrumMapParameters;
 }
 
 void SpectrumMap::createSom() {
