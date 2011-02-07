@@ -38,7 +38,7 @@ public:
 private:
   class ErrorPlotter {
   public:
-    ErrorPlotter(const SpectrumMap *);
+    ErrorPlotter(const Demo *, const SpectrumMap *);
     ~ErrorPlotter();
     void update();
     void render(Frame *);
@@ -51,6 +51,7 @@ private:
     CircularBuffer<float> *circularBufferMax;
     int bufferSize;
     float maxValue;
+    float maxValueInGraph;
     Smoother smootherMin, smootherMax;
   };
 

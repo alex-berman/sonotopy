@@ -22,6 +22,7 @@
 #include "SpectrumAnalyzer.hpp"
 #include "SpectrumBinDivider.hpp"
 #include "SOM.hpp"
+#include "Smoother.hpp"
 #include <vector>
 
 namespace sonotopy {
@@ -68,6 +69,8 @@ protected:
   float elapsedTimeSecs;
   float previousCursorUpdateTimeSecs;
   bool activationPatternOutdated;
+  float errorLevel;
+  Smoother errorLevelSmoother;
 };
 
 }

@@ -21,9 +21,4 @@ GridMapParameters::GridMapParameters()
 {
   gridWidth = 30;
   gridHeight = 30;
-  initialNeighbourhoodParameter = 1.0f;
-  normalNeighbourhoodParameter = 0.05f;
-  initialAdaptationTimeSecs = 0.03f;
-  initialTrainingLengthSecs = 7.0;
-  normalAdaptationTimeSecs = 2.3f;
 }

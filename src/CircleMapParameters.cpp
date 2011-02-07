@@ -20,10 +20,5 @@ using namespace sonotopy;
 CircleMapParameters::CircleMapParameters()
 {
   numNodes = 50;
-  initialNeighbourhoodParameter = 1.0f;
-  normalNeighbourhoodParameter = 0.2f;
-  initialAdaptationTimeSecs = 0.03f;
-  initialTrainingLengthSecs = 10.0;
-  normalAdaptationTimeSecs = 5.0f;
 }
 

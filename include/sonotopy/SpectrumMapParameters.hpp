@@ -27,12 +27,11 @@ public:
   SpectrumMapParameters();
 
   bool enableLiveTraining;
-  float initialTrainingLengthSecs;
-  float initialNeighbourhoodParameter;
-  float initialAdaptationTimeSecs;
-  float normalNeighbourhoodParameter;
-  float normalAdaptationTimeSecs;
+  float adaptationPlasticity;
+  float neighbourhoodPlasticity;
+  float neighbourhoodParameterMin;
   float trajectorySmoothness;
+  float errorThreshold;
 };
 
 }

@@ -36,6 +36,8 @@ SpectrumMap::SpectrumMap(Topology *_topology,
   elapsedTimeSecs = 0.0f;
   previousCursorUpdateTimeSecs = 0.0f;
   activationPatternOutdated = false;
+  errorLevel = 0.001; // TODO: parametrsize?
+  errorLevelSmoother.setResponseFactor(100.0f / audioParameters.bufferSize); // TODO: parametrsize
 }
 
 SpectrumMap::~SpectrumMap() {
@@ -102,6 +104,7 @@ void SpectrumMap::feedSpectrumToSom(const float *spectrum, bool train) {
   if(train) {
     som->train(somInput);
     som->getLastOutput(somOutput);
+    errorLevel = errorLevelSmoother.smooth(getErrorMax());
   }
   else {
     som->getOutput(somInput, somOutput);
@@ -122,22 +125,19 @@ int SpectrumMap::getWinnerId() const {
 
 void SpectrumMap::setTrainingParameters(unsigned long numFrames) {
   float neighbourhoodParameter;
-  float adaptationTimeSecs;
-  float learningParameter;
-  if(elapsedTimeSecs < spectrumMapParameters.initialTrainingLengthSecs) {
-    float relativeInitiality = 1.0f - (elapsedTimeSecs / spectrumMapParameters.initialTrainingLengthSecs);
-    neighbourhoodParameter = spectrumMapParameters.normalNeighbourhoodParameter +
-      (spectrumMapParameters.initialNeighbourhoodParameter - spectrumMapParameters.normalNeighbourhoodParameter) * relativeInitiality;
-    adaptationTimeSecs = spectrumMapParameters.normalAdaptationTimeSecs +
-      (spectrumMapParameters.initialAdaptationTimeSecs - spectrumMapParameters.normalAdaptationTimeSecs) * relativeInitiality;
-  }
-  else {
-    neighbourhoodParameter = spectrumMapParameters.normalNeighbourhoodParameter;
-    adaptationTimeSecs = spectrumMapParameters.normalAdaptationTimeSecs;
-  }
-  learningParameter = getLearningParameter(adaptationTimeSecs, numFrames);
+  if(errorLevel < spectrumMapParameters.errorThreshold)
+    neighbourhoodParameter = spectrumMapParameters.neighbourhoodParameterMin;
+  else
+    neighbourhoodParameter = spectrumMapParameters.neighbourhoodParameterMin +
+      pow(errorLevel - spectrumMapParameters.errorThreshold, spectrumMapParameters.neighbourhoodPlasticity);
+  float adaptationTimeSecs =
+    1.0f / (spectrumMapParameters.adaptationPlasticity * errorLevel);
+  float learningParameter = getLearningParameter(adaptationTimeSecs, numFrames);
   som->setNeighbourhoodParameter(neighbourhoodParameter);
   som->setLearningParameter(learningParameter);
+  // TEMP:
+  if(((int) (elapsedTimeSecs * 1000)) % 10 == 0)
+    printf("errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n", errorLevel, adaptationTimeSecs, neighbourhoodParameter);
 }
 
 float SpectrumMap::getLearningParameter(float adaptationTimeSecs, unsigned long numFrames) {

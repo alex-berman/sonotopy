@@ -18,11 +18,10 @@
 using namespace sonotopy;
 
 SpectrumMapParameters::SpectrumMapParameters() {
-  initialNeighbourhoodParameter = 1.0f;
-  normalNeighbourhoodParameter = 0.1f;
   enableLiveTraining = true;
-  initialAdaptationTimeSecs = 0.05f;
-  initialTrainingLengthSecs = 10.0;
-  normalAdaptationTimeSecs = 3.0f;
+  adaptationPlasticity = 1.0f;
+  neighbourhoodPlasticity = 1.0f;
+  neighbourhoodParameterMin = 0.1f;
+  errorThreshold = 0.0001f;
   trajectorySmoothness = 0.1f;
 }

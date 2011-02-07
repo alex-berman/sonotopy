@@ -222,6 +222,9 @@ void Demo::openAudioStream() {
 void Demo::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
 
+  gridMapParameters.adaptationPlasticity = circleMapParameters.adaptationPlasticity = 10000.0f; // TEMP
+  gridMapParameters.neighbourhoodPlasticity = circleMapParameters.neighbourhoodPlasticity = 0.05f; // TEMP
+
   gridMap = new GridMap(audioParameters, gridMapParameters);
   spectrumAnalyzer = gridMap->getSpectrumAnalyzer();
   spectrumBinDivider = gridMap->getSpectrumBinDivider();
@@ -260,7 +263,6 @@ void Demo::moveToScene(int _sceneNum) {
 
 void Demo::initializeGraphics() {
   normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == SpectrumAnalyzer::Amplitude);
-  sceneNum = 0;
   frameCount = 0;
   waveformFrame = new WaveformFrame(this);
   spectrumFrame = new SpectrumFrame(this);
@@ -272,14 +274,19 @@ void Demo::initializeGraphics() {
   isolinesFrame = new IsolinesFrame(this);
   circleMapFrame = new CircleMapFrame(this);
   enlargedCircleMapFrame = new SmoothCircleMapFrame(this);
-  circleMapErrorPlotter = new ErrorPlotter(circleMap);
-  gridMapErrorPlotter = new ErrorPlotter(gridMap);
+  circleMapErrorPlotter = new ErrorPlotter(this, circleMap);
+  gridMapErrorPlotter = new ErrorPlotter(this, gridMap);
 
   for(int i = 0; i < 20; i++)
     dancers.push_back(Dancer(this));
 
   glClearColor (0.0, 0.0, 0.0, 0.0);
   glShadeModel (GL_FLAT);
+
+  if(plotError)
+    moveToScene(Scene_EnlargedCircleMap);
+  else
+    moveToScene(Scene_Mixed);
 }
 
 void Demo::glReshape(int _windowWidth, int _windowHeight) {
@@ -601,7 +608,7 @@ Demo::SmoothGridMapFrame::SmoothGridMapFrame(Demo *_parent) {
 
 void Demo::SmoothGridMapFrame::render() {
   static int x1, x2, py1, py2;
-  glShadeModel(GL_SMOOTH);
+  //glShadeModel(GL_SMOOTH); // TEMP removed
   for(int y = 0; y < parent->gridMapWidth-1; y++) {
     for(int x = 0; x < parent->gridMapHeight-1; x++) {
       x1 = (int) (width * x / (parent->gridMapWidth-1));
@@ -649,7 +656,7 @@ void Demo::GridMapTrajectoryFrame::updateTrace() {
 
 void Demo::GridMapTrajectoryFrame::renderTrace() {
   float c;
-  glShadeModel(GL_SMOOTH);
+  //glShadeModel(GL_SMOOTH); // TEMP removed
   glLineWidth(3.0f);
   glBegin(GL_LINE_STRIP);
   vector<Point>::iterator pos = trace.begin();
@@ -731,7 +738,7 @@ void Demo::SmoothCircleMapFrame::render() {
   int centreY = height / 2;
   int radius = (int) (width * 0.4);
 
-  glShadeModel(GL_SMOOTH);
+  //glShadeModel(GL_SMOOTH); // TEMP removed
   glBegin(GL_TRIANGLE_FAN);
   glColor3f(1,1,1);
   vertex2i(centreX, centreY);
@@ -933,15 +940,17 @@ void Demo::IsolinesFrame::renderDrawableIsocurveSetHistory() {
   }
 }
 
-Demo::ErrorPlotter::ErrorPlotter(const SpectrumMap *_map) {
+Demo::ErrorPlotter::ErrorPlotter(const Demo *parent, const SpectrumMap *_map) {
   map = _map;
   bufferSize = 1000;
   buffer = new float [bufferSize];
   circularBufferMin = new CircularBuffer<float> (bufferSize);
   circularBufferMax = new CircularBuffer<float> (bufferSize);
   maxValue = 0;
-  smootherMin.setResponseFactor(0.01);
-  smootherMax.setResponseFactor(0.01);
+  maxValueInGraph = 0;
+  float smootherResponseFactor = 10.0f / parent->audioParameters.bufferSize;
+  smootherMin.setResponseFactor(smootherResponseFactor);
+  smootherMax.setResponseFactor(smootherResponseFactor);
 }
 
 Demo::ErrorPlotter::~ErrorPlotter() {
@@ -970,6 +979,9 @@ void Demo::ErrorPlotter::render(Frame *frame) {
     if(y > maxValue) maxValue = y;
   }
 
+  if(maxValue > (maxValueInGraph * 0.8))
+    maxValueInGraph = maxValue * 1.5;
+
   if(maxValue > 0) {
     glShadeModel(GL_FLAT);
     glBegin(GL_POINTS);
@@ -977,7 +989,7 @@ void Demo::ErrorPlotter::render(Frame *frame) {
     for(int x = 0; x < width; x++) {
       i = (int) (bufferSize * x / width);
       y = buffer[i];
-      frame->vertex2i(x, (int) ((1 - y / maxValue) * height));
+      frame->vertex2i(x, (int) ((1 - y / maxValueInGraph) * height));
     }
     glEnd();
 
@@ -987,7 +999,7 @@ void Demo::ErrorPlotter::render(Frame *frame) {
     for(int x = 0; x < width; x++) {
       i = (int) (bufferSize * x / width);
       y = buffer[i];
-      frame->vertex2i(x, (int) ((1 - y / maxValue) * height));
+      frame->vertex2i(x, (int) ((1 - y / maxValueInGraph) * height));
     }
     glEnd();
   }
