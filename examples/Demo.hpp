@@ -230,6 +230,7 @@ private:
   char **argv;
   bool useAudioInputFile;
   bool showFPS;
+  bool showAdaptationValues;
   char *audioInputFilename;
   AudioParameters audioParameters;
   bool normalizeSpectrum;

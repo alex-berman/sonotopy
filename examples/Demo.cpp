@@ -55,6 +55,7 @@ void Demo::processCommandLineArguments() {
   useAudioInputFile = false;
   echoAudio = false;
   showFPS = false;
+  showAdaptationValues = false;
   plotError = false;
   int argnr = 1;
   char **argptr = argv + 1;
@@ -88,6 +89,25 @@ void Demo::processCommandLineArguments() {
       }
       else if(strcmp(argflag, "error") == 0) {
         plotError = true;
+      }
+      else if(strcmp(argflag, "adapt") == 0) {
+	argnr++;
+	argptr++;
+	if(strcmp(*argptr, "time") == 0) {
+	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	    SpectrumMapParameters::TimeBased;
+	}
+	else if(strcmp(*argptr, "error") == 0) {
+	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	    SpectrumMapParameters::ErrorDriven;
+	}
+	else {
+	  printf("Unknown adaptation strategy %s\n", *argptr);
+	  usage();
+	}
+      }
+      else if(strcmp(argflag, "showadapt") == 0) {
+	showAdaptationValues = true;
       }
       else {
         printf("Unknown option %s\n\n", argflag);
@@ -475,9 +495,22 @@ void Demo::glDisplay() {
   frameCount++;
 
   if(showFPS) {
-    if(frameCount%100==0) {
+    if(frameCount % 100 == 0) {
       float FPS = (float)frameCount / stopwatch.getElapsedMilliseconds() * 1000;
       printf("fps=%.3f\n", FPS);
+    }
+  }
+
+  if(showAdaptationValues) {
+    if(frameCount % 50 == 0) {
+      printf("grid   errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n",
+	     gridMap->getErrorLevel(),
+	     gridMap->getAdaptationTimeSecs(),
+	     gridMap->getNeighbourhoodParameter());
+      printf("circle errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n",
+	     circleMap->getErrorLevel(),
+	     circleMap->getAdaptationTimeSecs(),
+	     circleMap->getNeighbourhoodParameter());
     }
   }
 }

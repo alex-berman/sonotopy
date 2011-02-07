@@ -41,6 +41,9 @@ public:
   void moveTopologyCursorTowardsWinner();
   float getErrorMin() const;
   float getErrorMax() const;
+  float getErrorLevel() const;
+  float getAdaptationTimeSecs() const;
+  float getNeighbourhoodParameter() const;
 
 protected:
   void createSpectrumAnalyzer();
@@ -48,10 +51,12 @@ protected:
   void createSom();
   void createSomInput();
   void createSomOutput();
-  void feedSpectrumToSom(const float *spectrum, bool train);
+  void feedSpectrumToSom(const float *spectrum);
   void spectrumToSomInput(const float *);
   void setTrainingParameters(unsigned long numFrames);
   float getLearningParameter(float adaptationTimeSecs, unsigned long numFrames);
+  void setTimeBasedAdaptationValues();
+  void setErrorDrivenAdaptationValues();
 
   AudioParameters audioParameters;
   SpectrumMapParameters spectrumMapParameters;
@@ -69,6 +74,8 @@ protected:
   float elapsedTimeSecs;
   float previousCursorUpdateTimeSecs;
   bool activationPatternOutdated;
+  float neighbourhoodParameter;
+  float adaptationTimeSecs;
   float errorLevel;
   Smoother errorLevelSmoother;
 };
