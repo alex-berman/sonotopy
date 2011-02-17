@@ -58,6 +58,7 @@ protected:
   float getLearningParameter(float adaptationTimeSecs, unsigned long numFrames);
   void setTimeBasedAdaptationValues();
   void setErrorDrivenAdaptationValues();
+  float clamp(float in, float min, float max) const;
 
   AudioParameters audioParameters;
   SpectrumMapParameters spectrumMapParameters;

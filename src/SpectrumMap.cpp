@@ -171,17 +171,12 @@ void SpectrumMap::setTimeBasedAdaptationValues() {
 }
 
 void SpectrumMap::setErrorDrivenAdaptationValues() {
-  if(errorLevel < spectrumMapParameters.errorThresholdLow)
-    neighbourhoodParameter = spectrumMapParameters.neighbourhoodParameterMin;
-  else if(errorLevel > spectrumMapParameters.errorThresholdHigh)
-    neighbourhoodParameter = 1.0f;
-  else {
-    float relativeError = (errorLevel - spectrumMapParameters.errorThresholdLow)
-      / (spectrumMapParameters.errorThresholdHigh - spectrumMapParameters.errorThresholdLow);
-    neighbourhoodParameter = spectrumMapParameters.neighbourhoodParameterMin +
-      (1.0f - spectrumMapParameters.neighbourhoodParameterMin) *
-      pow(relativeError, spectrumMapParameters.neighbourhoodPlasticity);
-  }
+  float relativeError = (errorLevel - spectrumMapParameters.errorThresholdLow)
+    / (spectrumMapParameters.errorThresholdHigh - spectrumMapParameters.errorThresholdLow);
+  relativeError = clamp(relativeError, 0, 1);
+  neighbourhoodParameter = spectrumMapParameters.neighbourhoodParameterMin +
+    (1.0f - spectrumMapParameters.neighbourhoodParameterMin) *
+    pow(relativeError, spectrumMapParameters.neighbourhoodPlasticity);
   adaptationTimeSecs = 1.0f / (spectrumMapParameters.adaptationPlasticity * errorLevel);
 }
 
@@ -224,4 +219,12 @@ float SpectrumMap::getErrorMin() const {
 
 float SpectrumMap::getErrorMax() const {
   return som->getOutputMax();
+}
+
+float SpectrumMap::clamp(float in, float min, float max) const {
+  if(in < min)
+    return min;
+  if(in > max)
+    return max;
+  return in;
 }
