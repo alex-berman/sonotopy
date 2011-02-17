@@ -36,6 +36,14 @@ SpectrumMap::SpectrumMap(Topology *_topology,
   elapsedTimeSecs = 0.0f;
   previousCursorUpdateTimeSecs = 0.0f;
   activationPatternOutdated = false;
+
+  if(spectrumMapParameters.adaptationStrategy == SpectrumMapParameters::ErrorDriven) {
+    errorLevel = spectrumMapParameters.errorThresholdHigh;
+    errorLevelSmoother.setResponseFactor(1000 * audioParameters.bufferSize
+					 / audioParameters.sampleRate / spectrumMapParameters.errorIntegrationTimeMs);
+  }
+  else
+    errorLevel = 0;
 }
 
 SpectrumMap::~SpectrumMap() {
@@ -50,11 +58,28 @@ Topology* SpectrumMap::getTopology() const {
   return topology;
 }
 
+SpectrumMapParameters SpectrumMap::getSpectrumMapParameters() const {
+  return spectrumMapParameters;
+}
+
 void SpectrumMap::createSom() {
   som = new SOM(spectrumResolution, topology);
-  som->setRandomModelValues(0.0, 0.0001);
   currentActivationPattern = som->createActivationPattern();
   nextActivationPattern = som->createActivationPattern();
+
+  float somInitialValueMin, somInitialValueMax;
+  switch(spectrumMapParameters.adaptationStrategy) {
+  case SpectrumMapParameters::ErrorDriven:
+    somInitialValueMin = spectrumMapParameters.errorThresholdHigh -
+      0.001 * (spectrumMapParameters.errorThresholdHigh - spectrumMapParameters.errorThresholdLow);
+    somInitialValueMax = spectrumMapParameters.errorThresholdHigh;
+    break;
+  case SpectrumMapParameters::TimeBased:
+    somInitialValueMin = 0.0;
+    somInitialValueMax = 0.0001;
+    break;
+  }
+  som->setRandomModelValues(somInitialValueMin, somInitialValueMax);
 }
 
 void SpectrumMap::createSomInput() {
@@ -92,20 +117,17 @@ void SpectrumMap::feedAudio(const float *audio, unsigned long numFrames) {
   spectrumBinDivider->feedSpectrum(spectrum, numFrames);
   spectrumBinValues = spectrumBinDivider->getBinValues();
   setTrainingParameters(numFrames);
-  feedSpectrumToSom(spectrumBinValues, spectrumMapParameters.enableLiveTraining);
+  feedSpectrumToSom(spectrumBinValues);
   elapsedTimeSecs += (float) numFrames / audioParameters.sampleRate;
   activationPatternOutdated = true;
 }
 
-void SpectrumMap::feedSpectrumToSom(const float *spectrum, bool train) {
+void SpectrumMap::feedSpectrumToSom(const float *spectrum) {
   spectrumToSomInput(spectrum);
-  if(train) {
-    som->train(somInput);
-    som->getLastOutput(somOutput);
-  }
-  else {
-    som->getOutput(somInput, somOutput);
-  }
+  som->train(somInput);
+  som->getLastOutput(somOutput);
+  if(spectrumMapParameters.adaptationStrategy == SpectrumMapParameters::ErrorDriven)
+    errorLevel = errorLevelSmoother.smooth(getErrorMax());
 }
 
 void SpectrumMap::spectrumToSomInput(const float *spectrum) {
@@ -120,10 +142,34 @@ int SpectrumMap::getWinnerId() const {
   return som->getLastWinner();
 }
 
+float SpectrumMap::getErrorLevel() const {
+  return errorLevel;
+}
+
+float SpectrumMap::getAdaptationTimeSecs() const {
+  return adaptationTimeSecs;
+}
+
+float SpectrumMap::getNeighbourhoodParameter() const {
+  return neighbourhoodParameter;
+}
+
 void SpectrumMap::setTrainingParameters(unsigned long numFrames) {
-  float neighbourhoodParameter;
-  float adaptationTimeSecs;
-  float learningParameter;
+  switch(spectrumMapParameters.adaptationStrategy) {
+  case SpectrumMapParameters::ErrorDriven:
+    setErrorDrivenAdaptationValues();
+    break;
+  case SpectrumMapParameters::TimeBased:
+    setTimeBasedAdaptationValues();
+    break;
+  }
+
+  float learningParameter = getLearningParameter(adaptationTimeSecs, numFrames);
+  som->setNeighbourhoodParameter(neighbourhoodParameter);
+  som->setLearningParameter(learningParameter);
+}
+
+void SpectrumMap::setTimeBasedAdaptationValues() {
   if(elapsedTimeSecs < spectrumMapParameters.initialTrainingLengthSecs) {
     float relativeInitiality = 1.0f - (elapsedTimeSecs / spectrumMapParameters.initialTrainingLengthSecs);
     neighbourhoodParameter = spectrumMapParameters.normalNeighbourhoodParameter +
@@ -135,9 +181,16 @@ void SpectrumMap::setTrainingParameters(unsigned long numFrames) {
     neighbourhoodParameter = spectrumMapParameters.normalNeighbourhoodParameter;
     adaptationTimeSecs = spectrumMapParameters.normalAdaptationTimeSecs;
   }
-  learningParameter = getLearningParameter(adaptationTimeSecs, numFrames);
-  som->setNeighbourhoodParameter(neighbourhoodParameter);
-  som->setLearningParameter(learningParameter);
+}
+
+void SpectrumMap::setErrorDrivenAdaptationValues() {
+  float relativeError = (errorLevel - spectrumMapParameters.errorThresholdLow)
+    / (spectrumMapParameters.errorThresholdHigh - spectrumMapParameters.errorThresholdLow);
+  relativeError = clamp(relativeError, 0, 1);
+  neighbourhoodParameter = spectrumMapParameters.neighbourhoodParameterMin +
+    (1.0f - spectrumMapParameters.neighbourhoodParameterMin) *
+    pow(relativeError, spectrumMapParameters.neighbourhoodPlasticity);
+  adaptationTimeSecs = 1.0f / (spectrumMapParameters.adaptationPlasticity * errorLevel);
 }
 
 float SpectrumMap::getLearningParameter(float adaptationTimeSecs, unsigned long numFrames) {
@@ -179,4 +232,12 @@ float SpectrumMap::getErrorMin() const {
 
 float SpectrumMap::getErrorMax() const {
   return som->getOutputMax();
+}
+
+float SpectrumMap::clamp(float in, float min, float max) const {
+  if(in < min)
+    return min;
+  if(in > max)
+    return max;
+  return in;
 }

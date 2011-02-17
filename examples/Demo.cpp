@@ -55,6 +55,7 @@ void Demo::processCommandLineArguments() {
   useAudioInputFile = false;
   echoAudio = false;
   showFPS = false;
+  showAdaptationValues = false;
   plotError = false;
   int argnr = 1;
   char **argptr = argv + 1;
@@ -88,6 +89,25 @@ void Demo::processCommandLineArguments() {
       }
       else if(strcmp(argflag, "error") == 0) {
         plotError = true;
+      }
+      else if(strcmp(argflag, "adapt") == 0) {
+	argnr++;
+	argptr++;
+	if(strcmp(*argptr, "time") == 0) {
+	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	    SpectrumMapParameters::TimeBased;
+	}
+	else if(strcmp(*argptr, "error") == 0) {
+	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	    SpectrumMapParameters::ErrorDriven;
+	}
+	else {
+	  printf("Unknown adaptation strategy %s\n", *argptr);
+	  usage();
+	}
+      }
+      else if(strcmp(argflag, "showadapt") == 0) {
+	showAdaptationValues = true;
       }
       else {
         printf("Unknown option %s\n\n", argflag);
@@ -260,7 +280,6 @@ void Demo::moveToScene(int _sceneNum) {
 
 void Demo::initializeGraphics() {
   normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == SpectrumAnalyzer::Amplitude);
-  sceneNum = 0;
   frameCount = 0;
   waveformFrame = new WaveformFrame(this);
   spectrumFrame = new SpectrumFrame(this);
@@ -272,14 +291,19 @@ void Demo::initializeGraphics() {
   isolinesFrame = new IsolinesFrame(this);
   circleMapFrame = new CircleMapFrame(this);
   enlargedCircleMapFrame = new SmoothCircleMapFrame(this);
-  circleMapErrorPlotter = new ErrorPlotter(circleMap);
-  gridMapErrorPlotter = new ErrorPlotter(gridMap);
+  circleMapErrorPlotter = new ErrorPlotter(this, circleMap);
+  gridMapErrorPlotter = new ErrorPlotter(this, gridMap);
 
   for(int i = 0; i < 20; i++)
     dancers.push_back(Dancer(this));
 
   glClearColor (0.0, 0.0, 0.0, 0.0);
   glShadeModel (GL_FLAT);
+
+  if(plotError)
+    moveToScene(Scene_EnlargedCircleMap);
+  else
+    moveToScene(Scene_Mixed);
 }
 
 void Demo::glReshape(int _windowWidth, int _windowHeight) {
@@ -466,9 +490,22 @@ void Demo::glDisplay() {
   frameCount++;
 
   if(showFPS) {
-    if(frameCount%100==0) {
+    if(frameCount % 100 == 0) {
       float FPS = (float)frameCount / stopwatch.getElapsedMilliseconds() * 1000;
       printf("fps=%.3f\n", FPS);
+    }
+  }
+
+  if(showAdaptationValues) {
+    if(frameCount % 50 == 0) {
+      printf("grid   errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n",
+	     gridMap->getErrorLevel(),
+	     gridMap->getAdaptationTimeSecs(),
+	     gridMap->getNeighbourhoodParameter());
+      printf("circle errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n",
+	     circleMap->getErrorLevel(),
+	     circleMap->getAdaptationTimeSecs(),
+	     circleMap->getNeighbourhoodParameter());
     }
   }
 }
@@ -933,15 +970,19 @@ void Demo::IsolinesFrame::renderDrawableIsocurveSetHistory() {
   }
 }
 
-Demo::ErrorPlotter::ErrorPlotter(const SpectrumMap *_map) {
+Demo::ErrorPlotter::ErrorPlotter(const Demo *parent, const SpectrumMap *_map) {
   map = _map;
   bufferSize = 1000;
   buffer = new float [bufferSize];
   circularBufferMin = new CircularBuffer<float> (bufferSize);
   circularBufferMax = new CircularBuffer<float> (bufferSize);
   maxValue = 0;
-  smootherMin.setResponseFactor(0.01);
-  smootherMax.setResponseFactor(0.01);
+  maxValueInGraph = 0;
+  
+  float smootherResponseFactor = 1000 * parent->audioParameters.bufferSize
+    / parent->audioParameters.sampleRate / map->getSpectrumMapParameters().errorIntegrationTimeMs;
+  smootherMin.setResponseFactor(smootherResponseFactor);
+  smootherMax.setResponseFactor(smootherResponseFactor);
 }
 
 Demo::ErrorPlotter::~ErrorPlotter() {
@@ -970,6 +1011,9 @@ void Demo::ErrorPlotter::render(Frame *frame) {
     if(y > maxValue) maxValue = y;
   }
 
+  if(maxValue > (maxValueInGraph * 0.8))
+    maxValueInGraph = maxValue * 1.5;
+
   if(maxValue > 0) {
     glShadeModel(GL_FLAT);
     glBegin(GL_POINTS);
@@ -977,7 +1021,7 @@ void Demo::ErrorPlotter::render(Frame *frame) {
     for(int x = 0; x < width; x++) {
       i = (int) (bufferSize * x / width);
       y = buffer[i];
-      frame->vertex2i(x, (int) ((1 - y / maxValue) * height));
+      frame->vertex2i(x, (int) ((1 - y / maxValueInGraph) * height));
     }
     glEnd();
 
@@ -987,7 +1031,7 @@ void Demo::ErrorPlotter::render(Frame *frame) {
     for(int x = 0; x < width; x++) {
       i = (int) (bufferSize * x / width);
       y = buffer[i];
-      frame->vertex2i(x, (int) ((1 - y / maxValue) * height));
+      frame->vertex2i(x, (int) ((1 - y / maxValueInGraph) * height));
     }
     glEnd();
   }

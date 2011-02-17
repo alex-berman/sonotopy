@@ -24,15 +24,30 @@ namespace sonotopy {
 
 class SpectrumMapParameters {
 public:
+  typedef enum {
+    TimeBased,
+    ErrorDriven
+  } AdaptationStrategy;
+
   SpectrumMapParameters();
 
-  bool enableLiveTraining;
+  float trajectorySmoothness;
+  AdaptationStrategy adaptationStrategy;
+
+  // parameters for time-based adaptation
   float initialTrainingLengthSecs;
   float initialNeighbourhoodParameter;
   float initialAdaptationTimeSecs;
   float normalNeighbourhoodParameter;
   float normalAdaptationTimeSecs;
-  float trajectorySmoothness;
+
+  // parameters for error-driven adaptation
+  float adaptationPlasticity;
+  float neighbourhoodPlasticity;
+  float neighbourhoodParameterMin;
+  float errorThresholdLow;
+  float errorThresholdHigh;
+  float errorIntegrationTimeMs;
 };
 
 }
