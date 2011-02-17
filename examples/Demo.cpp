@@ -242,11 +242,6 @@ void Demo::openAudioStream() {
 void Demo::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
 
-  gridMapParameters.adaptationPlasticity = circleMapParameters.adaptationPlasticity = 1000.0f; // TEMP
-  gridMapParameters.neighbourhoodPlasticity = circleMapParameters.neighbourhoodPlasticity = 1.0f; // TEMP
-  gridMapParameters.errorThresholdLow = circleMapParameters.errorThresholdLow   = 0.0001f; // TEMP
-  gridMapParameters.errorThresholdHigh = circleMapParameters.errorThresholdHigh = 0.0015f; // TEMP
-
   gridMap = new GridMap(audioParameters, gridMapParameters);
   spectrumAnalyzer = gridMap->getSpectrumAnalyzer();
   spectrumBinDivider = gridMap->getSpectrumBinDivider();

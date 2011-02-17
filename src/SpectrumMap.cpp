@@ -64,9 +64,22 @@ SpectrumMapParameters SpectrumMap::getSpectrumMapParameters() const {
 
 void SpectrumMap::createSom() {
   som = new SOM(spectrumResolution, topology);
-  som->setRandomModelValues(0.0, 0.0001);
   currentActivationPattern = som->createActivationPattern();
   nextActivationPattern = som->createActivationPattern();
+
+  float somInitialValueMin, somInitialValueMax;
+  switch(spectrumMapParameters.adaptationStrategy) {
+  case SpectrumMapParameters::ErrorDriven:
+    somInitialValueMin = spectrumMapParameters.errorThresholdHigh -
+      0.001 * (spectrumMapParameters.errorThresholdHigh - spectrumMapParameters.errorThresholdLow);
+    somInitialValueMax = spectrumMapParameters.errorThresholdHigh;
+    break;
+  case SpectrumMapParameters::TimeBased:
+    somInitialValueMin = 0.0;
+    somInitialValueMax = 0.0001;
+    break;
+  }
+  som->setRandomModelValues(somInitialValueMin, somInitialValueMax);
 }
 
 void SpectrumMap::createSomInput() {
