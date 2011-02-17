@@ -19,7 +19,7 @@ using namespace sonotopy;
 
 SpectrumMapParameters::SpectrumMapParameters() {
   trajectorySmoothness = 0.1f;
-  adaptationStrategy = TimeBased;
+  adaptationStrategy = ErrorDriven;
 
   // parameters for time-based adaptation
   initialNeighbourhoodParameter = 1.0f;
@@ -29,10 +29,10 @@ SpectrumMapParameters::SpectrumMapParameters() {
   normalAdaptationTimeSecs = 3.0f;
 
   // parameters for error-driven adaptation
-  adaptationPlasticity = 1.0f;
+  adaptationPlasticity = 1000.0f;
   neighbourhoodPlasticity = 1.0f;
-  neighbourhoodParameterMin = 0.1f;
   errorThresholdLow = 0.0001f;
-  errorThresholdHigh = 1.0f;
+  errorThresholdHigh = 0.0015f;
+  neighbourhoodParameterMin = 0.1f;
   errorIntegrationTimeMs = 1000.0f;
 }
