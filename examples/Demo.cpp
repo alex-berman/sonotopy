@@ -23,8 +23,6 @@ using namespace sonotopy;
 
 Demo *demo;
 
-const float Demo::activationPatternContrast = 15.0f;
-
 Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
   demo = this;
   argc = _argc;
@@ -245,13 +243,8 @@ void Demo::initializeAudioProcessing() {
   gridMap = new GridMap(audioParameters, gridMapParameters);
   spectrumAnalyzer = gridMap->getSpectrumAnalyzer();
   spectrumBinDivider = gridMap->getSpectrumBinDivider();
-  gridMapWidth = gridMapParameters.gridWidth;
-  gridMapHeight = gridMapParameters.gridHeight;
   spectrumMapInputBuffer = new float [audioParameters.bufferSize];
-
   circleMap = new CircleMap(audioParameters, circleMapParameters);
-  circleTopology = (CircleTopology*) circleMap->getTopology();
-
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
 }
 
@@ -281,16 +274,16 @@ void Demo::moveToScene(int _sceneNum) {
 void Demo::initializeGraphics() {
   normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == SpectrumAnalyzer::Amplitude);
   frameCount = 0;
-  waveformFrame = new WaveformFrame(this);
-  spectrumFrame = new SpectrumFrame(this);
-  spectrumBinsFrame = new SpectrumBinsFrame(this);
-  gridMapFrame = new GridMapFrame(this);
-  enlargedGridMapFrame = new SmoothGridMapFrame(this);
-  gridMapTrajectoryFrame = new GridMapTrajectoryFrame(this);
-  beatTrackerFrame = new BeatTrackerFrame(this);
-  isolinesFrame = new IsolinesFrame(this);
-  circleMapFrame = new CircleMapFrame(this);
-  enlargedCircleMapFrame = new SmoothCircleMapFrame(this);
+  waveformFrame = new WaveformFrame(spectrumMapInputBuffer, audioParameters.bufferSize);
+  spectrumFrame = new SpectrumFrame(spectrumAnalyzer, normalizeSpectrum);
+  spectrumBinsFrame = new SpectrumBinsFrame(spectrumBinDivider, normalizeSpectrum);
+  gridMapFrame = new GridMapFrame(gridMap);
+  enlargedGridMapFrame = new SmoothGridMapFrame(gridMap);
+  gridMapTrajectoryFrame = new GridMapTrajectoryFrame(gridMap);
+  beatTrackerFrame = new BeatTrackerFrame(beatTracker);
+  isolinesFrame = new IsolinesFrame(gridMap);
+  circleMapFrame = new CircleMapFrame(circleMap, beatTracker);
+  enlargedCircleMapFrame = new SmoothCircleMapFrame(circleMap);
   circleMapErrorPlotter = new ErrorPlotter(this, circleMap);
   gridMapErrorPlotter = new ErrorPlotter(this, gridMap);
 
@@ -450,9 +443,6 @@ void Demo::glDisplay() {
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
 
-  gridMapActivationPattern = gridMap->getActivationPattern();
-  circleMapActivationPattern = circleMap->getActivationPattern();
-
   switch(sceneNum) {
     case Scene_Mixed:
       waveformFrame->display();
@@ -470,10 +460,14 @@ void Demo::glDisplay() {
 
     case Scene_EnlargedCircleMap:
       enlargedCircleMapFrame->display();
+      if(plotError)
+	circleMapErrorPlotter->render(enlargedCircleMapFrame);
       break;
 
     case Scene_EnlargedGridMap:
       enlargedGridMapFrame->display();
+      if(plotError)
+	gridMapErrorPlotter->render(enlargedGridMapFrame);
       break;
 
     case Scene_GridMapTrajectory:
@@ -508,312 +502,6 @@ void Demo::glDisplay() {
 	     circleMap->getNeighbourhoodParameter());
     }
   }
-}
-
-Demo::WaveformFrame::WaveformFrame(Demo *_parent) {
-  parent = _parent;
-}
-
-void Demo::WaveformFrame::render() {
-  glColor3f(1.0f, 1.0f, 1.0f);
-  static float x;
-  glShadeModel(GL_FLAT);
-  glBegin(GL_POINTS);
-  for(int i = 0; i < width; i++) {
-    x = parent->spectrumMapInputBuffer[(int) (parent->audioParameters.bufferSize * i / width)];
-    vertex2i(i, (int) ((x + 1) / 2 * height));
-  }
-  glEnd();
-}
-
-Demo::SpectrumFrame::SpectrumFrame(Demo *_parent) {
-  parent = _parent;
-}
-
-void Demo::SpectrumFrame::render() {
-  const float *spectrum = parent->spectrumAnalyzer->getSpectrum();
-  static float z;
-  static int spectrumBin;
-  glShadeModel(GL_FLAT);
-  glLineWidth(1.0f);
-  for(int i = 0; i < width; i++) {
-    spectrumBin = (int) (parent->spectrumAnalyzer->getSpectrumResolution() * i / width);
-    z = spectrum[spectrumBin];
-    if(parent->normalizeSpectrum) z = normalizer.normalize(log(1.0f + z));
-    glColor3f(z, z, z);
-    glBegin(GL_LINES);
-    vertex2i(i, height);
-    vertex2i(i, height - (int) (z * height));
-    glEnd();
-  }
-}
-
-Demo::SpectrumBinsFrame::SpectrumBinsFrame(Demo *_parent) {
-  parent = _parent;
-}
-
-void Demo::SpectrumBinsFrame::render() {
-  const float *binValuePtr = parent->spectrumBinDivider->getBinValues();
-  static float w;
-  static int x1, x2, y1, y2;
-  unsigned int numBins = parent->spectrumBinDivider->getNumBins();
-  glShadeModel(GL_FLAT);
-  y1 = height;
-  for(unsigned int i = 0; i < numBins; i++) {
-    w = *binValuePtr;
-    if(parent->normalizeSpectrum) w = normalizer.normalize(w);
-    glColor3f(w, w, w);
-    glBegin(GL_POLYGON);
-    x1 = (int) (width * i / numBins);
-    x2 = (int) (width * (i+1) / numBins);
-    y2 = height - (int) (height * w);
-    vertex2i(x1, y1);
-    vertex2i(x1, y2);
-    vertex2i(x2, y2);
-    vertex2i(x2, y1);
-    vertex2i(x1, y1);
-    glEnd();
-    binValuePtr++;
-  }
-}
-
-Demo::GridMapFrame::GridMapFrame(Demo *_parent) {
-  parent = _parent;
-}
-
-void Demo::GridMapFrame::render() {
-  glShadeModel(GL_FLAT);
-  renderActivationPattern();
-  renderCursor();
-}
-
-void Demo::GridMapFrame::renderActivationPattern() {
-  static float v;
-  static int x1, x2, py1, py2;
-  SOM::ActivationPattern::const_iterator activationPatternIterator =
-    parent->gridMapActivationPattern->begin();
-  for(int y = 0; y < parent->gridMapWidth; y++) {
-    for(int x = 0; x < parent->gridMapHeight; x++) {
-      v = *activationPatternIterator;
-      v = pow(v, activationPatternContrast);
-      glColor3f(v, v, v);
-      glBegin(GL_POLYGON);
-      x1 = (int) (width * x / parent->gridMapWidth);
-      x2 = (int) (width * (x+1) / parent->gridMapWidth);
-      py1 = (int) (y * height / parent->gridMapHeight);
-      py2 = (int) ((y+1) * height / parent->gridMapHeight);
-      vertex2i(x1, py1);
-      vertex2i(x1, py2);
-      vertex2i(x2, py2);
-      vertex2i(x2, py1);
-      vertex2i(x1, py1);
-      glEnd();
-      activationPatternIterator++;
-    }
-  }
-}
-
-void Demo::GridMapFrame::renderCursor() {
-  float wx, wy;
-  int x1, y1, x2, y2;
-  int s = (int) (width / parent->gridMapWidth / 2);
-  parent->gridMap->getCursor(wx, wy);
-  x1 = (int) (width  * wx) - s;
-  y1 = (int) (height * wy) - s;
-  x2 = (int) (width  * wx) + s;
-  y2 = (int) (height * wy) + s;
-  glColor3f(1, 0, 0);
-  glBegin(GL_POLYGON);
-  vertex2i(x1, y1);
-  vertex2i(x2, y1);
-  vertex2i(x2, y2);
-  vertex2i(x1, y2);
-  vertex2i(x1, y1);
-  glEnd();
-}
-
-Demo::SmoothGridMapFrame::SmoothGridMapFrame(Demo *_parent) {
-  parent = _parent;
-}
-
-void Demo::SmoothGridMapFrame::render() {
-  static int x1, x2, py1, py2;
-  glShadeModel(GL_SMOOTH);
-  for(int y = 0; y < parent->gridMapWidth-1; y++) {
-    for(int x = 0; x < parent->gridMapHeight-1; x++) {
-      x1 = (int) (width * x / (parent->gridMapWidth-1));
-      x2 = (int) (width * (x+1) / (parent->gridMapWidth-1));
-      py1 = (int) (y * height / (parent->gridMapHeight-1));
-      py2 = (int) ((y+1) * height / (parent->gridMapHeight-1));
-      glBegin(GL_POLYGON);
-      setColorFromActivationPattern(x, y);
-      vertex2i(x1, py1);
-      setColorFromActivationPattern(x, y+1);
-      vertex2i(x1, py2);
-      setColorFromActivationPattern(x+1, y+1);
-      vertex2i(x2, py2);
-      setColorFromActivationPattern(x+1, y);
-      vertex2i(x2, py1);
-      setColorFromActivationPattern(x, y);
-      vertex2i(x1, py1);
-      glEnd();
-    }
-  }
-
-  if(parent->plotError)
-    parent->gridMapErrorPlotter->render(this);
-}
-
-Demo::GridMapTrajectoryFrame::GridMapTrajectoryFrame(Demo *_parent) {
-  parent = _parent;
-}
-
-void Demo::GridMapTrajectoryFrame::render() {
-  updateTrace();
-  renderTrace();
-}
-
-void Demo::GridMapTrajectoryFrame::updateTrace() {
-  Point p;
-  float wx, wy;
-  parent->gridMap->getCursor(wx, wy);
-  p.x = wx * width;
-  p.y = wy * height;
-  trace.push_back(p);
-  if(trace.size() > 10)
-    trace.erase(trace.begin());
-}
-
-void Demo::GridMapTrajectoryFrame::renderTrace() {
-  float c;
-  glShadeModel(GL_SMOOTH);
-  glLineWidth(3.0f);
-  glBegin(GL_LINE_STRIP);
-  vector<Point>::iterator pos = trace.begin();
-  glColor3f(0, 0, 0);
-  vertex2f(pos->x, pos->y);
-  pos++;
-  int traceSize = trace.size();
-  int n = 1;
-  for(;pos != trace.end(); pos++) {
-    c = (float) (n + 1) / traceSize;
-    glColor3f(c, c, c);
-    vertex2f(pos->x, pos->y);
-    n++;
-  }
-  glEnd();
-}
-
-void Demo::SmoothGridMapFrame::setColorFromActivationPattern(int x, int y) {
-  float v = parent->gridMap->getActivation((unsigned int)x, (unsigned int)y);
-  v = pow(v, activationPatternContrast);
-  glColor3f(v, v, v);
-}
-
-Demo::CircleMapFrame::CircleMapFrame(Demo *_parent) {
-  parent = _parent;
-  numNodes = parent->circleTopology->getNumNodes();
-}
-
-void Demo::CircleMapFrame::render() {
-  static float c;
-  static int x1, y1, x2, y2;
-  int centreX = width / 2;
-  int centreY = height / 2;
-  int radius = (int) (width * 0.4);
-  float angleSpan = 2 * M_PI / numNodes;
-  glShadeModel(GL_FLAT);
-  SOM::ActivationPattern::const_iterator activationPatternIterator = parent->circleMapActivationPattern->begin();
-  CircleTopology::Node node;
-  for(int i = 0; i < numNodes; i++) {
-    c = *activationPatternIterator;
-    node = parent->circleTopology->getNode(i);
-    x1 = centreX + radius * cos(node.angle - angleSpan);
-    y1 = centreY + radius * sin(node.angle - angleSpan);
-    x2 = centreX + radius * cos(node.angle + angleSpan);
-    y2 = centreY + radius * sin(node.angle + angleSpan);
-    glBegin(GL_POLYGON);
-    glColor3f(c, c, c);
-    vertex2i(centreX, centreY);
-    vertex2i(x1, y1);
-    vertex2i(x2, y2);
-    glEnd();
-    activationPatternIterator++;
-  }
-
-  float angle = parent->circleMap->getAngle();
-  radius = width * (0.1 + parent->beatTracker->getIntensity() * 0.3);
-  x1 = centreX + radius * cos(angle);
-  y1 = centreY + radius * sin(angle);
-  glColor3f(1.0f, 0.0f, 0.0f);
-  glLineWidth(3.0f);
-  glBegin(GL_LINES);
-  vertex2i(centreX, centreY);
-  vertex2i(x1, y1);
-  glEnd();
-}
-
-Demo::SmoothCircleMapFrame::SmoothCircleMapFrame(Demo *_parent) {
-  parent = _parent;
-  numNodes = parent->circleTopology->getNumNodes();
-  angleIncrement = 2 * M_PI / numNodes;
-}
-
-void Demo::SmoothCircleMapFrame::render() {
-  int numPoints = 100;
-  float c;
-  float a;
-  int x, y;
-  int centreX = width / 2;
-  int centreY = height / 2;
-  int radius = (int) (width * 0.4);
-
-  glShadeModel(GL_SMOOTH);
-  glBegin(GL_TRIANGLE_FAN);
-  glColor3f(1,1,1);
-  vertex2i(centreX, centreY);
-  for(int i = 0; i <= numPoints; i++) {
-    a = (float) i / numPoints * 2 * M_PI;
-    c = getColorAtAngle(a);
-    glColor3f(c, c, c);
-    x  = centreX + radius * cos(a);
-    y  = centreY + radius * sin(a);
-    vertex2i(x, y);
-  }
-  glEnd();
-
-  if(parent->plotError)
-    parent->circleMapErrorPlotter->render(this);
-}
-
-float Demo::SmoothCircleMapFrame::getColorAtAngle(float angle) {
-  angle = fmodf(angle, 2 * M_PI);
-  int nodeId1 = (int) (angle / angleIncrement);
-  int nodeId2 = (nodeId1 + 1) % numNodes;
-  float nodeAngle1 = (float) nodeId1 / numNodes * 2 * M_PI;
-  float nodeStrength1 = 1.0f - (angle - nodeAngle1) / angleIncrement;
-  float nodeStrength2 = 1.0f - nodeStrength1;
-  float nodeActivity1 = (*parent->circleMapActivationPattern)[nodeId1];
-  float nodeActivity2 = (*parent->circleMapActivationPattern)[nodeId2];
-  return nodeActivity1 * nodeStrength1 + nodeActivity2 * nodeStrength2;
-}
-
-Demo::BeatTrackerFrame::BeatTrackerFrame(Demo *_parent) {
-  parent = _parent;
-}
-
-void Demo::BeatTrackerFrame::render() {
-  float i = parent->beatTracker->getIntensity();
-  int x = (1-i) * width / 2;
-  int y = (1-i) * height / 2;
-  glColor3f(i, i, i);
-  glBegin(GL_POLYGON);
-  vertex2i(x, y);
-  vertex2i(width-x, y);
-  vertex2i(width-x, height-y);
-  vertex2i(x, height-y);
-  vertex2i(x, y);
-  glEnd();
 }
 
 void Demo::updateDancers() {
@@ -901,73 +589,6 @@ bool Demo::Dancer::outOfBounds(const Point &p) {
   if(p.x > parent->windowWidth) return true;
   if(p.y > parent->windowHeight) return true;
   return false;
-}
-
-Demo::IsolinesFrame::IsolinesFrame(Demo *_parent) {
-  parent = _parent;
-  activationPatternAsTwoDimArray = new TwoDimArray<float>(parent->gridMapWidth, parent->gridMapHeight);
-  isolineExtractor = new IsolineExtractor(parent->gridMapWidth, parent->gridMapHeight);
-  isolineRenderer = new IsolineRenderer(isolineExtractor);
-  lineWidthFactor = 0.1f;
-  isocurvesHistoryLength = 7;
-  isocurvesHistoryCurrentLength = 0;
-}
-
-void Demo::IsolinesFrame::render() {
-  static IsolineRenderer::DrawableIsocurveSet drawableIsocurveSet;
-  activationPatternToTwoDimArray();
-  isolineExtractor->setMap(*activationPatternAsTwoDimArray);
-  isolineRenderer->getDrawableIsocurveSet(drawableIsocurveSet);
-  addDrawableIsocurveSetToHistory(drawableIsocurveSet);
-  renderDrawableIsocurveSetHistory();
-}
-
-void Demo::IsolinesFrame::activationPatternToTwoDimArray() {
-  TwoDimArray<float>::Iterator twoDimArrayIterator = activationPatternAsTwoDimArray->begin();
-  for(vector<float>::const_iterator vectorIterator = parent->gridMapActivationPattern->begin();
-    vectorIterator != parent->gridMapActivationPattern->end();
-    vectorIterator++)
-  {
-    *(twoDimArrayIterator->value) = *vectorIterator;
-    twoDimArrayIterator++;
-  }
-}
-
-void Demo::IsolinesFrame::addDrawableIsocurveSetToHistory(const IsolineRenderer::DrawableIsocurveSet &drawableIsocurveSet) {
-  isocurvesHistory.push_back(drawableIsocurveSet);
-  if(isocurvesHistoryCurrentLength == isocurvesHistoryLength)
-    isocurvesHistory.erase(isocurvesHistory.begin());
-  else
-    isocurvesHistoryCurrentLength++;
-}
-
-void Demo::IsolinesFrame::renderDrawableIsocurveSetHistory() {
-  static float is, ic;
-  static float ilMin, ilMax;
-  static float cx, cy;
-  static int px, py;
-  ilMin = demo->getWindowWidth() * 0.003f;
-  ilMax = demo->getWindowWidth() * 0.010f * (lineWidthFactor / 0.1f);
-  static vector<IsolineRenderer::DrawableIsocurveSet>::iterator ip;
-  ip = isocurvesHistory.begin();
-  for(int i = 0; i < isocurvesHistoryCurrentLength; i++) {
-    is = (float) i / (isocurvesHistoryCurrentLength - 1);
-    ic = powf(is, 2.0f);
-    glColor3f(ic, ic, ic);
-    glLineWidth (ilMin + ilMax * (1.0f-is));
-    for(IsolineExtractor::CurveSet::iterator curve = ip->curves.begin(); curve != ip->curves.end(); curve++) {
-      glBegin(GL_LINE_STRIP);
-      for(vector<IsolineExtractor::Point>::iterator v = curve->points.begin(); v != curve->points.end(); v++) {
-        cx = v->x;
-        cy = v->y;
-        px = (int) (width * cx / (parent->gridMapWidth-1));
-        py = (int) (height * cy / (parent->gridMapHeight-1));
-        vertex2i(px, py);
-      }
-      glEnd();
-    }
-    ip++;
-  }
 }
 
 Demo::ErrorPlotter::ErrorPlotter(const Demo *parent, const SpectrumMap *_map) {

@@ -13,33 +13,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _Frame_hpp_
-#define _Frame_hpp_
+#include "WaveformFrame.hpp"
 
-#include <GL/glut.h>
+WaveformFrame::WaveformFrame(const float *_buffer, unsigned long _bufferSize) {
+  buffer = _buffer;
+  bufferSize = _bufferSize;
+}
 
-class Frame {
-public:
-  const static float activationPatternContrast;
-  Frame();
-  void setSize(int width, int height);
-  void setPosition(int width, int height);
-  void display();
-  virtual void render() {}
-  int getWidth();
-  int getHeight();
-  void drawBorder();
-  void drawRectangle(int left, int top, int width, int height);
-  void vertex2f(float x, float y);
-  void vertex2i(int x, int y);
+void WaveformFrame::render() {
+  glColor3f(1.0f, 1.0f, 1.0f);
+  static float x;
+  glShadeModel(GL_FLAT);
+  glBegin(GL_POINTS);
+  for(int i = 0; i < width; i++) {
+    x = buffer[(int) (bufferSize * i / width)];
+    vertex2i(i, (int) ((x + 1) / 2 * height));
+  }
+  glEnd();
+}
 
-protected:
-  int posLeft, posTop;
-  int width, height;
-  int margin;
-  int outerWidth, outerHeight;
-  int padding;
-  int borderWidth;
-};
-
-#endif

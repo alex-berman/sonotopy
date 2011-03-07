@@ -13,33 +13,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _Frame_hpp_
-#define _Frame_hpp_
+#include "BeatTrackerFrame.hpp"
 
-#include <GL/glut.h>
+BeatTrackerFrame::BeatTrackerFrame(BeatTracker *_beatTracker) {
+  beatTracker = _beatTracker;
+}
 
-class Frame {
-public:
-  const static float activationPatternContrast;
-  Frame();
-  void setSize(int width, int height);
-  void setPosition(int width, int height);
-  void display();
-  virtual void render() {}
-  int getWidth();
-  int getHeight();
-  void drawBorder();
-  void drawRectangle(int left, int top, int width, int height);
-  void vertex2f(float x, float y);
-  void vertex2i(int x, int y);
-
-protected:
-  int posLeft, posTop;
-  int width, height;
-  int margin;
-  int outerWidth, outerHeight;
-  int padding;
-  int borderWidth;
-};
-
-#endif
+void BeatTrackerFrame::render() {
+  float i = beatTracker->getIntensity();
+  int x = (1-i) * width / 2;
+  int y = (1-i) * height / 2;
+  glColor3f(i, i, i);
+  glBegin(GL_POLYGON);
+  vertex2i(x, y);
+  vertex2i(width-x, y);
+  vertex2i(width-x, height-y);
+  vertex2i(x, height-y);
+  vertex2i(x, y);
+  glEnd();
+}

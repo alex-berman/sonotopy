@@ -16,6 +16,8 @@
 #include "Frame.hpp"
 #include <GL/glut.h>
 
+const float Frame::activationPatternContrast = 5.0f;
+
 Frame::Frame() {
   width = 0;
   height = 0;

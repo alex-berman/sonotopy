@@ -13,33 +13,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _Frame_hpp_
-#define _Frame_hpp_
+#include "Frame.hpp"
+#include <sonotopy/CircleMap.hpp>
+#include <sonotopy/CircleTopology.hpp>
+#include <sonotopy/BeatTracker.hpp>
 
-#include <GL/glut.h>
+using namespace sonotopy;
 
-class Frame {
+class CircleMapFrame : public Frame {
 public:
-  const static float activationPatternContrast;
-  Frame();
-  void setSize(int width, int height);
-  void setPosition(int width, int height);
-  void display();
-  virtual void render() {}
-  int getWidth();
-  int getHeight();
-  void drawBorder();
-  void drawRectangle(int left, int top, int width, int height);
-  void vertex2f(float x, float y);
-  void vertex2i(int x, int y);
-
-protected:
-  int posLeft, posTop;
-  int width, height;
-  int margin;
-  int outerWidth, outerHeight;
-  int padding;
-  int borderWidth;
+  CircleMapFrame(CircleMap *, BeatTracker *);
+  ~CircleMapFrame();
+  void render();
+private:
+  CircleMap *circleMap;
+  CircleTopology *circleTopology;
+  BeatTracker *beatTracker;
+  const SOM::ActivationPattern *activationPattern;
+  int numNodes;
 };
-
-#endif

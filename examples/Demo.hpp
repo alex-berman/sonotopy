@@ -16,16 +16,22 @@
 #include <sonotopy/sonotopy.hpp>
 #include "GlWindow.hpp"
 #include "Frame.hpp"
-#include "IsolineExtractor.hpp"
-#include "IsolineRenderer.hpp"
+#include "WaveformFrame.hpp"
+#include "SpectrumFrame.hpp"
+#include "SpectrumBinsFrame.hpp"
+#include "GridMapFrame.hpp"
+#include "SmoothGridMapFrame.hpp"
+#include "IsolinesFrame.hpp"
+#include "GridMapTrajectoryFrame.hpp"
+#include "CircleMapFrame.hpp"
+#include "SmoothCircleMapFrame.hpp"
+#include "BeatTrackerFrame.hpp"
 #include <portaudio.h>
 #include <sndfile.h>
 #include <vector>
 
 class Demo : public GlWindow {
 public:
-  const static float activationPatternContrast;
-
   Demo(int _argc, char **_argv);
   ~Demo();
   int audioCallback(float *inputBuffer, float *outputBuffer, unsigned long framesPerBuffer);
@@ -55,101 +61,6 @@ private:
     Smoother smootherMin, smootherMax;
   };
 
-  class WaveformFrame : public Frame {
-  public:
-    WaveformFrame(Demo *);
-    void render();
-  private:
-    Demo *parent;
-  };
-
-  class SpectrumFrame : public Frame {
-  public:
-    SpectrumFrame(Demo *);
-    void render();
-  private:
-    float normalizeValue(float);
-    Demo *parent;
-    Normalizer normalizer;
-  };
-
-  class SpectrumBinsFrame : public Frame {
-  public:
-    SpectrumBinsFrame(Demo *);
-    void render();
-  private:
-    Demo *parent;
-    Normalizer normalizer;
-  };
-
-  class GridMapFrame : public Frame {
-  public:
-    GridMapFrame(Demo *);
-    ~GridMapFrame();
-    void render();
-  private:
-    void renderActivationPattern();
-    void renderCursor();
-    Demo *parent;
-  };
-
-  class SmoothGridMapFrame : public Frame {
-  public:
-    SmoothGridMapFrame(Demo *);
-    ~SmoothGridMapFrame();
-    void render();
-  private:
-    void setColorFromActivationPattern(int x, int y);
-    Demo *parent;
-  };
-
-  class GridMapTrajectoryFrame : public Frame {
-  public:
-    GridMapTrajectoryFrame(Demo *);
-    ~GridMapTrajectoryFrame();
-    void render();
-  private:
-    Demo *parent;
-    typedef struct {
-      float x;
-      float y;
-    } Point;
-    std::vector<Point> trace;
-    void updateTrace();
-    void renderTrace();
-  };
-
-  class CircleMapFrame : public Frame {
-  public:
-    CircleMapFrame(Demo *);
-    ~CircleMapFrame();
-    void render();
-  private:
-    Demo *parent;
-    int numNodes;
-  };
-
-  class SmoothCircleMapFrame : public Frame {
-  public:
-    SmoothCircleMapFrame(Demo *);
-    ~SmoothCircleMapFrame();
-    void render();
-  private:
-    float getColorAtAngle(float);
-    Demo *parent;
-    int numNodes;
-    float angleIncrement;
-  };
-
-  class BeatTrackerFrame : public Frame {
-  public:
-    BeatTrackerFrame(Demo *);
-    void render();
-
-  private:
-    Demo *parent;
-  };
-
   typedef struct {
     float x;
     float y;
@@ -177,26 +88,6 @@ private:
     float speedOffset;
     float speedFactor;
     float length;
-  };
-
-  class IsolinesFrame : public Frame {
-  public:
-    IsolinesFrame(Demo *);
-    void render();
-
-  private:
-    void addDrawableIsocurveSetToHistory(const IsolineRenderer::DrawableIsocurveSet &);
-    void renderDrawableIsocurveSetHistory();
-    void activationPatternToTwoDimArray();
-
-    float lineWidthFactor;
-    Demo *parent;
-    TwoDimArray<float> *activationPatternAsTwoDimArray;
-    IsolineExtractor *isolineExtractor;
-    IsolineRenderer *isolineRenderer;
-    int isocurvesHistoryLength;
-    std::vector<IsolineRenderer::DrawableIsocurveSet> isocurvesHistory;
-    int isocurvesHistoryCurrentLength;
   };
 
   enum {
@@ -236,15 +127,10 @@ private:
   bool normalizeSpectrum;
   GridMapParameters gridMapParameters;
   GridMap *gridMap;
-  const SOM::ActivationPattern *gridMapActivationPattern;
-  int gridMapWidth;
-  int gridMapHeight;
   const SpectrumAnalyzer *spectrumAnalyzer;
   const SpectrumBinDivider *spectrumBinDivider;
   CircleMapParameters circleMapParameters;
-  CircleTopology *circleTopology;
   CircleMap *circleMap;
-  const SOM::ActivationPattern *circleMapActivationPattern;
   BeatTracker *beatTracker;
   SNDFILE *audioInputFile;
   float *audioFileBuffer;
