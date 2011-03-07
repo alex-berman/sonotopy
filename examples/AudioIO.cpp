@@ -19,6 +19,8 @@
 
 AudioIO::AudioIO() {
   spectrumMapInputBuffer = NULL;
+  audioFileBuffer = NULL;
+  audioDeviceName = NULL;
 }
 
 AudioIO::~AudioIO() {
@@ -29,14 +31,13 @@ AudioIO::~AudioIO() {
 
 void AudioIO::initializeAudio() {
   PaError err;
+  if(useAudioInputFile) openAudioInputFile();
   err = Pa_Initialize();
   if( err != paNoError ) {
     printf("failed to initialize portaudio\n");
     exit(0);
   }
-
   spectrumMapInputBuffer = new float [audioParameters.bufferSize];
-
   if(!useAudioInputFile) {
     printf("listening to audio device\n");
   }

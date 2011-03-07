@@ -27,14 +27,11 @@ Demo::Demo(int _argc, char **_argv) :
 {
   argc = _argc;
   argv = _argv;
-  audioFileBuffer = NULL;
-  audioDeviceName = NULL;
 
   SPACING = 5;
   SINGLE_FRAME_RELATIVE_SIZE = 0.8;
 
   processCommandLineArguments();
-  if(useAudioInputFile) openAudioInputFile();
   initializeAudioProcessing();
   initializeAudio();
   initializeGraphics();
