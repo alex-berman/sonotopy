@@ -22,13 +22,15 @@ class GlWindow {
 public:
   GlWindow(int argc, char **argv, int width, int height);
   void glReshape(int width, int height);
+  void glDisplay();
   virtual void resizedWindow() {}
-  virtual void glDisplay() {}
+  virtual void display() {}
   virtual void glKeyboard(unsigned char key, int x, int y) {}
   virtual void glSpecial(int key, int x, int y) {}
 
 protected:
   int windowWidth, windowHeight;
+  unsigned long frameCount;
 };
 
 #endif

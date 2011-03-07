@@ -46,8 +46,6 @@ void Demo::processCommandLineArguments() {
   useAudioInputFile = false;
   echoAudio = false;
   showFPS = false;
-  showAdaptationValues = false;
-  plotError = false;
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -78,9 +76,6 @@ void Demo::processCommandLineArguments() {
       else if(strcmp(argflag, "showfps") == 0) {
         showFPS = true;
       }
-      else if(strcmp(argflag, "error") == 0) {
-        plotError = true;
-      }
       else if(strcmp(argflag, "adapt") == 0) {
 	argnr++;
 	argptr++;
@@ -96,9 +91,6 @@ void Demo::processCommandLineArguments() {
 	  printf("Unknown adaptation strategy %s\n", *argptr);
 	  usage();
 	}
-      }
-      else if(strcmp(argflag, "showadapt") == 0) {
-	showAdaptationValues = true;
       }
       else {
         printf("Unknown option %s\n\n", argflag);
@@ -163,7 +155,6 @@ void Demo::moveToScene(int _sceneNum) {
 
 void Demo::initializeGraphics() {
   normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == SpectrumAnalyzer::Amplitude);
-  frameCount = 0;
   waveformFrame = new WaveformFrame(spectrumMapInputBuffer, audioParameters.bufferSize);
   spectrumFrame = new SpectrumFrame(spectrumAnalyzer, normalizeSpectrum);
   spectrumBinsFrame = new SpectrumBinsFrame(spectrumBinDivider, normalizeSpectrum);
@@ -174,8 +165,6 @@ void Demo::initializeGraphics() {
   isolinesFrame = new IsolinesFrame(gridMap);
   circleMapFrame = new CircleMapFrame(circleMap, beatTracker);
   enlargedCircleMapFrame = new SmoothCircleMapFrame(circleMap);
-  circleMapErrorPlotter = new ErrorPlotter(this, circleMap);
-  gridMapErrorPlotter = new ErrorPlotter(this, gridMap);
 
   for(int i = 0; i < 20; i++)
     dancers.push_back(Dancer(this));
@@ -183,10 +172,7 @@ void Demo::initializeGraphics() {
   glClearColor (0.0, 0.0, 0.0, 0.0);
   glShadeModel (GL_FLAT);
 
-  if(plotError)
-    moveToScene(Scene_EnlargedCircleMap);
-  else
-    moveToScene(Scene_Mixed);
+  moveToScene(Scene_Mixed);
 }
 
 void Demo::resizedWindow() {
@@ -260,14 +246,9 @@ void Demo::processAudio(float *inputBuffer) {
   gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
-
-  if(plotError) {
-    circleMapErrorPlotter->update();
-    gridMapErrorPlotter->update();
-  }
 }
 
-void Demo::glDisplay() {
+void Demo::display() {
   if(frameCount == 0) {
     stopwatch.start();
     timeIncrement = 0;
@@ -300,14 +281,10 @@ void Demo::glDisplay() {
 
     case Scene_EnlargedCircleMap:
       enlargedCircleMapFrame->display();
-      if(plotError)
-	circleMapErrorPlotter->render(enlargedCircleMapFrame);
       break;
 
     case Scene_EnlargedGridMap:
       enlargedGridMapFrame->display();
-      if(plotError)
-	gridMapErrorPlotter->render(enlargedGridMapFrame);
       break;
 
     case Scene_GridMapTrajectory:
@@ -321,25 +298,10 @@ void Demo::glDisplay() {
 
   glutSwapBuffers();
 
-  frameCount++;
-
   if(showFPS) {
     if(frameCount % 100 == 0) {
       float FPS = (float)frameCount / stopwatch.getElapsedMilliseconds() * 1000;
       printf("fps=%.3f\n", FPS);
-    }
-  }
-
-  if(showAdaptationValues) {
-    if(frameCount % 50 == 0) {
-      printf("grid   errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n",
-	     gridMap->getErrorLevel(),
-	     gridMap->getAdaptationTimeSecs(),
-	     gridMap->getNeighbourhoodParameter());
-      printf("circle errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n",
-	     circleMap->getErrorLevel(),
-	     circleMap->getAdaptationTimeSecs(),
-	     circleMap->getNeighbourhoodParameter());
     }
   }
 }
@@ -429,73 +391,6 @@ bool Demo::Dancer::outOfBounds(const Point &p) {
   if(p.x > parent->windowWidth) return true;
   if(p.y > parent->windowHeight) return true;
   return false;
-}
-
-Demo::ErrorPlotter::ErrorPlotter(const Demo *parent, const SpectrumMap *_map) {
-  map = _map;
-  bufferSize = 1000;
-  buffer = new float [bufferSize];
-  circularBufferMin = new CircularBuffer<float> (bufferSize);
-  circularBufferMax = new CircularBuffer<float> (bufferSize);
-  maxValue = 0;
-  maxValueInGraph = 0;
-  
-  float smootherResponseFactor = 1000 * parent->audioParameters.bufferSize
-    / parent->audioParameters.sampleRate / map->getSpectrumMapParameters().errorIntegrationTimeMs;
-  smootherMin.setResponseFactor(smootherResponseFactor);
-  smootherMax.setResponseFactor(smootherResponseFactor);
-}
-
-Demo::ErrorPlotter::~ErrorPlotter() {
-  delete [] buffer;
-  delete circularBufferMin;
-  delete circularBufferMax;
-}
-
-void Demo::ErrorPlotter::update() {
-  circularBufferMin->write(smootherMin.smooth(map->getErrorMin()));
-  circularBufferMin->moveReadHead(1);
-  circularBufferMax->write(smootherMax.smooth(map->getErrorMax()));
-  circularBufferMax->moveReadHead(1);
-}
-
-void Demo::ErrorPlotter::render(Frame *frame) {
-  int i = 0;
-  float y;
-  int width = frame->getWidth();
-  int height = frame->getHeight();
-
-  circularBufferMax->read(bufferSize, buffer);
-  for(int x = 0; x < width; x++) {
-    i = (int) (bufferSize * x / width);
-    y = buffer[i];
-    if(y > maxValue) maxValue = y;
-  }
-
-  if(maxValue > (maxValueInGraph * 0.8))
-    maxValueInGraph = maxValue * 1.5;
-
-  if(maxValue > 0) {
-    glShadeModel(GL_FLAT);
-    glBegin(GL_POINTS);
-    glColor3f(1, 0, 0);
-    for(int x = 0; x < width; x++) {
-      i = (int) (bufferSize * x / width);
-      y = buffer[i];
-      frame->vertex2i(x, (int) ((1 - y / maxValueInGraph) * height));
-    }
-    glEnd();
-
-    circularBufferMin->read(bufferSize, buffer);
-    glBegin(GL_POINTS);
-    glColor3f(0, 1, 0);
-    for(int x = 0; x < width; x++) {
-      i = (int) (bufferSize * x / width);
-      y = buffer[i];
-      frame->vertex2i(x, (int) ((1 - y / maxValueInGraph) * height));
-    }
-    glEnd();
-  }
 }
 
 int main(int argc, char **argv) {

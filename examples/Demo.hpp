@@ -34,30 +34,11 @@ public:
   Demo(int _argc, char **_argv);
   ~Demo();
   void processAudio(float *);
-  void glDisplay();
+  void display();
   void glSpecial(int key, int x, int y);
   void resizedWindow();
 
 private:
-  class ErrorPlotter {
-  public:
-    ErrorPlotter(const Demo *, const SpectrumMap *);
-    ~ErrorPlotter();
-    void update();
-    void render(Frame *);
-
-  private:
-    const SpectrumMap *map;
-    Frame *frame;
-    float *buffer;
-    CircularBuffer<float> *circularBufferMin;
-    CircularBuffer<float> *circularBufferMax;
-    int bufferSize;
-    float maxValue;
-    float maxValueInGraph;
-    Smoother smootherMin, smootherMax;
-  };
-
   typedef struct {
     float x;
     float y;
@@ -113,7 +94,6 @@ private:
   int argc;
   char **argv;
   bool showFPS;
-  bool showAdaptationValues;
   bool normalizeSpectrum;
   GridMapParameters gridMapParameters;
   GridMap *gridMap;
@@ -133,12 +113,8 @@ private:
   CircleMapFrame *circleMapFrame;
   BeatTrackerFrame *beatTrackerFrame;
   IsolinesFrame *isolinesFrame;
-  unsigned long frameCount;
-  unsigned long displayStartTime;
   std::vector<Dancer> dancers;
+  unsigned long displayStartTime;
   float timeOfPreviousDisplay;
   float timeIncrement;
-  bool plotError;
-  ErrorPlotter *circleMapErrorPlotter;
-  ErrorPlotter *gridMapErrorPlotter;
 };

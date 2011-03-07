@@ -1,24 +1,25 @@
 Import(['env', 'platform', 'PKG_CONFIG'])
 
-TARGET = 'Demo'
+COMMON_SOURCE = ['Frame.cpp',
+		 'AudioIO.cpp',
+		 'WaveformFrame.cpp',
+		 'SpectrumFrame.cpp',
+		 'SpectrumBinsFrame.cpp',
+		 'GridMapFrame.cpp',
+		 'SmoothGridMapFrame.cpp',
+		 'IsolinesFrame.cpp',
+		 'GridMapTrajectoryFrame.cpp',
+		 'CircleMapFrame.cpp',
+		 'SmoothCircleMapFrame.cpp',
+		 'BeatTrackerFrame.cpp',
+		 'GlWindow.cpp',
+		 'IsolineExtractor.cpp',
+		 'IsolineRenderer.cpp']
 
-SOURCE = ['Demo.cpp', 
-	  'Frame.cpp',
-	  'AudioIO.cpp',
-	  'WaveformFrame.cpp',
-	  'SpectrumFrame.cpp',
-	  'SpectrumBinsFrame.cpp',
-	  'GridMapFrame.cpp',
-	  'SmoothGridMapFrame.cpp',
-	  'IsolinesFrame.cpp',
-	  'GridMapTrajectoryFrame.cpp',
-	  'CircleMapFrame.cpp',
-	  'SmoothCircleMapFrame.cpp',
-	  'BeatTrackerFrame.cpp',
-	  'GlWindow.cpp',
-	  'IsolineExtractor.cpp',
-	  'IsolineRenderer.cpp']
+DEMO_SOURCE = ['Demo.cpp'] + COMMON_SOURCE
 
+LAB_SOURCE = ['Lab.cpp'] + COMMON_SOURCE
+		 
 CPPPATH = ['../include']
 env.Append(CPPPATH = CPPPATH)
 
@@ -49,4 +50,5 @@ if not GetOption('clean'):
 			Exit(1)
 	env = conf.Finish()
 
-env.Program(target = TARGET, source = SOURCE)
+env.Program(target = 'Demo', source = DEMO_SOURCE)
+env.Program(target = 'Lab', source = LAB_SOURCE)
