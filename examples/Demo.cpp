@@ -21,14 +21,13 @@
 using namespace std;
 using namespace sonotopy;
 
-Demo *demo;
-
-Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
-  demo = this;
+Demo::Demo(int _argc, char **_argv) :
+  GlWindow(_argc, _argv, 800, 600),
+  AudioIO()
+{
   argc = _argc;
   argv = _argv;
   audioFileBuffer = NULL;
-  spectrumMapInputBuffer = NULL;
   audioDeviceName = NULL;
 
   SPACING = 5;
@@ -44,9 +43,6 @@ Demo::Demo(int _argc, char **_argv) : GlWindow(_argc, _argv, 800, 600) {
 }
 
 Demo::~Demo() {
-  if(useAudioInputFile) sf_close(audioInputFile);
-  if(audioFileBuffer) delete audioFileBuffer;
-  if(spectrumMapInputBuffer) delete spectrumMapInputBuffer;
 }
 
 void Demo::processCommandLineArguments() {
@@ -135,115 +131,12 @@ void Demo::usage() {
   exit(0);
 }
 
-void Demo::openAudioInputFile() {
-  SF_INFO sfinfo;
-  if(!(audioInputFile = sf_open(audioInputFilename, SFM_READ, &sfinfo))) {
-    printf("failed to open audio input file %s\n", audioInputFilename);
-    exit(0);
-  }
-  if(sfinfo.samplerate != (int) audioParameters.sampleRate) {
-    printf("expected sample rate %d\n", audioParameters.sampleRate);
-    exit(0);
-  }
-  if(sfinfo.channels != 2) {
-    printf("expected stereo audio\n");
-    exit(0);
-  }
-  audioFileBuffer = new float [audioParameters.bufferSize * 2];
-}
-
-void Demo::initializeAudio() {
-  PaError err;
-  err = Pa_Initialize();
-  if( err != paNoError ) {
-    printf("failed to initialize portaudio\n");
-    exit(0);
-  }
-
-  if(!useAudioInputFile) {
-    printf("listening to audio device\n");
-  }
-}
-
-static int Demo_portaudioCallback(
-  const void *inputBuffer,
-  void *outputBuffer,
-  unsigned long framesPerBuffer,
-  const PaStreamCallbackTimeInfo *timeInfo,
-  PaStreamCallbackFlags statusFlags,
-  void *userData)
-{
-  Demo *demo = (Demo *)userData;
-  return demo->audioCallback((float *) inputBuffer, (float *) outputBuffer, framesPerBuffer);
-}
-
-void Demo::openAudioStream() {
-  int numInputChannels = 2;
-  int numOutputChannels = echoAudio ? 2 : 0;
-  int audioDeviceId = 0;
-  PaStreamParameters outputParameters;
-  PaStreamParameters inputParameters;
-  PaError err;
-  void *callbackUserData = (void *) this;
-
-  const PaDeviceInfo *deviceInfo;
-  int numDevices = Pa_GetDeviceCount();
-
-  if(audioDeviceName != NULL) {
-    for(int i=0; i<numDevices; i++) {
-      deviceInfo = Pa_GetDeviceInfo(i);
-      if(strncmp(audioDeviceName, deviceInfo->name, strlen(audioDeviceName)) == 0)
-	audioDeviceId = i;
-    }
-  }
-  for(int i=0; i<numDevices; i++) {
-    deviceInfo = Pa_GetDeviceInfo(i);
-    printf("device %d%s: '%s', %d in, %d out\n",
-      i, (i == audioDeviceId) ? " SELECTED" : "",
-      deviceInfo->name, deviceInfo->maxInputChannels, deviceInfo->maxOutputChannels);
-  }
-
-  bzero(&inputParameters, sizeof(inputParameters));
-  inputParameters.channelCount = numInputChannels;
-  inputParameters.device = audioDeviceId;
-  inputParameters.sampleFormat = paFloat32;
-
-  if(echoAudio) {
-    bzero(&outputParameters, sizeof(outputParameters));
-    outputParameters.channelCount = numOutputChannels;
-    outputParameters.device = audioDeviceId;
-    outputParameters.sampleFormat = paFloat32;
-  }
-
-  err = Pa_OpenStream(
-    &paStream,
-    &inputParameters,
-    echoAudio ? &outputParameters : NULL,
-    audioParameters.sampleRate,
-    audioParameters.bufferSize,
-    paNoFlag,
-    Demo_portaudioCallback,
-    callbackUserData
-  );
-
-  if( err != paNoError ) {
-    printf("failed to open audio stream (%s)\n", Pa_GetErrorText(err));
-    exit(0);
-  }
-
-  if(Pa_StartStream( paStream ) != paNoError ) {
-    printf("failed to start stream\n");
-    exit(0);
-  }
-}
-
 void Demo::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
 
   gridMap = new GridMap(audioParameters, gridMapParameters);
   spectrumAnalyzer = gridMap->getSpectrumAnalyzer();
   spectrumBinDivider = gridMap->getSpectrumBinDivider();
-  spectrumMapInputBuffer = new float [audioParameters.bufferSize];
   circleMap = new CircleMap(audioParameters, circleMapParameters);
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
 }
@@ -372,58 +265,14 @@ void Demo::mainLoop() {
   glutMainLoop();
 }
 
-int Demo::audioCallback(float *inputBuffer, float *outputBuffer, unsigned long framesPerBuffer) {
-  if(framesPerBuffer != audioParameters.bufferSize) {
-    printf("expected %ld frames in audio callback, got %ld\n", audioParameters.bufferSize, framesPerBuffer);
-    exit(0);
-  }
-
-  static float *inputPtr;
-  if(useAudioInputFile) {
-    readAudioBufferFromFile();
-    inputPtr = audioFileBuffer;
-  }
-  else {
-    inputPtr = inputBuffer;
-  }
-
-  float *spectrumMapInputBufferPtr = spectrumMapInputBuffer;
-  float *outputPtr = (float *) outputBuffer;
-
-  unsigned long i = 0;
-  while(i < audioParameters.bufferSize) {
-    *spectrumMapInputBufferPtr++ = *inputPtr;
-    if(echoAudio) {
-      *outputPtr++ = *inputPtr++;
-      *outputPtr++ = *inputPtr++;
-    }
-    else {
-      inputPtr += 2;
-    }
-    i++;
-  }
-
-  gridMap->feedAudio(spectrumMapInputBuffer, audioParameters.bufferSize);
-  circleMap->feedAudio(spectrumMapInputBuffer, audioParameters.bufferSize);
+void Demo::processAudio(float *inputBuffer) {
+  gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
+  circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
 
   if(plotError) {
     circleMapErrorPlotter->update();
     gridMapErrorPlotter->update();
-  }
-
-  return 0;
-}
-
-void Demo::readAudioBufferFromFile() {
-  float *audioFileBufferPtr = audioFileBuffer;
-  int framesLeft = audioParameters.bufferSize;
-  while(framesLeft > 0) {
-    int framesRead = sf_readf_float(audioInputFile, audioFileBufferPtr, framesLeft);
-    if(framesRead < framesLeft)
-      sf_seek(audioInputFile, 0, SEEK_SET); // rewind file
-    framesLeft -= framesRead;
-    audioFileBufferPtr += framesRead * 2;
   }
 }
 

@@ -3,10 +3,21 @@ Import(['env', 'platform', 'PKG_CONFIG'])
 TARGET = 'Demo'
 
 SOURCE = ['Demo.cpp', 
-	'Frame.cpp',
-	'GlWindow.cpp',
-	'IsolineExtractor.cpp',
-	'IsolineRenderer.cpp']
+	  'Frame.cpp',
+	  'AudioIO.cpp',
+	  'WaveformFrame.cpp',
+	  'SpectrumFrame.cpp',
+	  'SpectrumBinsFrame.cpp',
+	  'GridMapFrame.cpp',
+	  'SmoothGridMapFrame.cpp',
+	  'IsolinesFrame.cpp',
+	  'GridMapTrajectoryFrame.cpp',
+	  'CircleMapFrame.cpp',
+	  'SmoothCircleMapFrame.cpp',
+	  'BeatTrackerFrame.cpp',
+	  'GlWindow.cpp',
+	  'IsolineExtractor.cpp',
+	  'IsolineRenderer.cpp']
 
 CPPPATH = ['../include']
 env.Append(CPPPATH = CPPPATH)

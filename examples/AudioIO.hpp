@@ -13,27 +13,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef GRIDMAP_HPP
-#define GRIDMAP_HPP
+#include <sonotopy/AudioParameters.hpp>
+#include <portaudio.h>
+#include <sndfile.h>
 
-#include "SpectrumMap.hpp"
-#include "AudioParameters.hpp"
-#include "GridMapParameters.hpp"
-
-namespace sonotopy {
-
-class GridMap : public SpectrumMap
-{
+class AudioIO {
 public:
-  GridMap(const AudioParameters &, const GridMapParameters &);
-  float getActivation(unsigned int x, unsigned int y);
-  void getCursor(float &x, float &y);
-  const GridMapParameters getParameters() const;
+  AudioIO();
+  ~AudioIO();
+  int audioCallback(float *inputBuffer, float *outputBuffer, unsigned long framesPerBuffer);
 
-private:
-  GridMapParameters gridMapParameters;
+protected:
+  void initializeAudio();
+  void openAudioStream();
+  void openAudioInputFile();
+  void readAudioBufferFromFile();
+  virtual void processAudio(float *) {}
+  bool useAudioInputFile;
+  char *audioInputFilename;
+  PaStream *paStream;
+  const char *audioDeviceName;
+  float *spectrumMapInputBuffer;
+  bool echoAudio;
+  SNDFILE *audioInputFile;
+  float *audioFileBuffer;
+  sonotopy::AudioParameters audioParameters;
 };
-
-}
-
-#endif // GRIDMAP_HPP

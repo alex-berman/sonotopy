@@ -41,3 +41,7 @@ void GridMap::getCursor(float &x, float &y) {
   x = (gridX + 0.5) / gridMapParameters.gridWidth;
   y = (gridY + 0.5) / gridMapParameters.gridHeight;
 }
+
+const GridMapParameters GridMap::getParameters() const {
+  return gridMapParameters;
+}

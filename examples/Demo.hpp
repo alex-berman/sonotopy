@@ -15,6 +15,7 @@
 
 #include <sonotopy/sonotopy.hpp>
 #include "GlWindow.hpp"
+#include "AudioIO.hpp"
 #include "Frame.hpp"
 #include "WaveformFrame.hpp"
 #include "SpectrumFrame.hpp"
@@ -26,15 +27,13 @@
 #include "CircleMapFrame.hpp"
 #include "SmoothCircleMapFrame.hpp"
 #include "BeatTrackerFrame.hpp"
-#include <portaudio.h>
-#include <sndfile.h>
 #include <vector>
 
-class Demo : public GlWindow {
+class Demo : public GlWindow, public AudioIO {
 public:
   Demo(int _argc, char **_argv);
   ~Demo();
-  int audioCallback(float *inputBuffer, float *outputBuffer, unsigned long framesPerBuffer);
+  void processAudio(float *);
   void glDisplay();
   void glReshape(int width, int height);
   void glSpecial(int key, int x, int y);
@@ -102,13 +101,9 @@ private:
 
   void processCommandLineArguments();
   void usage();
-  void initializeAudio();
-  void openAudioInputFile();
-  void openAudioStream();
   void initializeAudioProcessing();
   void initializeGraphics();
   void mainLoop();
-  void readAudioBufferFromFile();
   void resizeFrames();
   void moveToScene(int _sceneNum);
   void updateDancers();
@@ -119,11 +114,8 @@ private:
   float SINGLE_FRAME_RELATIVE_SIZE;
   int argc;
   char **argv;
-  bool useAudioInputFile;
   bool showFPS;
   bool showAdaptationValues;
-  char *audioInputFilename;
-  AudioParameters audioParameters;
   bool normalizeSpectrum;
   GridMapParameters gridMapParameters;
   GridMap *gridMap;
@@ -132,11 +124,6 @@ private:
   CircleMapParameters circleMapParameters;
   CircleMap *circleMap;
   BeatTracker *beatTracker;
-  SNDFILE *audioInputFile;
-  float *audioFileBuffer;
-  PaStream *paStream;
-  const char *audioDeviceName;
-  float *spectrumMapInputBuffer;
   int sceneNum;
   WaveformFrame *waveformFrame;
   SpectrumFrame *spectrumFrame;
@@ -152,7 +139,6 @@ private:
   unsigned long displayStartTime;
   int windowWidth, windowHeight;
   std::vector<Dancer> dancers;
-  bool echoAudio;
   float timeOfPreviousDisplay;
   float timeIncrement;
   bool plotError;
