@@ -39,7 +39,6 @@ void Lab::processCommandLineArguments() {
   useAudioInputFile = false;
   echoAudio = false;
   plotError = false;
-  showAdaptationValues = false;
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -74,23 +73,28 @@ void Lab::processCommandLineArguments() {
 	argnr++;
 	argptr++;
 	if(strcmp(*argptr, "time") == 0) {
-	  gridMapParameters.adaptationStrategy =
-	    SpectrumMapParameters::TimeBased;
+	  gridMapParameters.adaptationStrategy = SpectrumMapParameters::TimeBased;
 	}
 	else if(strcmp(*argptr, "error") == 0) {
-	  gridMapParameters.adaptationStrategy =
-	    SpectrumMapParameters::ErrorDriven;
+	  gridMapParameters.adaptationStrategy = SpectrumMapParameters::ErrorDriven;
 	}
 	else {
 	  printf("Unknown adaptation strategy %s\n", *argptr);
 	  usage();
 	}
       }
+      else if(strcmp(argflag, "errorThresholdLow") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.errorThresholdLow = atof(*argptr);
+      }
+      else if(strcmp(argflag, "errorThresholdHigh") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.errorThresholdHigh = atof(*argptr);
+      }
       else if(strcmp(argflag, "gm") == 0) {
 	addGridMap();
-      }
-      else if(strcmp(argflag, "showadapt") == 0) {
-	showAdaptationValues = true;
       }
       else {
         printf("Unknown option %s\n\n", argflag);
@@ -117,12 +121,13 @@ void Lab::usage() {
 }
 
 void Lab::addGridMap() {
+  srand(t0);
   comparedMaps.push_back(ComparedMap(this, gridMapParameters));
   gridMapParameters = GridMapParameters();
 }
 
 void Lab::initializeAudioProcessing() {
-  srand((unsigned) time(NULL));
+  t0 = (unsigned) time(NULL);
   pthread_mutex_init(&mutex, NULL);
 }
 
@@ -153,17 +158,6 @@ void Lab::display() {
   pthread_mutex_unlock(&mutex);
 
   glutSwapBuffers();
-
-  /*
-  if(showAdaptationValues) {
-    if(frameCount % 50 == 0) {      
-      printf("errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n",
-	     gridMap->getErrorLevel(),
-	     gridMap->getAdaptationTimeSecs(),
-	     gridMap->getNeighbourhoodParameter());
-    }
-  }
-  */
 }
 
 void Lab::resizedWindow() {
@@ -247,10 +241,15 @@ void Lab::ErrorPlotter::render(Frame *frame) {
   }
 
   char text[256];
+  glColor3f(0, 1, 0);
   sprintf(text, "min: %.5f  max: %.5f  graph max: %.5f",
 	  map->getErrorMin(), map->getErrorMax(), maxValue);
-  glColor3f(0, 1, 0);
   parent->glText(frame->getLeft(), frame->getBottom() + 20, text);
+
+  sprintf(text, "adaptTime: %.5f neighParam: %.5f",
+	  map->getAdaptationTimeSecs(),
+	  map->getNeighbourhoodParameter());
+  parent->glText(frame->getLeft(), frame->getBottom() + 40, text);
 }
 
 Lab::ComparedMap::ComparedMap(Lab *_parent, GridMapParameters &_parameters) {

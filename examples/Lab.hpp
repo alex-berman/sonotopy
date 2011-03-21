@@ -71,7 +71,7 @@ private:
   char **argv;
   GridMapParameters gridMapParameters;
   std::vector<ComparedMap> comparedMaps;
-  bool showAdaptationValues;
   bool plotError;
   pthread_mutex_t mutex;
+  unsigned long t0;
 };
