@@ -168,8 +168,7 @@ void Lab::display() {
 
 void Lab::resizedWindow() {
   int margin = (int) (0.01 * windowWidth);
-  int frameSize = (int) windowWidth / comparedMaps.size()
-    - margin * (comparedMaps.size() - 1);
+  int frameSize = (windowWidth- margin * (comparedMaps.size() - 1)) / comparedMaps.size();
   frameSize = min(frameSize, windowHeight);
   int offsetTop = (windowHeight - frameSize) / 2;
   int px = (windowWidth - frameSize * comparedMaps.size() - margin * (comparedMaps.size()-1)) / 2;
