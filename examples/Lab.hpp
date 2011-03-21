@@ -17,6 +17,7 @@
 #include "GlWindow.hpp"
 #include "AudioIO.hpp"
 #include "SmoothGridMapFrame.hpp"
+#include <pthread.h>
 
 class Lab : public GlWindow, public AudioIO {
 public:
@@ -71,4 +72,5 @@ private:
   std::vector<ComparedMap> comparedMaps;
   bool showAdaptationValues;
   bool plotError;
+  pthread_mutex_t mutex;
 };

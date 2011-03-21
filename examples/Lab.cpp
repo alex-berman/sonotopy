@@ -123,6 +123,7 @@ void Lab::addGridMap() {
 
 void Lab::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
+  pthread_mutex_init(&mutex, NULL);
 }
 
 void Lab::initializeGraphics() {
@@ -131,11 +132,16 @@ void Lab::initializeGraphics() {
 }
 
 void Lab::processAudio(float *inputBuffer) {
+  pthread_mutex_lock(&mutex);
   for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
     i->processAudio(inputBuffer, audioParameters.bufferSize);
+  pthread_mutex_unlock(&mutex);
 }
 
 void Lab::display() {
+  if(pthread_mutex_trylock(&mutex) != 0)
+    return;
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_BLEND);
@@ -143,6 +149,8 @@ void Lab::display() {
 
   for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
     i->display();
+
+  pthread_mutex_unlock(&mutex);
 
   glutSwapBuffers();
 
