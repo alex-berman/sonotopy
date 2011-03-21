@@ -23,6 +23,7 @@ public:
   GlWindow(int argc, char **argv, int width, int height);
   void glReshape(int width, int height);
   void glDisplay();
+  void glText(int x, int y, const char *text);
   virtual void resizedWindow() {}
   virtual void display() {}
   virtual void glKeyboard(unsigned char key, int x, int y) {}

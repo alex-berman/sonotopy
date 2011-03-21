@@ -179,7 +179,8 @@ void Lab::resizedWindow() {
   }
 }
 
-Lab::ErrorPlotter::ErrorPlotter(const Lab *parent, const SpectrumMap *_map) {
+Lab::ErrorPlotter::ErrorPlotter(Lab *_parent, const SpectrumMap *_map) {
+  parent = _parent;
   map = _map;
   bufferSize = 1000;
   buffer = new float [bufferSize];
@@ -244,9 +245,15 @@ void Lab::ErrorPlotter::render(Frame *frame) {
     }
     glEnd();
   }
+
+  char text[256];
+  sprintf(text, "min: %.5f  max: %.5f  graph max: %.5f",
+	  map->getErrorMin(), map->getErrorMax(), maxValue);
+  glColor3f(0, 1, 0);
+  parent->glText(frame->getLeft(), frame->getBottom() + 20, text);
 }
 
-Lab::ComparedMap::ComparedMap(const Lab *_parent, GridMapParameters &_parameters) {
+Lab::ComparedMap::ComparedMap(Lab *_parent, GridMapParameters &_parameters) {
   parent = _parent;
   parameters = _parameters;
   gridMap = new GridMap(parent->audioParameters, parameters);

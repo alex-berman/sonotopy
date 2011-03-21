@@ -66,3 +66,16 @@ void GlWindow::glReshape(int _newWidth, int _newHeight) {
   glOrtho (0.0, (GLdouble) windowWidth, (GLdouble) windowHeight, 0.0, -1.0, 1.0);
   resizedWindow();
 }
+
+void GlWindow::glText(int x, int y, const char *text) {
+  glPushMatrix();
+  glLoadIdentity();
+  glOrtho (0.0, (GLdouble) windowWidth, 0.0, (GLdouble) windowHeight, -1.0, 1.0);
+  glTranslatef(x, windowHeight - y, 0);
+  glLineWidth(1.0f);
+  glScalef(0.08f, 0.08f, 1.0f);
+
+  const char *i = text;
+  while (*i) glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *i++);
+  glPopMatrix();
+}

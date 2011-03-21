@@ -42,6 +42,8 @@ void Frame::setPosition(int _posLeft, int _posTop) {
 
 int Frame::getWidth() { return width; }
 int Frame::getHeight() { return height; }
+int Frame::getLeft() { return posLeft; }
+int Frame::getBottom() { return posTop + height; }
 
 void Frame::display() {
   drawBorder();

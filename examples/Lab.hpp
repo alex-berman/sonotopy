@@ -29,11 +29,12 @@ public:
 private:
   class ErrorPlotter {
   public:
-    ErrorPlotter(const Lab *, const SpectrumMap *);
+    ErrorPlotter(Lab *, const SpectrumMap *);
     ~ErrorPlotter();
     void update();
     void render(Frame *);
   private:
+    Lab *parent;
     const SpectrumMap *map;
     Frame *frame;
     float *buffer;
@@ -47,13 +48,13 @@ private:
 
   class ComparedMap {
   public:
-    ComparedMap(const Lab *, GridMapParameters &);
+    ComparedMap(Lab *, GridMapParameters &);
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
     Frame *getFrame() { return gridMapFrame; }
   private:
-    const Lab *parent;
+    Lab *parent;
     GridMapParameters parameters;
     GridMap *gridMap;
     SmoothGridMapFrame *gridMapFrame;

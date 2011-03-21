@@ -28,6 +28,8 @@ public:
   virtual void render() {}
   int getWidth();
   int getHeight();
+  int getLeft();
+  int getBottom();
   void drawBorder();
   void drawRectangle(int left, int top, int width, int height);
   void vertex2f(float x, float y);
