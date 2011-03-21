@@ -27,8 +27,6 @@ Lab::Lab(int _argc, char **_argv) :
   argc = _argc;
   argv = _argv;
 
-  SINGLE_FRAME_RELATIVE_SIZE = 0.8;
-
   processCommandLineArguments();
   initializeAudioProcessing();
   initializeAudio();
@@ -76,17 +74,20 @@ void Lab::processCommandLineArguments() {
 	argnr++;
 	argptr++;
 	if(strcmp(*argptr, "time") == 0) {
-	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	  gridMapParameters.adaptationStrategy =
 	    SpectrumMapParameters::TimeBased;
 	}
 	else if(strcmp(*argptr, "error") == 0) {
-	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	  gridMapParameters.adaptationStrategy =
 	    SpectrumMapParameters::ErrorDriven;
 	}
 	else {
 	  printf("Unknown adaptation strategy %s\n", *argptr);
 	  usage();
 	}
+      }
+      else if(strcmp(argflag, "gm") == 0) {
+	addGridMap();
       }
       else if(strcmp(argflag, "showadapt") == 0) {
 	showAdaptationValues = true;
@@ -103,6 +104,11 @@ void Lab::processCommandLineArguments() {
     argptr++;
     argnr++;
   }
+
+  if(comparedMaps.size() == 0) {
+    printf("No maps to compare\n");
+    usage();
+  }
 }
 
 void Lab::usage() {
@@ -110,22 +116,23 @@ void Lab::usage() {
   exit(0);
 }
 
+void Lab::addGridMap() {
+  comparedMaps.push_back(ComparedMap(this, gridMapParameters));
+  gridMapParameters = GridMapParameters();
+}
+
 void Lab::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
-  gridMap = new GridMap(audioParameters, gridMapParameters);
 }
 
 void Lab::initializeGraphics() {
-  gridMapFrame = new SmoothGridMapFrame(gridMap);
-  if(plotError)
-    gridMapErrorPlotter = new ErrorPlotter(this, gridMap);
+  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    i->initializeGraphics();
 }
 
 void Lab::processAudio(float *inputBuffer) {
-  gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
-  if(plotError) {
-    gridMapErrorPlotter->update();
-  }
+  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    i->processAudio(inputBuffer, audioParameters.bufferSize);
 }
 
 void Lab::display() {
@@ -134,29 +141,35 @@ void Lab::display() {
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
 
-  gridMapFrame->display();
-  if(plotError)
-    gridMapErrorPlotter->render(gridMapFrame);
+  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    i->display();
 
   glutSwapBuffers();
 
+  /*
   if(showAdaptationValues) {
-    if(frameCount % 50 == 0) {
+    if(frameCount % 50 == 0) {      
       printf("errorLevel=%.5f adaptationTimeSecs=%.5f neighbourhoodParameter=%.5f\n",
 	     gridMap->getErrorLevel(),
 	     gridMap->getAdaptationTimeSecs(),
 	     gridMap->getNeighbourhoodParameter());
     }
   }
+  */
 }
 
 void Lab::resizedWindow() {
-  int singleFrameSize = (int) (SINGLE_FRAME_RELATIVE_SIZE * min(windowWidth, windowHeight));
-  int singleFrameOffsetLeft = (windowWidth - singleFrameSize) / 2;
-  int singleFrameOffsetTop = (windowHeight - singleFrameSize) / 2;
-
-  gridMapFrame->setSize(singleFrameSize, singleFrameSize);
-  gridMapFrame->setPosition(singleFrameOffsetLeft, singleFrameOffsetTop);
+  int margin = (int) (0.01 * windowWidth);
+  int frameSize = (int) windowWidth / comparedMaps.size()
+    - margin * (comparedMaps.size() - 1);
+  frameSize = min(frameSize, windowHeight);
+  int offsetTop = (windowHeight - frameSize) / 2;
+  int px = (windowWidth - frameSize * comparedMaps.size() - margin * (comparedMaps.size()-1)) / 2;
+  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++) {
+    i->getFrame()->setSize(frameSize, frameSize);
+    i->getFrame()->setPosition(px, offsetTop);
+    px += frameSize + margin;
+  }
 }
 
 Lab::ErrorPlotter::ErrorPlotter(const Lab *parent, const SpectrumMap *_map) {
@@ -224,6 +237,31 @@ void Lab::ErrorPlotter::render(Frame *frame) {
     }
     glEnd();
   }
+}
+
+Lab::ComparedMap::ComparedMap(const Lab *_parent, GridMapParameters &_parameters) {
+  parent = _parent;
+  parameters = _parameters;
+  gridMap = new GridMap(parent->audioParameters, parameters);
+}
+
+void Lab::ComparedMap::initializeGraphics() {
+  gridMapFrame = new SmoothGridMapFrame(gridMap);
+  if(parent->plotError)
+    errorPlotter = new ErrorPlotter(parent, gridMap);
+}
+
+void Lab::ComparedMap::processAudio(float *inputBuffer, unsigned long numFrames) {
+  gridMap->feedAudio(inputBuffer, numFrames);
+  if(parent->plotError) {
+    errorPlotter->update();
+  }
+}
+
+void Lab::ComparedMap::display() {
+  gridMapFrame->display();
+  if(parent->plotError)
+    errorPlotter->render(gridMapFrame);
 }
 
 int main(int argc, char **argv) {

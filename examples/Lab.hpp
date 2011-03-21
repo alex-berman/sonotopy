@@ -32,7 +32,6 @@ private:
     ~ErrorPlotter();
     void update();
     void render(Frame *);
-
   private:
     const SpectrumMap *map;
     Frame *frame;
@@ -45,19 +44,31 @@ private:
     Smoother smootherMin, smootherMax;
   };
 
+  class ComparedMap {
+  public:
+    ComparedMap(const Lab *, GridMapParameters &);
+    void initializeGraphics();
+    void display();
+    void processAudio(float *buffer, unsigned long numFrames);
+    Frame *getFrame() { return gridMapFrame; }
+  private:
+    const Lab *parent;
+    GridMapParameters parameters;
+    GridMap *gridMap;
+    SmoothGridMapFrame *gridMapFrame;
+    ErrorPlotter *errorPlotter;
+  };
+
   void processCommandLineArguments();
   void usage();
   void initializeAudioProcessing();
   void initializeGraphics();
+  void addGridMap();
 
-  float SINGLE_FRAME_RELATIVE_SIZE;
   int argc;
   char **argv;
   GridMapParameters gridMapParameters;
-  GridMap *gridMap;
-  CircleMapParameters circleMapParameters;
-  SmoothGridMapFrame *gridMapFrame;
+  std::vector<ComparedMap> comparedMaps;
   bool showAdaptationValues;
   bool plotError;
-  ErrorPlotter *gridMapErrorPlotter;
 };
