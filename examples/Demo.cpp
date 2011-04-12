@@ -122,6 +122,7 @@ void Demo::usage() {
 
 void Demo::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
+  pthread_mutex_init(&mutex, NULL);
 
   gridMap = new GridMap(audioParameters, gridMapParameters);
   spectrumAnalyzer = gridMap->getSpectrumAnalyzer();
@@ -243,12 +244,17 @@ void Demo::mainLoop() {
 }
 
 void Demo::processAudio(float *inputBuffer) {
+  pthread_mutex_lock(&mutex);
   gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
+  pthread_mutex_unlock(&mutex);
 }
 
 void Demo::display() {
+  if(pthread_mutex_trylock(&mutex) != 0)
+    return;
+
   if(frameCount == 0) {
     stopwatch.start();
     timeIncrement = 0;
@@ -295,6 +301,8 @@ void Demo::display() {
       isolinesFrame->display();
       break;
   }
+
+  pthread_mutex_unlock(&mutex);
 
   glutSwapBuffers();
 

@@ -28,6 +28,7 @@
 #include "SmoothCircleMapFrame.hpp"
 #include "BeatTrackerFrame.hpp"
 #include <vector>
+#include <pthread.h>
 
 class Demo : public GlWindow, public AudioIO {
 public:
@@ -117,4 +118,5 @@ private:
   unsigned long displayStartTime;
   float timeOfPreviousDisplay;
   float timeIncrement;
+  pthread_mutex_t mutex;
 };
