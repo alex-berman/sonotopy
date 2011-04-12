@@ -93,6 +93,21 @@ void Lab::processCommandLineArguments() {
 	argptr++;
 	gridMapParameters.errorThresholdHigh = atof(*argptr);
       }
+      else if(strcmp(argflag, "errorIntegrationTimeMs") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.errorIntegrationTimeMs = atof(*argptr);
+      }
+      else if(strcmp(argflag, "adaptationPlasticity") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.adaptationPlasticity = atof(*argptr);
+      }
+      else if(strcmp(argflag, "neighbourhoodPlasticity") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.neighbourhoodPlasticity = atof(*argptr);
+      }
       else if(strcmp(argflag, "gm") == 0) {
 	addGridMap();
       }
