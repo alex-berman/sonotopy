@@ -46,6 +46,14 @@ its development has been to explore artistic applications.
 
 //////////////////////////////////////////////////////////////////////////////
 
+EXAMPLE VIDEOS
+
+Example videos with different feature types and music sources can be found at
+http://nimations.com/sonotopy/videos/
+
+
+//////////////////////////////////////////////////////////////////////////////
+
 ROADMAP (preliminary)
 
 - Integrate with Fluxus (http://www.pawfal.org/fluxus/)
@@ -93,7 +101,7 @@ To install the library and header files, run "sudo scons install".
 
 //////////////////////////////////////////////////////////////////////////////
 
-EXAMPLES
+RUNTIME EXAMPLES
 
 Sonotopy is bundled with a demo. To build the demo, run "scons examples".
 
