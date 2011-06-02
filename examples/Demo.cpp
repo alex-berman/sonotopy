@@ -192,13 +192,7 @@ void Demo::initializeGraphics() {
     moveToScene(Scene_Mixed);
 }
 
-void Demo::glReshape(int _windowWidth, int _windowHeight) {
-  windowWidth = _windowWidth;
-  windowHeight = _windowHeight;
-  glViewport (0, 0, (GLint) windowWidth - 1, (GLint) windowHeight - 1);
-  glMatrixMode (GL_PROJECTION);
-  glLoadIdentity ();
-  glOrtho (0.0, (GLdouble) windowWidth, (GLdouble) windowHeight, 0.0, -1.0, 1.0);
+void Demo::resizedWindow() {
   resizeFrames();
 }
 

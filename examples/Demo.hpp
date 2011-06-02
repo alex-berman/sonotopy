@@ -35,10 +35,8 @@ public:
   ~Demo();
   void processAudio(float *);
   void glDisplay();
-  void glReshape(int width, int height);
   void glSpecial(int key, int x, int y);
-  int getWindowWidth() { return windowWidth; }
-  int getWindowHeight() { return windowHeight; }
+  void resizedWindow();
 
 private:
   class ErrorPlotter {
@@ -137,7 +135,6 @@ private:
   IsolinesFrame *isolinesFrame;
   unsigned long frameCount;
   unsigned long displayStartTime;
-  int windowWidth, windowHeight;
   std::vector<Dancer> dancers;
   float timeOfPreviousDisplay;
   float timeIncrement;

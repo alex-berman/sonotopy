@@ -21,15 +21,14 @@
 class GlWindow {
 public:
   GlWindow(int argc, char **argv, int width, int height);
-  int getWidth() { return width; }
-  int getHeight() { return height; }
-  virtual void glDisplay() {};
-  virtual void glReshape(int width, int height) {};
-  virtual void glKeyboard(unsigned char key, int x, int y) {};
-  virtual void glSpecial(int key, int x, int y) {};
+  void glReshape(int width, int height);
+  virtual void resizedWindow() {}
+  virtual void glDisplay() {}
+  virtual void glKeyboard(unsigned char key, int x, int y) {}
+  virtual void glSpecial(int key, int x, int y) {}
 
 protected:
-  int width, height;
+  int windowWidth, windowHeight;
 };
 
 #endif

@@ -36,12 +36,12 @@ void GlWindow_special(int key, int x, int y) {
 
 GlWindow::GlWindow(int argc, char **argv, int _width, int _height) {
   _glWindow = this;
-  width = _width;
-  height = _height;
+  windowWidth = _width;
+  windowHeight = _height;
 
   glutInit(&argc, argv);
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
-  glutInitWindowSize (width, height);
+  glutInitWindowSize (windowWidth, windowHeight);
   //glutInitWindowPosition (0, 0);
   glutCreateWindow (argv[0]);
   glutDisplayFunc(GlWindow_display);
@@ -49,4 +49,14 @@ GlWindow::GlWindow(int argc, char **argv, int _width, int _height) {
   glutReshapeFunc(GlWindow_reshape);
   glutKeyboardFunc(GlWindow_keyboard);
   glutSpecialFunc(GlWindow_special);
+}
+
+void GlWindow::glReshape(int _newWidth, int _newHeight) {
+  windowWidth = _newWidth;
+  windowHeight = _newHeight;
+  glViewport (0, 0, (GLint) windowWidth - 1, (GLint) windowHeight - 1);
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity ();
+  glOrtho (0.0, (GLdouble) windowWidth, (GLdouble) windowHeight, 0.0, -1.0, 1.0);
+  resizedWindow();
 }
