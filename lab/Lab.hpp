@@ -14,9 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sonotopy/sonotopy.hpp>
-#include "GlWindow.hpp"
-#include "AudioIO.hpp"
-#include "SmoothGridMapFrame.hpp"
+#include <sonotopy/uilib/uilib.hpp>
 #include <pthread.h>
 
 class Lab : public GlWindow, public AudioIO {

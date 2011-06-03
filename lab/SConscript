@@ -1,11 +1,8 @@
 Import(['env', 'platform', 'PKG_CONFIG'])
 
-TARGET = 'Demo'
+TARGET = 'Lab'
 
-SOURCE = ['Demo.cpp',
-	  'IsolinesFrame.cpp',
-	  'IsolineExtractor.cpp',
-	  'IsolineRenderer.cpp']
+SOURCE = ['Lab.cpp']
 
 LIBLIST = [['portaudio', 'portaudio.h'],
 	   ['sndfile', 'sndfile.h'],

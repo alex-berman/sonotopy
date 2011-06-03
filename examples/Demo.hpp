@@ -14,19 +14,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sonotopy/sonotopy.hpp>
-#include "GlWindow.hpp"
-#include "AudioIO.hpp"
-#include "Frame.hpp"
-#include "WaveformFrame.hpp"
-#include "SpectrumFrame.hpp"
-#include "SpectrumBinsFrame.hpp"
-#include "GridMapFrame.hpp"
-#include "SmoothGridMapFrame.hpp"
+#include <sonotopy/uilib/uilib.hpp>
 #include "IsolinesFrame.hpp"
-#include "GridMapTrajectoryFrame.hpp"
-#include "CircleMapFrame.hpp"
-#include "SmoothCircleMapFrame.hpp"
-#include "BeatTrackerFrame.hpp"
 #include <vector>
 #include <pthread.h>
 

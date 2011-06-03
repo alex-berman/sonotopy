@@ -15,7 +15,7 @@
 
 #include "IsolineExtractor.hpp"
 #include "IsolineRenderer.hpp"
-#include "Frame.hpp"
+#include <sonotopy/uilib/Frame.hpp>
 #include <sonotopy/GridMap.hpp>
 #include <sonotopy/TwoDimArray.hpp>
 #include <vector>

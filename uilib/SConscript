@@ -1,0 +1,24 @@
+Import('env', 'platform', 'Prefix')
+
+TARGET = 'sonotopy-uilib'
+
+SOURCE = ['Frame.cpp',
+	  'AudioIO.cpp',
+	  'WaveformFrame.cpp',
+	  'SpectrumFrame.cpp',
+	  'SpectrumBinsFrame.cpp',
+	  'GridMapFrame.cpp',
+	  'SmoothGridMapFrame.cpp',
+	  'GridMapTrajectoryFrame.cpp',
+	  'CircleMapFrame.cpp',
+	  'SmoothCircleMapFrame.cpp',
+	  'BeatTrackerFrame.cpp',
+	  'GlWindow.cpp']
+
+CPPPATH = [Dir('../../../include/sonotopy')]
+env.Append(CPPPATH = CPPPATH)
+
+UiLib = env.StaticLibrary(target = TARGET, source = SOURCE)
+
+env.Install(Prefix + '/lib', UiLib)
+env.Install(Prefix + '/include/sonotopy/uilib', Glob('*.hpp'))

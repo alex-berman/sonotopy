@@ -42,12 +42,12 @@ if not GetOption('clean'):
 
 
 if GetOption('clean'):
-	targets = ['src', 'unittests', 'examples', 'performanceTest']
+	targets = ['src', 'unittests', 'uilib', 'examples', 'lab', 'performanceTest']
 	env.Clean('build', 'build')
 else:
 	targets = ['src']
 	targets.extend([t for t in COMMAND_LINE_TARGETS
-			if t in ['unittests', 'examples', 'performanceTest']])
+			if t in ['unittests', 'uilib', 'examples', 'lab', 'performanceTest']])
 
 variant_dir = ['release', 'debug'][DEBUG]
 
