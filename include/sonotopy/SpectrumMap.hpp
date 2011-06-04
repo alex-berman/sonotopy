@@ -45,6 +45,7 @@ public:
   float getAdaptationTimeSecs() const;
   float getNeighbourhoodParameter() const;
   SpectrumMapParameters getSpectrumMapParameters() const;
+  void resetAdaptation();
 
 protected:
   void createSpectrumAnalyzer();

@@ -33,7 +33,6 @@ SpectrumMap::SpectrumMap(Topology *_topology,
   createSomInput();
   createSomOutput();
 
-  elapsedTimeSecs = 0.0f;
   previousCursorUpdateTimeSecs = 0.0f;
   activationPatternOutdated = false;
 
@@ -66,7 +65,10 @@ void SpectrumMap::createSom() {
   som = new SOM(spectrumResolution, topology);
   currentActivationPattern = som->createActivationPattern();
   nextActivationPattern = som->createActivationPattern();
+  resetAdaptation();
+}
 
+void SpectrumMap::resetAdaptation() {
   float somInitialValueMin, somInitialValueMax;
   switch(spectrumMapParameters.adaptationStrategy) {
   case SpectrumMapParameters::ErrorDriven:
@@ -80,6 +82,7 @@ void SpectrumMap::createSom() {
     break;
   }
   som->setRandomModelValues(somInitialValueMin, somInitialValueMax);
+  elapsedTimeSecs = 0.0f;
 }
 
 void SpectrumMap::createSomInput() {
