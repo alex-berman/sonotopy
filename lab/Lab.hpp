@@ -23,6 +23,7 @@ public:
   void processAudio(float *);
   void display();
   void resizedWindow();
+  void glKeyboard(unsigned char key, int x, int y);
 
 private:
   class ErrorPlotter {
@@ -46,12 +47,14 @@ private:
 
   class ComparedMap {
   public:
-    ComparedMap(Lab *, GridMapParameters &);
+    ComparedMap(Lab *, GridMapParameters &, int index);
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
     Frame *getFrame() { return gridMapFrame; }
+    void generatePlotFile();
   private:
+    int index;
     Lab *parent;
     GridMapParameters parameters;
     GridMap *gridMap;
@@ -64,6 +67,7 @@ private:
   void initializeAudioProcessing();
   void initializeGraphics();
   void addGridMap();
+  void generatePlotFiles();
 
   int argc;
   char **argv;
@@ -72,4 +76,6 @@ private:
   bool plotError;
   pthread_mutex_t mutex;
   unsigned long t0;
+  int mapCount;
+  int plotFileCount;
 };

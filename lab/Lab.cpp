@@ -17,6 +17,9 @@
 #include <string.h>
 #include <time.h>
 #include <algorithm>
+#include <string>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -39,6 +42,8 @@ void Lab::processCommandLineArguments() {
   useAudioInputFile = false;
   echoAudio = false;
   plotError = false;
+  mapCount = 0;
+  plotFileCount = 0;
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -137,8 +142,9 @@ void Lab::usage() {
 
 void Lab::addGridMap() {
   srand(t0);
-  comparedMaps.push_back(ComparedMap(this, gridMapParameters));
+  comparedMaps.push_back(ComparedMap(this, gridMapParameters, mapCount));
   gridMapParameters = GridMapParameters();
+  mapCount++;
 }
 
 void Lab::initializeAudioProcessing() {
@@ -186,6 +192,22 @@ void Lab::resizedWindow() {
     i->getFrame()->setPosition(px, offsetTop);
     px += frameSize + margin;
   }
+}
+
+void Lab::glKeyboard(unsigned char key, int x, int y) {
+  switch(key) {
+  case 'p':
+    generatePlotFiles();
+    break;
+  }
+}
+
+void Lab::generatePlotFiles() {
+  pthread_mutex_lock(&mutex);
+  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    i->generatePlotFile();
+  pthread_mutex_unlock(&mutex);
+  plotFileCount++;
 }
 
 Lab::ErrorPlotter::ErrorPlotter(Lab *_parent, const SpectrumMap *_map) {
@@ -267,7 +289,8 @@ void Lab::ErrorPlotter::render(Frame *frame) {
   parent->glText(frame->getLeft(), frame->getBottom() + 40, text);
 }
 
-Lab::ComparedMap::ComparedMap(Lab *_parent, GridMapParameters &_parameters) {
+Lab::ComparedMap::ComparedMap(Lab *_parent, GridMapParameters &_parameters, int _index) {
+  index = _index;
   parent = _parent;
   parameters = _parameters;
   gridMap = new GridMap(parent->audioParameters, parameters);
@@ -290,6 +313,26 @@ void Lab::ComparedMap::display() {
   gridMapFrame->display();
   if(parent->plotError)
     errorPlotter->render(gridMapFrame);
+}
+
+void Lab::ComparedMap::generatePlotFile() {
+  ostringstream filename;
+  filename << "plot" << index << "_" << parent->plotFileCount << ".dat";
+  ofstream plotFile(filename.str().c_str());
+
+  const SOM::ActivationPattern *activationPattern = gridMap->getActivationPattern();
+  SOM::ActivationPattern::const_iterator activationPatternIterator =
+    activationPattern->begin();
+  float v;
+  for(int y = 0; y < parameters.gridHeight; y++) {
+    for(int x = 0; x < parameters.gridWidth; x++) {
+      v = *activationPatternIterator++;
+      plotFile << x << " " << y << " " << v << endl;
+    }
+    plotFile << endl;
+  }
+
+  plotFile.close();
 }
 
 int main(int argc, char **argv) {
