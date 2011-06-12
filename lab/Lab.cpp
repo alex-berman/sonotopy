@@ -157,16 +157,19 @@ void Lab::usage() {
 
 void Lab::addGridMap() {
   srand(t0);
-  comparedMaps.push_back(new ComparedGridMap(this, mapCount, gridMapParameters));
-  gridMapParameters = GridMapParameters();
-  mapCount++;
+  addComparedMap(new ComparedGridMap(this, mapCount, gridMapParameters));
 }
 
 void Lab::addCircleMap() {
   srand(t0);
-  comparedMaps.push_back(new ComparedCircleMap(this, mapCount, circleMapParameters));
-  circleMapParameters = CircleMapParameters();
+  addComparedMap(new ComparedCircleMap(this, mapCount, circleMapParameters));
+}
+
+void Lab::addComparedMap(ComparedMap *map) {
+  comparedMaps.push_back(map);
   mapCount++;
+  circleMapParameters = CircleMapParameters();
+  gridMapParameters = GridMapParameters();
 }
 
 void Lab::initializeAudioProcessing() {
@@ -391,8 +394,6 @@ void Lab::ComparedCircleMap::processAudio(float *inputBuffer, unsigned long numF
 
 void Lab::ComparedCircleMap::generatePlotFile(ofstream &plotFile) {
   const SOM::ActivationPattern *activationPattern = circleMap->getActivationPattern();
-  SOM::ActivationPattern::const_iterator activationPatternIterator =
-    activationPattern->begin();
   CircleTopology::Node node;
   float z;
   const static float r = 0.7;

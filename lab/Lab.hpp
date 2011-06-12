@@ -93,6 +93,7 @@ private:
   void initializeGraphics();
   void addGridMap();
   void addCircleMap();
+  void addComparedMap(ComparedMap *map);
   void generatePlotFiles();
 
   int argc;
