@@ -18,8 +18,8 @@
 #include <time.h>
 #include <algorithm>
 #include <string>
-#include <fstream>
 #include <sstream>
+#include <math.h>
 
 using namespace std;
 
@@ -78,10 +78,12 @@ void Lab::processCommandLineArguments() {
 	argnr++;
 	argptr++;
 	if(strcmp(*argptr, "time") == 0) {
-	  gridMapParameters.adaptationStrategy = SpectrumMapParameters::TimeBased;
+	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	    SpectrumMapParameters::TimeBased;
 	}
 	else if(strcmp(*argptr, "error") == 0) {
-	  gridMapParameters.adaptationStrategy = SpectrumMapParameters::ErrorDriven;
+	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	    SpectrumMapParameters::ErrorDriven;
 	}
 	else {
 	  printf("Unknown adaptation strategy %s\n", *argptr);
@@ -91,30 +93,43 @@ void Lab::processCommandLineArguments() {
       else if(strcmp(argflag, "errorThresholdLow") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.errorThresholdLow = atof(*argptr);
+	gridMapParameters.errorThresholdLow =
+	  circleMapParameters.errorThresholdLow =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "errorThresholdHigh") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.errorThresholdHigh = atof(*argptr);
+	gridMapParameters.errorThresholdHigh =
+	  circleMapParameters.errorThresholdHigh =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "errorIntegrationTimeMs") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.errorIntegrationTimeMs = atof(*argptr);
+	gridMapParameters.errorIntegrationTimeMs =
+	  circleMapParameters.errorIntegrationTimeMs =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "adaptationPlasticity") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.adaptationPlasticity = atof(*argptr);
+	gridMapParameters.adaptationPlasticity =
+	  circleMapParameters.adaptationPlasticity =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "neighbourhoodPlasticity") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.neighbourhoodPlasticity = atof(*argptr);
+	gridMapParameters.neighbourhoodPlasticity =
+	  circleMapParameters.neighbourhoodPlasticity =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "gm") == 0) {
 	addGridMap();
+      }
+      else if(strcmp(argflag, "cm") == 0) {
+	addCircleMap();
       }
       else {
         printf("Unknown option %s\n\n", argflag);
@@ -142,8 +157,15 @@ void Lab::usage() {
 
 void Lab::addGridMap() {
   srand(t0);
-  comparedMaps.push_back(ComparedMap(this, gridMapParameters, mapCount));
+  comparedMaps.push_back(new ComparedGridMap(this, mapCount, gridMapParameters));
   gridMapParameters = GridMapParameters();
+  mapCount++;
+}
+
+void Lab::addCircleMap() {
+  srand(t0);
+  comparedMaps.push_back(new ComparedCircleMap(this, mapCount, circleMapParameters));
+  circleMapParameters = CircleMapParameters();
   mapCount++;
 }
 
@@ -153,14 +175,14 @@ void Lab::initializeAudioProcessing() {
 }
 
 void Lab::initializeGraphics() {
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
-    i->initializeGraphics();
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    (*i)->initializeGraphics();
 }
 
 void Lab::processAudio(float *inputBuffer) {
   pthread_mutex_lock(&mutex);
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
-    i->processAudio(inputBuffer, audioParameters.bufferSize);
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    (*i)->processAudio(inputBuffer, audioParameters.bufferSize);
   pthread_mutex_unlock(&mutex);
 }
 
@@ -173,8 +195,8 @@ void Lab::display() {
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
 
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
-    i->display();
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    (*i)->display();
 
   pthread_mutex_unlock(&mutex);
 
@@ -187,9 +209,11 @@ void Lab::resizedWindow() {
   frameSize = min(frameSize, windowHeight);
   int offsetTop = (windowHeight - frameSize) / 2;
   int px = (windowWidth - frameSize * comparedMaps.size() - margin * (comparedMaps.size()-1)) / 2;
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++) {
-    i->getFrame()->setSize(frameSize, frameSize);
-    i->getFrame()->setPosition(px, offsetTop);
+  Frame *frame;
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++) {
+    frame = (*i)->getFrame();
+    frame->setSize(frameSize, frameSize);
+    frame->setPosition(px, offsetTop);
     px += frameSize + margin;
   }
 }
@@ -204,8 +228,8 @@ void Lab::glKeyboard(unsigned char key, int x, int y) {
 
 void Lab::generatePlotFiles() {
   pthread_mutex_lock(&mutex);
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
-    i->generatePlotFile();
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    (*i)->generatePlotFile();
   pthread_mutex_unlock(&mutex);
   plotFileCount++;
 }
@@ -289,37 +313,41 @@ void Lab::ErrorPlotter::render(Frame *frame) {
   parent->glText(frame->getLeft(), frame->getBottom() + 40, text);
 }
 
-Lab::ComparedMap::ComparedMap(Lab *_parent, GridMapParameters &_parameters, int _index) {
+
+Lab::ComparedMap::ComparedMap(Lab *_parent, int _index) {
   index = _index;
   parent = _parent;
-  parameters = _parameters;
-  gridMap = new GridMap(parent->audioParameters, parameters);
-}
-
-void Lab::ComparedMap::initializeGraphics() {
-  gridMapFrame = new SmoothGridMapFrame(gridMap);
-  if(parent->plotError)
-    errorPlotter = new ErrorPlotter(parent, gridMap);
-}
-
-void Lab::ComparedMap::processAudio(float *inputBuffer, unsigned long numFrames) {
-  gridMap->feedAudio(inputBuffer, numFrames);
-  if(parent->plotError) {
-    errorPlotter->update();
-  }
-}
-
-void Lab::ComparedMap::display() {
-  gridMapFrame->display();
-  if(parent->plotError)
-    errorPlotter->render(gridMapFrame);
 }
 
 void Lab::ComparedMap::generatePlotFile() {
   ostringstream filename;
   filename << "plot" << index << "_" << parent->plotFileCount << ".dat";
   ofstream plotFile(filename.str().c_str());
+  generatePlotFile(plotFile);
+  plotFile.close();
+}
 
+
+Lab::ComparedGridMap::ComparedGridMap(Lab *_parent, int _index, GridMapParameters &_parameters)
+  : ComparedMap(_parent, _index) {
+  parameters = _parameters;
+  gridMap = new GridMap(parent->audioParameters, parameters);
+}
+
+void Lab::ComparedGridMap::initializeGraphics() {
+  frame = new SmoothGridMapFrame(gridMap);
+  if(parent->plotError)
+    errorPlotter = new ErrorPlotter(parent, gridMap);
+}
+
+void Lab::ComparedGridMap::processAudio(float *inputBuffer, unsigned long numFrames) {
+  gridMap->feedAudio(inputBuffer, numFrames);
+  if(parent->plotError) {
+    errorPlotter->update();
+  }
+}
+
+void Lab::ComparedGridMap::generatePlotFile(ofstream &plotFile) {
   const SOM::ActivationPattern *activationPattern = gridMap->getActivationPattern();
   SOM::ActivationPattern::const_iterator activationPatternIterator =
     activationPattern->begin();
@@ -331,9 +359,58 @@ void Lab::ComparedMap::generatePlotFile() {
     }
     plotFile << endl;
   }
-
-  plotFile.close();
 }
+
+void Lab::ComparedGridMap::display() {
+  frame->display();
+  if(parent->plotError)
+    errorPlotter->render(frame);
+}
+
+
+
+Lab::ComparedCircleMap::ComparedCircleMap(Lab *_parent, int _index, CircleMapParameters &_parameters)
+  : ComparedMap(_parent, _index) {
+  parameters = _parameters;
+  circleMap = new CircleMap(parent->audioParameters, parameters);
+  topology = (CircleTopology*) circleMap->getTopology();
+}
+
+void Lab::ComparedCircleMap::initializeGraphics() {
+  frame = new SmoothCircleMapFrame(circleMap);
+  if(parent->plotError)
+    errorPlotter = new ErrorPlotter(parent, circleMap);
+}
+
+void Lab::ComparedCircleMap::processAudio(float *inputBuffer, unsigned long numFrames) {
+  circleMap->feedAudio(inputBuffer, numFrames);
+  if(parent->plotError) {
+    errorPlotter->update();
+  }
+}
+
+void Lab::ComparedCircleMap::generatePlotFile(ofstream &plotFile) {
+  const SOM::ActivationPattern *activationPattern = circleMap->getActivationPattern();
+  SOM::ActivationPattern::const_iterator activationPatternIterator =
+    activationPattern->begin();
+  CircleTopology::Node node;
+  float z;
+  const static float r = 0.7;
+  for(unsigned int n = 0; n <= topology->getNumNodes(); n++) {
+    node = topology->getNode(n);
+    z = (*activationPattern)[n % topology->getNumNodes()];
+    plotFile <<   cos(node.angle) << " " <<   sin(node.angle) << " " << z << endl;
+    plotFile << r*cos(node.angle) << " " << r*sin(node.angle) << " " << z << endl;
+    plotFile << endl;
+  }
+}
+
+void Lab::ComparedCircleMap::display() {
+  frame->display();
+  if(parent->plotError)
+    errorPlotter->render(frame);
+}
+
 
 int main(int argc, char **argv) {
   Lab(argc, argv);

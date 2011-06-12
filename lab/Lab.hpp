@@ -16,6 +16,7 @@
 #include <sonotopy/sonotopy.hpp>
 #include <sonotopy/uilib/uilib.hpp>
 #include <pthread.h>
+#include <fstream>
 
 class Lab : public GlWindow, public AudioIO {
 public:
@@ -47,19 +48,43 @@ private:
 
   class ComparedMap {
   public:
-    ComparedMap(Lab *, GridMapParameters &, int index);
+    ComparedMap(Lab *, int index);
+    virtual void initializeGraphics() {}
+    virtual void display() {}
+    virtual void processAudio(float *buffer, unsigned long numFrames) {}
+    Frame *getFrame() { return frame; }
+    void generatePlotFile();
+    virtual void generatePlotFile(std::ofstream &) {}
+  protected:
+    int index;
+    Lab *parent;
+    Frame *frame;
+    ErrorPlotter *errorPlotter;
+  };
+
+  class ComparedGridMap : public ComparedMap {
+  public:
+    ComparedGridMap(Lab *, int index, GridMapParameters &);
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
-    Frame *getFrame() { return gridMapFrame; }
-    void generatePlotFile();
+    void generatePlotFile(std::ofstream &);
   private:
-    int index;
-    Lab *parent;
     GridMapParameters parameters;
     GridMap *gridMap;
-    SmoothGridMapFrame *gridMapFrame;
-    ErrorPlotter *errorPlotter;
+  };
+
+  class ComparedCircleMap : public ComparedMap {
+  public:
+    ComparedCircleMap(Lab *, int index, CircleMapParameters &);
+    void initializeGraphics();
+    void display();
+    void processAudio(float *buffer, unsigned long numFrames);
+    void generatePlotFile(std::ofstream &);
+  private:
+    CircleMapParameters parameters;
+    CircleMap *circleMap;
+    CircleTopology *topology;
   };
 
   void processCommandLineArguments();
@@ -67,12 +92,14 @@ private:
   void initializeAudioProcessing();
   void initializeGraphics();
   void addGridMap();
+  void addCircleMap();
   void generatePlotFiles();
 
   int argc;
   char **argv;
   GridMapParameters gridMapParameters;
-  std::vector<ComparedMap> comparedMaps;
+  CircleMapParameters circleMapParameters;
+  std::vector<ComparedMap*> comparedMaps;
   bool plotError;
   pthread_mutex_t mutex;
   unsigned long t0;
