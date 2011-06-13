@@ -16,6 +16,7 @@
 #include <sonotopy/sonotopy.hpp>
 #include <sonotopy/uilib/uilib.hpp>
 #include <pthread.h>
+#include <sstream>
 #include <fstream>
 
 class Lab : public GlWindow, public AudioIO {
@@ -54,12 +55,16 @@ private:
     virtual void processAudio(float *buffer, unsigned long numFrames) {}
     Frame *getFrame() { return frame; }
     void generatePlotFile();
-    virtual void generatePlotFile(std::ofstream &) {}
+    virtual void writePlotFilesContent() {}
   protected:
     int index;
     Lab *parent;
     Frame *frame;
     ErrorPlotter *errorPlotter;
+    std::string dataFilename;
+    std::string plotFilename;
+    std::ofstream dataFile;
+    std::ofstream plotFile;
   };
 
   class ComparedGridMap : public ComparedMap {
@@ -68,7 +73,7 @@ private:
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
-    void generatePlotFile(std::ofstream &);
+    void writePlotFilesContent();
   private:
     GridMapParameters parameters;
     GridMap *gridMap;
@@ -80,7 +85,7 @@ private:
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
-    void generatePlotFile(std::ofstream &);
+    void writePlotFilesContent();
   private:
     CircleMapParameters parameters;
     CircleMap *circleMap;

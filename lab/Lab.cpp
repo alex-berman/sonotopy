@@ -18,7 +18,6 @@
 #include <time.h>
 #include <algorithm>
 #include <string>
-#include <sstream>
 #include <math.h>
 
 using namespace std;
@@ -323,11 +322,16 @@ Lab::ComparedMap::ComparedMap(Lab *_parent, int _index) {
 }
 
 void Lab::ComparedMap::generatePlotFile() {
-  ostringstream filename;
-  filename << "plot" << index << "_" << parent->plotFileCount << ".dat";
-  ofstream plotFile(filename.str().c_str());
-  generatePlotFile(plotFile);
+  ostringstream dataFilenameSS, plotFilenameSS;
+  dataFilenameSS << "plot" << index << "_" << parent->plotFileCount << ".dat";
+  plotFilenameSS << "plot" << index << "_" << parent->plotFileCount << ".plot";
+  dataFilename = dataFilenameSS.str();
+  plotFilename = plotFilenameSS.str();
+  dataFile.open(dataFilename.c_str());
+  plotFile.open(plotFilename.c_str());
+  writePlotFilesContent();
   plotFile.close();
+  dataFile.close();
 }
 
 
@@ -350,7 +354,9 @@ void Lab::ComparedGridMap::processAudio(float *inputBuffer, unsigned long numFra
   }
 }
 
-void Lab::ComparedGridMap::generatePlotFile(ofstream &plotFile) {
+void Lab::ComparedGridMap::writePlotFilesContent() {
+  plotFile << "splot '" << dataFilename << "' with lines title ''" << endl;
+
   const SOM::ActivationPattern *activationPattern = gridMap->getActivationPattern();
   SOM::ActivationPattern::const_iterator activationPatternIterator =
     activationPattern->begin();
@@ -358,9 +364,9 @@ void Lab::ComparedGridMap::generatePlotFile(ofstream &plotFile) {
   for(int y = 0; y < parameters.gridHeight; y++) {
     for(int x = 0; x < parameters.gridWidth; x++) {
       v = *activationPatternIterator++;
-      plotFile << x << " " << y << " " << v << endl;
+      dataFile << x << " " << y << " " << v << endl;
     }
-    plotFile << endl;
+    dataFile << endl;
   }
 }
 
@@ -392,17 +398,22 @@ void Lab::ComparedCircleMap::processAudio(float *inputBuffer, unsigned long numF
   }
 }
 
-void Lab::ComparedCircleMap::generatePlotFile(ofstream &plotFile) {
+void Lab::ComparedCircleMap::writePlotFilesContent() {
+  float angle = circleMap->getAngle();
+  plotFile << "set arrow 1 from 0,0,0 to " <<
+    cos(angle) << "," << sin(angle) << ",0 linewidth 2" << endl;
+  plotFile << "splot '" << dataFilename << "' with lines title ''" << endl;
+
   const SOM::ActivationPattern *activationPattern = circleMap->getActivationPattern();
   CircleTopology::Node node;
   float z;
   const static float r = 0.7;
   for(unsigned int n = 0; n <= topology->getNumNodes(); n++) {
     node = topology->getNode(n);
-    z = (*activationPattern)[n % topology->getNumNodes()];
-    plotFile <<   cos(node.angle) << " " <<   sin(node.angle) << " " << z << endl;
-    plotFile << r*cos(node.angle) << " " << r*sin(node.angle) << " " << z << endl;
-    plotFile << endl;
+    z = 1 - (*activationPattern)[n % topology->getNumNodes()];
+    dataFile <<   cos(node.angle) << " " <<   sin(node.angle) << " " << z << endl;
+    dataFile << r*cos(node.angle) << " " << r*sin(node.angle) << " " << z << endl;
+    dataFile << endl;
   }
 }
 
