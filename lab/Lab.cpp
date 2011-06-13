@@ -408,9 +408,10 @@ void Lab::ComparedCircleMap::writePlotFilesContent() {
   CircleTopology::Node node;
   float z;
   const static float r = 0.7;
-  for(unsigned int n = 0; n <= topology->getNumNodes(); n++) {
+  for(unsigned int i = 0; i <= topology->getNumNodes(); i++) {
+    int n = i % topology->getNumNodes();
     node = topology->getNode(n);
-    z = 1 - (*activationPattern)[n % topology->getNumNodes()];
+    z = 1 - (*activationPattern)[n];
     dataFile <<   cos(node.angle) << " " <<   sin(node.angle) << " " << z << endl;
     dataFile << r*cos(node.angle) << " " << r*sin(node.angle) << " " << z << endl;
     dataFile << endl;
