@@ -28,10 +28,10 @@ public:
   void glKeyboard(unsigned char key, int x, int y);
 
 private:
-  class ErrorPlotter {
+  class ErrorGraph {
   public:
-    ErrorPlotter(Lab *, const SpectrumMap *);
-    ~ErrorPlotter();
+    ErrorGraph(Lab *, const SpectrumMap *);
+    ~ErrorGraph();
     void update();
     void render(Frame *);
   private:
@@ -50,33 +50,44 @@ private:
   class ComparedMap {
   public:
     ComparedMap(Lab *, int index);
+    int getIndex() { return index; }
     virtual void initializeGraphics() {}
     virtual void display() {}
     virtual void processAudio(float *buffer, unsigned long numFrames) {}
     Frame *getFrame() { return frame; }
     void generatePlotFile();
     virtual void writePlotFilesContent() {}
+    virtual void startTrajectoryPlotting() {}
+    virtual void stopTrajectoryPlotting() {}
+    virtual void plotTrajectory() {}
   protected:
     int index;
     Lab *parent;
     Frame *frame;
-    ErrorPlotter *errorPlotter;
+    ErrorGraph *errorGraph;
     std::string dataFilename;
     std::string plotFilename;
     std::ofstream dataFile;
     std::ofstream plotFile;
   };
 
+  class TrajectoryPlotter;
+
   class ComparedGridMap : public ComparedMap {
   public:
     ComparedGridMap(Lab *, int index, GridMapParameters &);
+    GridMap *getGridMap() { return gridMap; }
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
     void writePlotFilesContent();
+    void startTrajectoryPlotting();
+    void stopTrajectoryPlotting();
+    void plotTrajectory();
   private:
     GridMapParameters parameters;
     GridMap *gridMap;
+    TrajectoryPlotter *trajectoryPlotter;
   };
 
   class ComparedCircleMap : public ComparedMap {
@@ -92,14 +103,29 @@ private:
     CircleTopology *topology;
   };
 
+  class TrajectoryPlotter {
+  public:
+    TrajectoryPlotter(ComparedGridMap *);
+    ~TrajectoryPlotter();
+    void addDatum();
+  private:
+    GridMap *map;
+    std::string dataFilename;
+    std::string plotFilename;
+    std::ofstream dataFile;
+    std::ofstream plotFile;
+  };
+
   void processCommandLineArguments();
   void usage();
   void initializeAudioProcessing();
   void initializeGraphics();
+  void initializePlotting();
   void addGridMap();
   void addCircleMap();
   void addComparedMap(ComparedMap *map);
   void generatePlotFiles();
+  void toggleTrajectoryPlotting();
 
   int argc;
   char **argv;
@@ -111,4 +137,5 @@ private:
   unsigned long t0;
   int mapCount;
   int plotFileCount;
+  bool plottingTrajectory;
 };

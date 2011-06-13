@@ -33,6 +33,7 @@ Lab::Lab(int _argc, char **_argv) :
   initializeAudioProcessing();
   initializeAudio();
   initializeGraphics();
+  initializePlotting();
   openAudioStream();
   glutMainLoop();
 }
@@ -42,7 +43,6 @@ void Lab::processCommandLineArguments() {
   echoAudio = false;
   plotError = false;
   mapCount = 0;
-  plotFileCount = 0;
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -124,6 +124,13 @@ void Lab::processCommandLineArguments() {
 	  circleMapParameters.neighbourhoodPlasticity =
 	  atof(*argptr);
       }
+      else if(strcmp(argflag, "trajectorySmoothness") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.trajectorySmoothness =
+	  circleMapParameters.trajectorySmoothness =
+	  atof(*argptr);
+      }
       else if(strcmp(argflag, "gm") == 0) {
 	addGridMap();
       }
@@ -181,6 +188,11 @@ void Lab::initializeGraphics() {
     (*i)->initializeGraphics();
 }
 
+void Lab::initializePlotting() {
+  plotFileCount = 0;
+  plottingTrajectory = false;
+}
+
 void Lab::processAudio(float *inputBuffer) {
   pthread_mutex_lock(&mutex);
   for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
@@ -197,8 +209,11 @@ void Lab::display() {
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
 
-  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++) {
     (*i)->display();
+    if(plottingTrajectory)
+      (*i)->plotTrajectory();
+  }
 
   pthread_mutex_unlock(&mutex);
 
@@ -225,6 +240,10 @@ void Lab::glKeyboard(unsigned char key, int x, int y) {
   case 'p':
     generatePlotFiles();
     break;
+
+  case 't':
+    toggleTrajectoryPlotting();
+    break;
   }
 }
 
@@ -236,7 +255,21 @@ void Lab::generatePlotFiles() {
   plotFileCount++;
 }
 
-Lab::ErrorPlotter::ErrorPlotter(Lab *_parent, const SpectrumMap *_map) {
+void Lab::toggleTrajectoryPlotting() {
+  if(plottingTrajectory) {
+    for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+      (*i)->stopTrajectoryPlotting();
+    plottingTrajectory = false;
+  }
+  else {
+    for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+      (*i)->startTrajectoryPlotting();
+    plottingTrajectory = true;
+  }
+}
+
+
+Lab::ErrorGraph::ErrorGraph(Lab *_parent, const SpectrumMap *_map) {
   parent = _parent;
   map = _map;
   bufferSize = 1000;
@@ -252,20 +285,20 @@ Lab::ErrorPlotter::ErrorPlotter(Lab *_parent, const SpectrumMap *_map) {
   smootherMax.setResponseFactor(smootherResponseFactor);
 }
 
-Lab::ErrorPlotter::~ErrorPlotter() {
+Lab::ErrorGraph::~ErrorGraph() {
   delete [] buffer;
   delete circularBufferMin;
   delete circularBufferMax;
 }
 
-void Lab::ErrorPlotter::update() {
+void Lab::ErrorGraph::update() {
   circularBufferMin->write(smootherMin.smooth(map->getErrorMin()));
   circularBufferMin->moveReadHead(1);
   circularBufferMax->write(smootherMax.smooth(map->getErrorMax()));
   circularBufferMax->moveReadHead(1);
 }
 
-void Lab::ErrorPlotter::render(Frame *frame) {
+void Lab::ErrorGraph::render(Frame *frame) {
   int i = 0;
   float y;
   int width = frame->getWidth();
@@ -344,13 +377,13 @@ Lab::ComparedGridMap::ComparedGridMap(Lab *_parent, int _index, GridMapParameter
 void Lab::ComparedGridMap::initializeGraphics() {
   frame = new SmoothGridMapFrame(gridMap);
   if(parent->plotError)
-    errorPlotter = new ErrorPlotter(parent, gridMap);
+    errorGraph = new ErrorGraph(parent, gridMap);
 }
 
 void Lab::ComparedGridMap::processAudio(float *inputBuffer, unsigned long numFrames) {
   gridMap->feedAudio(inputBuffer, numFrames);
   if(parent->plotError) {
-    errorPlotter->update();
+    errorGraph->update();
   }
 }
 
@@ -370,10 +403,22 @@ void Lab::ComparedGridMap::writePlotFilesContent() {
   }
 }
 
+void Lab::ComparedGridMap::startTrajectoryPlotting() {
+  trajectoryPlotter = new TrajectoryPlotter(this);
+}
+
+void Lab::ComparedGridMap::stopTrajectoryPlotting() {
+  delete trajectoryPlotter;
+}
+
+void Lab::ComparedGridMap::plotTrajectory() {
+  trajectoryPlotter->addDatum();
+}
+
 void Lab::ComparedGridMap::display() {
   frame->display();
   if(parent->plotError)
-    errorPlotter->render(frame);
+    errorGraph->render(frame);
 }
 
 
@@ -388,13 +433,13 @@ Lab::ComparedCircleMap::ComparedCircleMap(Lab *_parent, int _index, CircleMapPar
 void Lab::ComparedCircleMap::initializeGraphics() {
   frame = new SmoothCircleMapFrame(circleMap);
   if(parent->plotError)
-    errorPlotter = new ErrorPlotter(parent, circleMap);
+    errorGraph = new ErrorGraph(parent, circleMap);
 }
 
 void Lab::ComparedCircleMap::processAudio(float *inputBuffer, unsigned long numFrames) {
   circleMap->feedAudio(inputBuffer, numFrames);
   if(parent->plotError) {
-    errorPlotter->update();
+    errorGraph->update();
   }
 }
 
@@ -421,9 +466,34 @@ void Lab::ComparedCircleMap::writePlotFilesContent() {
 void Lab::ComparedCircleMap::display() {
   frame->display();
   if(parent->plotError)
-    errorPlotter->render(frame);
+    errorGraph->render(frame);
 }
 
+
+Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *comparedMap) {
+  map = comparedMap->getGridMap();
+  int index = comparedMap->getIndex();
+  ostringstream dataFilenameSS, plotFilenameSS;
+  dataFilenameSS << "tplot" << index << ".dat";
+  plotFilenameSS << "tplot" << index << ".plot";
+  dataFilename = dataFilenameSS.str();
+  plotFilename = plotFilenameSS.str();
+  dataFile.open(dataFilename.c_str());
+  plotFile.open(plotFilename.c_str());
+  plotFile << "splot '" << dataFilename << "' with lines title ''" << endl;
+}
+
+Lab::TrajectoryPlotter::~TrajectoryPlotter() {
+  dataFile.close();
+  plotFile.close();
+}
+
+void Lab::TrajectoryPlotter::addDatum() {
+  float x, y;
+  const static float z = 0;
+  map->getCursor(x, y);
+  dataFile << x << " " << y << " " << z << " " << endl;
+}
 
 int main(int argc, char **argv) {
   Lab(argc, argv);
