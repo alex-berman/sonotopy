@@ -480,19 +480,34 @@ Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *comparedMap) {
   plotFilename = plotFilenameSS.str();
   dataFile.open(dataFilename.c_str());
   plotFile.open(plotFilename.c_str());
-  plotFile << "splot '" << dataFilename << "' with lines title ''" << endl;
 }
 
 Lab::TrajectoryPlotter::~TrajectoryPlotter() {
+  writePlotFilesContent();
   dataFile.close();
   plotFile.close();
 }
 
-void Lab::TrajectoryPlotter::addDatum() {
-  float x, y;
+void Lab::TrajectoryPlotter::writePlotFilesContent() {
+  plotFile << "set palette rgbformulae -2,3,3" << endl;
+  plotFile << "unset colorbox" << endl;
+  plotFile << "splot '" << dataFilename << "' with lines lc palette z title ''" << endl;
+
   const static float z = 0;
-  map->getCursor(x, y);
-  dataFile << x << " " << y << " " << z << " " << endl;
+  float color;
+  int numPoints = points.size();
+  int i = 0;
+  for(vector<Point>::iterator p = points.begin(); p != points.end(); p++) {
+    color = (float) (i + 1) / numPoints;
+    dataFile << p->x << " " << p->y << " " << z << " " << color << endl;
+    i++;
+  }
+}
+
+void Lab::TrajectoryPlotter::addDatum() {
+  Point point;
+  map->getCursor(point.x, point.y);
+  points.push_back(point);
 }
 
 int main(int argc, char **argv) {

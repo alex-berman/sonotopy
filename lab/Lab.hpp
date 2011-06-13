@@ -114,6 +114,13 @@ private:
     std::string plotFilename;
     std::ofstream dataFile;
     std::ofstream plotFile;
+    typedef struct {
+      float x;
+      float y;
+    } Point;
+    std::vector<Point> points;
+
+    void writePlotFilesContent();
   };
 
   void processCommandLineArguments();
