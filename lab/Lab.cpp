@@ -438,7 +438,8 @@ void Lab::ComparedGridMap::writeScriptFile() {
 	     << "unset pm3d" << endl;
   scriptFile << "splot [" << rangeX1 << ":" << rangeX2 << "] "
 	     << "[" << rangeY1 << ":" << rangeY2 << "] [0:1] \\" << endl
-	     << "  '" << activationPatternDataFilename << "' with lines title ''" << endl;
+	     << "  '" << activationPatternDataFilename << "'"
+	     << " with lines lc rgb 'black' title ''" << endl;
 
   scriptFile << "unset multiplot" << endl;
 }
@@ -474,6 +475,7 @@ string Lab::ComparedGridMap::getMapDataFilename(int gridX, int gridY) {
 }
 
 void Lab::ComparedGridMap::generateMapDataFile(int gridX, int gridY) {
+  bool applyLog = (gridMap->getSpectrumAnalyzer()->getPowerScale() == SpectrumAnalyzer::Amplitude);
   string mapDataFilename = getMapDataFilename(gridX, gridY);
   std::ofstream mapDataFile(mapDataFilename.c_str());
 
@@ -487,6 +489,8 @@ void Lab::ComparedGridMap::generateMapDataFile(int gridX, int gridY) {
   float color, y;
   for(int i = 0; i < spectrumResolution; i++) {
     color = spectrum[i];
+    if(applyLog)
+      color = log(color) + 1;
     y = y1 + (y2 - y1) * (float) i / (spectrumResolution-1);
     mapDataFile << x1 << " " << y << " " << z << " " << color << endl;
     mapDataFile << x2 << " " << y << " " << z << " " << color << endl;
