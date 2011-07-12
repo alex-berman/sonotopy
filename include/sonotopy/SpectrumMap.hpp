@@ -35,6 +35,7 @@ public:
   int getWinnerId() const;
   const SpectrumAnalyzer* getSpectrumAnalyzer() { return spectrumAnalyzer; }
   const SpectrumBinDivider* getSpectrumBinDivider() { return spectrumBinDivider; }
+  int getSpectrumResolution() const { return spectrumResolution; }
   const SOM::ActivationPattern* getActivationPattern();
   Topology* getTopology() const;
   void setSpectrumIntegrationTimeMs(float);

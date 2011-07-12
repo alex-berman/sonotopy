@@ -89,6 +89,16 @@ void Lab::processCommandLineArguments() {
 	  usage();
 	}
       }
+      else if(strcmp(argflag, "gridWidth") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.gridWidth = atoi(*argptr);
+      }
+      else if(strcmp(argflag, "gridHeight") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.gridHeight = atoi(*argptr);
+      }
       else if(strcmp(argflag, "errorThresholdLow") == 0) {
 	argnr++;
 	argptr++;
@@ -355,16 +365,21 @@ Lab::ComparedMap::ComparedMap(Lab *_parent, int _index) {
 }
 
 void Lab::ComparedMap::generatePlotFile() {
-  ostringstream dataFilenameSS, plotFilenameSS;
-  dataFilenameSS << "plot" << index << "_" << parent->plotFileCount << ".dat";
-  plotFilenameSS << "plot" << index << "_" << parent->plotFileCount << ".plot";
-  dataFilename = dataFilenameSS.str();
-  plotFilename = plotFilenameSS.str();
-  dataFile.open(dataFilename.c_str());
-  plotFile.open(plotFilename.c_str());
+  ostringstream activationPatternDataFilenameSS, scriptFilenameSS;
+  ostringstream plotFilenamePrefixSS;
+  plotFilenamePrefixSS << "plots/plot" << index << "_" << parent->plotFileCount;
+  plotFilenamePrefix = plotFilenamePrefixSS.str();
+  activationPatternDataFilenameSS << plotFilenamePrefix << "_ap.dat";
+  scriptFilenameSS << plotFilenamePrefix << ".plot";
+  activationPatternDataFilename = activationPatternDataFilenameSS.str();
+  activationPatternDataFile.open(activationPatternDataFilename.c_str());
+  scriptFilename = scriptFilenameSS.str();
+  scriptFile.open(scriptFilename.c_str());
+
   writePlotFilesContent();
-  plotFile.close();
-  dataFile.close();
+
+  scriptFile.close();
+  activationPatternDataFile.close();
 }
 
 
@@ -372,6 +387,7 @@ Lab::ComparedGridMap::ComparedGridMap(Lab *_parent, int _index, GridMapParameter
   : ComparedMap(_parent, _index) {
   parameters = _parameters;
   gridMap = new GridMap(parent->audioParameters, parameters);
+  spectrumResolution = gridMap->getSpectrumResolution();
 }
 
 void Lab::ComparedGridMap::initializeGraphics() {
@@ -388,8 +404,46 @@ void Lab::ComparedGridMap::processAudio(float *inputBuffer, unsigned long numFra
 }
 
 void Lab::ComparedGridMap::writePlotFilesContent() {
-  plotFile << "splot '" << dataFilename << "' with lines title ''" << endl;
+  writeActivationPatternData();
+  writeMapData();
+  writeScriptFile();
+}
 
+void Lab::ComparedGridMap::writeScriptFile() {
+  float rangeX1 = -0.5;
+  float rangeX2 = parameters.gridWidth - 0.5;
+  float rangeY1 = -0.5;
+  float rangeY2 = parameters.gridHeight - 0.5;
+
+  scriptFile << "set multiplot" << endl;
+
+  scriptFile << "set border 0" << endl
+	     << "unset xtics; unset ytics; unset ztics" << endl
+	     << "set pm3d" << endl
+	     << "unset colorbox" << endl;
+
+  scriptFile << "splot [" << rangeX1 << ":" << rangeX2 << "] "
+	     << "[" << rangeY1 << ":" << rangeY2 << "] [0:1] \\" << endl;
+  for(int y = 0; y < parameters.gridHeight; y++) {
+    for(int x = 0; x < parameters.gridWidth; x++) {
+      if(y != 0 || x != 0)
+	scriptFile << ", \\" << endl;
+      scriptFile << "  '" << getMapDataFilename(x, y) << "' with lines lw 0 title ''";
+    }
+  }
+  scriptFile << endl;
+
+  scriptFile << "set border 0" << endl
+	     << "unset xtics; unset ytics; unset ztics" << endl
+	     << "unset pm3d" << endl;
+  scriptFile << "splot [" << rangeX1 << ":" << rangeX2 << "] "
+	     << "[" << rangeY1 << ":" << rangeY2 << "] [0:1] \\" << endl
+	     << "  '" << activationPatternDataFilename << "' with lines title ''" << endl;
+
+  scriptFile << "unset multiplot" << endl;
+}
+
+void Lab::ComparedGridMap::writeActivationPatternData() {
   const SOM::ActivationPattern *activationPattern = gridMap->getActivationPattern();
   SOM::ActivationPattern::const_iterator activationPatternIterator =
     activationPattern->begin();
@@ -397,10 +451,49 @@ void Lab::ComparedGridMap::writePlotFilesContent() {
   for(int y = 0; y < parameters.gridHeight; y++) {
     for(int x = 0; x < parameters.gridWidth; x++) {
       v = *activationPatternIterator++;
-      dataFile << x << " " << y << " " << v << endl;
+      activationPatternDataFile << x << " " << y << " " << v << endl;
     }
-    dataFile << endl;
+    activationPatternDataFile << endl;
   }
+}
+
+void Lab::ComparedGridMap::writeMapData() {
+  for(int y = 0; y < parameters.gridHeight; y++) {
+    for(int x = 0; x < parameters.gridWidth; x++) {
+      generateMapDataFile(x, y);
+    }
+  }
+}
+
+string Lab::ComparedGridMap::getMapDataFilename(int gridX, int gridY) {
+  ostringstream mapDataFilenameSS;
+  std::string mapDataFilename;
+  mapDataFilenameSS << plotFilenamePrefix << "_map"
+		    << gridX << "_" << gridY << ".dat";
+  return mapDataFilenameSS.str();
+}
+
+void Lab::ComparedGridMap::generateMapDataFile(int gridX, int gridY) {
+  string mapDataFilename = getMapDataFilename(gridX, gridY);
+  std::ofstream mapDataFile(mapDataFilename.c_str());
+
+  const float *spectrum = gridMap->getModel(gridX, gridY);
+  const static float z = 0;
+  const static float margin = 0.1;
+  float x1 = -0.5 + gridX + margin;
+  float x2 = -0.5 + gridX + 1 - margin;
+  float y1 = -0.5 + gridY + margin;
+  float y2 = -0.5 + gridY + 1 - margin;
+  float color, y;
+  for(int i = 0; i < spectrumResolution; i++) {
+    color = spectrum[i];
+    y = y1 + (y2 - y1) * (float) i / (spectrumResolution-1);
+    mapDataFile << x1 << " " << y << " " << z << " " << color << endl;
+    mapDataFile << x2 << " " << y << " " << z << " " << color << endl;
+    mapDataFile << endl;
+  }
+
+  mapDataFile.close();
 }
 
 void Lab::ComparedGridMap::startTrajectoryPlotting() {
@@ -445,9 +538,9 @@ void Lab::ComparedCircleMap::processAudio(float *inputBuffer, unsigned long numF
 
 void Lab::ComparedCircleMap::writePlotFilesContent() {
   float angle = circleMap->getAngle();
-  plotFile << "set arrow 1 from 0,0,0 to " <<
+  scriptFile << "set arrow 1 from 0,0,0 to " <<
     cos(angle) << "," << sin(angle) << ",0 linewidth 2" << endl;
-  plotFile << "splot '" << dataFilename << "' with lines title ''" << endl;
+  scriptFile << "splot '" << activationPatternDataFilename << "' with lines title ''" << endl;
 
   const SOM::ActivationPattern *activationPattern = circleMap->getActivationPattern();
   CircleTopology::Node node;
@@ -457,9 +550,9 @@ void Lab::ComparedCircleMap::writePlotFilesContent() {
     int n = i % topology->getNumNodes();
     node = topology->getNode(n);
     z = 1 - (*activationPattern)[n];
-    dataFile <<   cos(node.angle) << " " <<   sin(node.angle) << " " << z << endl;
-    dataFile << r*cos(node.angle) << " " << r*sin(node.angle) << " " << z << endl;
-    dataFile << endl;
+    activationPatternDataFile <<   cos(node.angle) << " " <<   sin(node.angle) << " " << z << endl;
+    activationPatternDataFile << r*cos(node.angle) << " " << r*sin(node.angle) << " " << z << endl;
+    activationPatternDataFile << endl;
   }
 }
 
@@ -473,25 +566,25 @@ void Lab::ComparedCircleMap::display() {
 Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *comparedMap) {
   map = comparedMap->getGridMap();
   int index = comparedMap->getIndex();
-  ostringstream dataFilenameSS, plotFilenameSS;
+  ostringstream dataFilenameSS, scriptFilenameSS;
   dataFilenameSS << "tplot" << index << ".dat";
-  plotFilenameSS << "tplot" << index << ".plot";
+  scriptFilenameSS << "tplot" << index << ".plot";
   dataFilename = dataFilenameSS.str();
-  plotFilename = plotFilenameSS.str();
+  scriptFilename = scriptFilenameSS.str();
   dataFile.open(dataFilename.c_str());
-  plotFile.open(plotFilename.c_str());
+  scriptFile.open(scriptFilename.c_str());
 }
 
 Lab::TrajectoryPlotter::~TrajectoryPlotter() {
   writePlotFilesContent();
   dataFile.close();
-  plotFile.close();
+  scriptFile.close();
 }
 
 void Lab::TrajectoryPlotter::writePlotFilesContent() {
-  plotFile << "set palette rgbformulae -2,3,3" << endl;
-  plotFile << "unset colorbox" << endl;
-  plotFile << "splot '" << dataFilename << "' with lines lc palette z title ''" << endl;
+  scriptFile << "set palette rgbformulae -2,3,3" << endl;
+  scriptFile << "unset colorbox" << endl;
+  scriptFile << "splot '" << dataFilename << "' with lines lc palette z title ''" << endl;
 
   const static float z = 0;
   float color;

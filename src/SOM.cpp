@@ -65,6 +65,10 @@ void SOM::setLearningParameter(float x) {
   learningParameter = x;
 }
 
+const float* SOM::getModel(uint id) const {
+  return models[id]->getValues();
+}
+
 SOM::uint SOM::getWinner(const Sample &input) const {
   float diff;
   float closest = 0;

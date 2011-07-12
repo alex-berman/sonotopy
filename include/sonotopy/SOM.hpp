@@ -35,6 +35,7 @@ public:
   void setNeighbourhoodParameter(float); // 0-1
   void setLearningParameter(float); // 0-1
   void train(const Sample &input);
+  const float* getModel(uint id) const;
   uint getWinner(const Sample &input) const;
   uint getLastWinner() const;
   void getOutput(const Sample &input, Output &output) const;
@@ -64,6 +65,7 @@ protected:
     void set(const Sample &);
     void setRandomValues(float min, float max);
     void updateNeighbourList();
+    const float* getValues() { return values; }
   private:
     const SOM *parent;
     uint id;

@@ -65,10 +65,11 @@ private:
     Lab *parent;
     Frame *frame;
     ErrorGraph *errorGraph;
-    std::string dataFilename;
-    std::string plotFilename;
-    std::ofstream dataFile;
-    std::ofstream plotFile;
+    std::string plotFilenamePrefix;
+    std::string activationPatternDataFilename;
+    std::ofstream activationPatternDataFile;
+    std::string scriptFilename;
+    std::ofstream scriptFile;
   };
 
   class TrajectoryPlotter;
@@ -85,9 +86,15 @@ private:
     void stopTrajectoryPlotting();
     void plotTrajectory();
   private:
+    void writeActivationPatternData();
+    void writeMapData();
+    void writeScriptFile();
+    void generateMapDataFile(int gridX, int gridY);
+    std::string getMapDataFilename(int gridX, int gridY);
     GridMapParameters parameters;
     GridMap *gridMap;
     TrajectoryPlotter *trajectoryPlotter;
+    int spectrumResolution;
   };
 
   class ComparedCircleMap : public ComparedMap {
@@ -111,9 +118,9 @@ private:
   private:
     GridMap *map;
     std::string dataFilename;
-    std::string plotFilename;
+    std::string scriptFilename;
     std::ofstream dataFile;
-    std::ofstream plotFile;
+    std::ofstream scriptFile;
     typedef struct {
       float x;
       float y;

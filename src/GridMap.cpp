@@ -34,6 +34,11 @@ float GridMap::getActivation(unsigned int x, unsigned int y) {
   return (*currentActivationPattern)[nodeId];
 }
 
+const float* GridMap::getModel(unsigned int x, unsigned int y) const {
+  unsigned int nodeId = ((RectGridTopology*) topology)->gridCoordinatesToId(x, y);
+  return som->getModel(nodeId);
+}
+
 void GridMap::getCursor(float &x, float &y) {
   static float gridX, gridY;
   moveTopologyCursorTowardsWinner();

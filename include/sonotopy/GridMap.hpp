@@ -19,6 +19,7 @@
 #include "SpectrumMap.hpp"
 #include "AudioParameters.hpp"
 #include "GridMapParameters.hpp"
+#include "SOM.hpp"
 
 namespace sonotopy {
 
@@ -27,6 +28,7 @@ class GridMap : public SpectrumMap
 public:
   GridMap(const AudioParameters &, const GridMapParameters &);
   float getActivation(unsigned int x, unsigned int y);
+  const float* getModel(unsigned int x, unsigned int y) const;
   void getCursor(float &x, float &y);
   const GridMapParameters getParameters() const;
 
