@@ -419,7 +419,6 @@ void Lab::ComparedGridMap::writeScriptFile() {
 
   scriptFile << "set border 0" << endl
 	     << "unset xtics; unset ytics; unset ztics" << endl
-	     << "set pm3d" << endl
 	     << "unset colorbox" << endl;
 
   scriptFile << "splot [" << rangeX1 << ":" << rangeX2 << "] "
@@ -428,7 +427,7 @@ void Lab::ComparedGridMap::writeScriptFile() {
     for(int x = 0; x < parameters.gridWidth; x++) {
       if(y != 0 || x != 0)
 	scriptFile << ", \\" << endl;
-      scriptFile << "  '" << getMapDataFilename(x, y) << "' with lines lw 0 title ''";
+      scriptFile << "  '" << getMapDataFilename(x, y) << "' with pm3d title ''";
     }
   }
   scriptFile << endl;
