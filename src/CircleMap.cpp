@@ -17,6 +17,7 @@
 #include "CircleTopology.hpp"
 
 using namespace sonotopy;
+using namespace std;
 
 CircleMap::CircleMap(const AudioParameters &_audioParameters,
 		     const CircleMapParameters &_circleMapParameters)
@@ -29,4 +30,9 @@ CircleMap::CircleMap(const AudioParameters &_audioParameters,
 float CircleMap::getAngle() {
   moveTopologyCursorTowardsWinner();
   return ((CircleTopology*)topology)->getCursorAngle();
+}
+
+void CircleMap::write(ofstream &f) const {
+  f << topology->getNumNodes() << endl;
+  som->writeModelData(f);
 }

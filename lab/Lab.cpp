@@ -379,14 +379,8 @@ void Lab::ComparedMap::generatePlotFile() {
   mapDataFilename = mapDataFilenameSS.str();
   mapDataFile.open(mapDataFilename.c_str());
 
-  ostringstream scriptFilenameSS;
-  scriptFilenameSS << plotFilenamePrefix << ".plot";
-  scriptFilename = scriptFilenameSS.str();
-  scriptFile.open(scriptFilename.c_str());
-
   writePlotFilesContent();
 
-  scriptFile.close();
   activationPatternDataFile.close();
   mapDataFile.close();
 }
@@ -458,23 +452,9 @@ void Lab::ComparedCircleMap::processAudio(float *inputBuffer, unsigned long numF
 }
 
 void Lab::ComparedCircleMap::writePlotFilesContent() {
-  float angle = circleMap->getAngle();
-  scriptFile << "set arrow 1 from 0,0,0 to " <<
-    cos(angle) << "," << sin(angle) << ",0 linewidth 2" << endl;
-  scriptFile << "splot '" << activationPatternDataFilename << "' with lines title ''" << endl;
-
-  const SOM::ActivationPattern *activationPattern = circleMap->getActivationPattern();
-  CircleTopology::Node node;
-  float z;
-  const static float r = 0.7;
-  for(unsigned int i = 0; i <= topology->getNumNodes(); i++) {
-    int n = i % topology->getNumNodes();
-    node = topology->getNode(n);
-    z = 1 - (*activationPattern)[n];
-    activationPatternDataFile <<   cos(node.angle) << " " <<   sin(node.angle) << " " << z << endl;
-    activationPatternDataFile << r*cos(node.angle) << " " << r*sin(node.angle) << " " << z << endl;
-    activationPatternDataFile << endl;
-  }
+  activationPatternDataFile << circleMap->getAngle() << endl;
+  circleMap->writeActivationPattern(activationPatternDataFile);
+  circleMap->write(mapDataFile);
 }
 
 void Lab::ComparedCircleMap::display() {

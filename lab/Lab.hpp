@@ -70,8 +70,6 @@ private:
     std::ofstream activationPatternDataFile;
     std::string mapDataFilename;
     std::ofstream mapDataFile;
-    std::string scriptFilename;
-    std::ofstream scriptFile;
   };
 
   class TrajectoryPlotter;
