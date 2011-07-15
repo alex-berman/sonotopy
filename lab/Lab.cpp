@@ -365,14 +365,22 @@ Lab::ComparedMap::ComparedMap(Lab *_parent, int _index) {
 }
 
 void Lab::ComparedMap::generatePlotFile() {
-  ostringstream activationPatternDataFilenameSS, scriptFilenameSS;
   ostringstream plotFilenamePrefixSS;
   plotFilenamePrefixSS << "plots/plot" << index << "_" << parent->plotFileCount;
   plotFilenamePrefix = plotFilenamePrefixSS.str();
+
+  ostringstream activationPatternDataFilenameSS;
   activationPatternDataFilenameSS << plotFilenamePrefix << "_ap.dat";
-  scriptFilenameSS << plotFilenamePrefix << ".plot";
   activationPatternDataFilename = activationPatternDataFilenameSS.str();
   activationPatternDataFile.open(activationPatternDataFilename.c_str());
+
+  ostringstream mapDataFilenameSS;
+  mapDataFilenameSS << plotFilenamePrefix << "_map.dat";
+  mapDataFilename = mapDataFilenameSS.str();
+  mapDataFile.open(mapDataFilename.c_str());
+
+  ostringstream scriptFilenameSS;
+  scriptFilenameSS << plotFilenamePrefix << ".plot";
   scriptFilename = scriptFilenameSS.str();
   scriptFile.open(scriptFilename.c_str());
 
@@ -380,6 +388,7 @@ void Lab::ComparedMap::generatePlotFile() {
 
   scriptFile.close();
   activationPatternDataFile.close();
+  mapDataFile.close();
 }
 
 
@@ -404,99 +413,8 @@ void Lab::ComparedGridMap::processAudio(float *inputBuffer, unsigned long numFra
 }
 
 void Lab::ComparedGridMap::writePlotFilesContent() {
-  writeActivationPatternData();
-  writeMapData();
-  writeScriptFile();
-}
-
-void Lab::ComparedGridMap::writeScriptFile() {
-  float rangeX1 = -0.5;
-  float rangeX2 = parameters.gridWidth - 0.5;
-  float rangeY1 = -0.5;
-  float rangeY2 = parameters.gridHeight - 0.5;
-
-  scriptFile << "set multiplot" << endl;
-
-  scriptFile << "set border 0" << endl
-	     << "unset xtics; unset ytics; unset ztics" << endl
-	     << "unset colorbox" << endl;
-
-  scriptFile << "splot [" << rangeX1 << ":" << rangeX2 << "] "
-	     << "[" << rangeY1 << ":" << rangeY2 << "] [0:1] \\" << endl;
-  for(int y = 0; y < parameters.gridHeight; y++) {
-    for(int x = 0; x < parameters.gridWidth; x++) {
-      if(y != 0 || x != 0)
-	scriptFile << ", \\" << endl;
-      scriptFile << "  '" << getMapDataFilename(x, y) << "' with pm3d title ''";
-    }
-  }
-  scriptFile << endl;
-
-  scriptFile << "set border 0" << endl
-	     << "unset xtics; unset ytics; unset ztics" << endl
-	     << "unset pm3d" << endl;
-  scriptFile << "splot [" << rangeX1 << ":" << rangeX2 << "] "
-	     << "[" << rangeY1 << ":" << rangeY2 << "] [0:1] \\" << endl
-	     << "  '" << activationPatternDataFilename << "'"
-	     << " with lines lc rgb 'black' title ''" << endl;
-
-  scriptFile << "unset multiplot" << endl;
-}
-
-void Lab::ComparedGridMap::writeActivationPatternData() {
-  const SOM::ActivationPattern *activationPattern = gridMap->getActivationPattern();
-  SOM::ActivationPattern::const_iterator activationPatternIterator =
-    activationPattern->begin();
-  float v;
-  for(int y = 0; y < parameters.gridHeight; y++) {
-    for(int x = 0; x < parameters.gridWidth; x++) {
-      v = *activationPatternIterator++;
-      activationPatternDataFile << x << " " << y << " " << v << endl;
-    }
-    activationPatternDataFile << endl;
-  }
-}
-
-void Lab::ComparedGridMap::writeMapData() {
-  for(int y = 0; y < parameters.gridHeight; y++) {
-    for(int x = 0; x < parameters.gridWidth; x++) {
-      generateMapDataFile(x, y);
-    }
-  }
-}
-
-string Lab::ComparedGridMap::getMapDataFilename(int gridX, int gridY) {
-  ostringstream mapDataFilenameSS;
-  std::string mapDataFilename;
-  mapDataFilenameSS << plotFilenamePrefix << "_map"
-		    << gridX << "_" << gridY << ".dat";
-  return mapDataFilenameSS.str();
-}
-
-void Lab::ComparedGridMap::generateMapDataFile(int gridX, int gridY) {
-  bool applyLog = (gridMap->getSpectrumAnalyzer()->getPowerScale() == SpectrumAnalyzer::Amplitude);
-  string mapDataFilename = getMapDataFilename(gridX, gridY);
-  std::ofstream mapDataFile(mapDataFilename.c_str());
-
-  const float *spectrum = gridMap->getModel(gridX, gridY);
-  const static float z = 0;
-  const static float margin = 0.1;
-  float x1 = -0.5 + gridX + margin;
-  float x2 = -0.5 + gridX + 1 - margin;
-  float y1 = -0.5 + gridY + margin;
-  float y2 = -0.5 + gridY + 1 - margin;
-  float color, y;
-  for(int i = 0; i < spectrumResolution; i++) {
-    color = spectrum[i];
-    if(applyLog)
-      color = log(color) + 1;
-    y = y1 + (y2 - y1) * (float) i / (spectrumResolution-1);
-    mapDataFile << x1 << " " << y << " " << z << " " << color << endl;
-    mapDataFile << x2 << " " << y << " " << z << " " << color << endl;
-    mapDataFile << endl;
-  }
-
-  mapDataFile.close();
+  gridMap->writeActivationPattern(activationPatternDataFile);
+  gridMap->write(mapDataFile);
 }
 
 void Lab::ComparedGridMap::startTrajectoryPlotting() {

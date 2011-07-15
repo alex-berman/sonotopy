@@ -68,6 +68,8 @@ private:
     std::string plotFilenamePrefix;
     std::string activationPatternDataFilename;
     std::ofstream activationPatternDataFile;
+    std::string mapDataFilename;
+    std::ofstream mapDataFile;
     std::string scriptFilename;
     std::ofstream scriptFile;
   };
@@ -86,11 +88,6 @@ private:
     void stopTrajectoryPlotting();
     void plotTrajectory();
   private:
-    void writeActivationPatternData();
-    void writeMapData();
-    void writeScriptFile();
-    void generateMapDataFile(int gridX, int gridY);
-    std::string getMapDataFilename(int gridX, int gridY);
     GridMapParameters parameters;
     GridMap *gridMap;
     TrajectoryPlotter *trajectoryPlotter;

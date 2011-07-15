@@ -24,6 +24,7 @@
 #include "SOM.hpp"
 #include "Smoother.hpp"
 #include <vector>
+#include <fstream>
 
 namespace sonotopy {
 
@@ -47,6 +48,8 @@ public:
   float getNeighbourhoodParameter() const;
   SpectrumMapParameters getSpectrumMapParameters() const;
   void resetAdaptation();
+  virtual void write(std::ofstream &f) const {}
+  void writeActivationPattern(std::ofstream &f);
 
 protected:
   void createSpectrumAnalyzer();

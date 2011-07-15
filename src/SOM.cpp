@@ -173,6 +173,35 @@ void SOM::updateNeighbourLists() {
     (*i)->updateNeighbourList();
 }
 
+SOM::ActivationPattern *SOM::createActivationPattern() const {
+  vector<float> *pattern = new vector<float>();
+  for(unsigned int i = 0; i < numModels; i++)
+    pattern->push_back(0);
+  return pattern;
+}
+
+void SOM::getActivationPattern(ActivationPattern *activationPattern) const {
+  float range = outputMax - outputMin;
+  if(range > 0) {
+    ActivationPattern::iterator activationPatternNode = activationPattern->begin();
+    for(Output::const_iterator lastOutputNode = lastOutput.begin();
+	lastOutputNode != lastOutput.end(); lastOutputNode++) {
+      *activationPatternNode = 1.0f - (*lastOutputNode - outputMin) / range;
+      activationPatternNode++;
+    }
+  }
+  else {
+    fill(activationPattern->begin(), activationPattern->end(), 0);
+  }
+}
+
+void SOM::writeModelData(ofstream &f) const {
+  f << inputSize << endl;
+  for(vector<Model*>::const_iterator i = models.begin(); i != models.end(); ++i)
+    (*i)->writeData(f);
+}
+
+
 SOM::Model::Model(const SOM *_parent, uint _id) {
   id = _id;
   parent = _parent;
@@ -244,24 +273,8 @@ void SOM::Model::updateNeighbourList() {
   }
 }
 
-SOM::ActivationPattern *SOM::createActivationPattern() const {
-  vector<float> *pattern = new vector<float>();
-  for(unsigned int i = 0; i < numModels; i++)
-    pattern->push_back(0);
-  return pattern;
-}
-
-void SOM::getActivationPattern(ActivationPattern *activationPattern) const {
-  float range = outputMax - outputMin;
-  if(range > 0) {
-    ActivationPattern::iterator activationPatternNode = activationPattern->begin();
-    for(Output::const_iterator lastOutputNode = lastOutput.begin();
-	lastOutputNode != lastOutput.end(); lastOutputNode++) {
-      *activationPatternNode = 1.0f - (*lastOutputNode - outputMin) / range;
-      activationPatternNode++;
-    }
-  }
-  else {
-    fill(activationPattern->begin(), activationPattern->end(), 0);
-  }
+void SOM::Model::writeData(ofstream &f) const {
+  float *valuePtr = values;
+  for(uint k = 0; k < inputSize; k++)
+    f << *valuePtr++ << endl;
 }

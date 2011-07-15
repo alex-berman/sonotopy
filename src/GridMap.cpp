@@ -17,6 +17,7 @@
 #include "RectGridTopology.hpp"
 
 using namespace sonotopy;
+using namespace std;
 
 GridMap::GridMap(const AudioParameters &_audioParameters,
 		 const GridMapParameters &_gridMapParameters)
@@ -49,4 +50,10 @@ void GridMap::getCursor(float &x, float &y) {
 
 const GridMapParameters GridMap::getParameters() const {
   return gridMapParameters;
+}
+
+void GridMap::write(ofstream &f) const {
+  f << gridMapParameters.gridWidth << endl;
+  f << gridMapParameters.gridHeight << endl;
+  som->writeModelData(f);
 }

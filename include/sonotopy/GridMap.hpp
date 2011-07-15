@@ -20,6 +20,7 @@
 #include "AudioParameters.hpp"
 #include "GridMapParameters.hpp"
 #include "SOM.hpp"
+#include <fstream>
 
 namespace sonotopy {
 
@@ -31,6 +32,7 @@ public:
   const float* getModel(unsigned int x, unsigned int y) const;
   void getCursor(float &x, float &y);
   const GridMapParameters getParameters() const;
+  void write(std::ofstream &f) const;
 
 private:
   GridMapParameters gridMapParameters;
