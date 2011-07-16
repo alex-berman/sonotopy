@@ -13,27 +13,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+G_MODELS = 'models'
+G_ACTIVATION_PATTERN = 'ap'
+G_TRAJECTORY = 'traj'
+
 import sys
 import argparse
 import math
 
 parser = argparse.ArgumentParser()
 parser.add_argument('map')
+parser.add_argument('-g', dest='graph', required=True,
+                    choices=[G_MODELS,
+                             G_ACTIVATION_PATTERN,
+                             G_TRAJECTORY],
+                    help='Graph type')
 parser.add_argument('-ap', dest='activationPatternFilename', default=None,
                     help='Activation pattern data file to plot')
-parser.add_argument('-models', dest='plotModels', action='store_true',
-                    help='Plot models (map contents)')
 parser.add_argument('-traj', dest='trajectoryFilename', default=None,
                     help='Trajectory file to plot')
 parser.add_argument('--models_apply_log', dest='applyLog', action='store_true', default=True,
                     help='Apply log function to model values')
 args = parser.parse_args()
 mapFilename = args.map
-
-if not (args.activationPatternFilename or
-        args.plotModels or
-        args.trajectoryFilename):
-    raise Exception("nothing to plot")
 
 mapFile = open(mapFilename, 'r')
 gridWidth = int(mapFile.readline().rstrip("\r\n"))
@@ -65,7 +67,7 @@ def writeModelPlotData(mapFile, gridX, gridY, plotDataFilename):
             print >>f, "%f %f %f %f" % (x2, y, z, color)
             print >>f
 
-if args.activationPatternFilename:
+if args.graph == G_ACTIVATION_PATTERN:
     dataFile = open(args.activationPatternFilename, 'r')
     plotDataFilename = args.activationPatternFilename.replace("_ap.dat", "_ap_plot.dat")
     plotDataFile = open(plotDataFilename, 'w')
@@ -86,7 +88,7 @@ if args.activationPatternFilename:
     print >>out, "splot [%f:%f] [%f:%f] [0:1] '%s' with lines lc rgb 'black' title ''" % (
         rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename)
 
-elif args.trajectoryFilename:
+elif args.graph == G_TRAJECTORY:
     dataFile = open(args.trajectoryFilename, 'r')
     plotDataFilename = args.trajectoryFilename.replace("_traj.dat", "_traj_plot.dat")
     plotDataFile = open(plotDataFilename, 'w')
@@ -107,7 +109,7 @@ elif args.trajectoryFilename:
     print >>out, "unset colorbox"
     print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc palette z title ''" % plotDataFilename
 
-elif args.plotModels:
+elif args.graph == G_MODELS:
     plots = []
     for y in range(0, gridHeight):
         for x in range(0, gridWidth):

@@ -55,7 +55,7 @@ private:
     virtual void display() {}
     virtual void processAudio(float *buffer, unsigned long numFrames) {}
     Frame *getFrame() { return frame; }
-    void generatePlotFile();
+    virtual void generatePlotFiles();
     virtual void writePlotFilesContent() {}
     virtual void startTrajectoryPlotting() {}
     virtual void stopTrajectoryPlotting() {}
@@ -76,11 +76,13 @@ private:
 
   class ComparedGridMap : public ComparedMap {
   public:
+    friend class TrajectoryPlotter;
     ComparedGridMap(Lab *, int index, GridMapParameters &);
     GridMap *getGridMap() { return gridMap; }
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
+    void generatePlotFiles();
     void writePlotFilesContent();
     void startTrajectoryPlotting();
     void stopTrajectoryPlotting();
@@ -98,6 +100,7 @@ private:
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
+    void generatePlotFiles();
     void writePlotFilesContent();
   private:
     CircleMapParameters parameters;
@@ -111,6 +114,7 @@ private:
     ~TrajectoryPlotter();
     void addDatum();
   private:
+    ComparedGridMap *comparedMap;
     GridMap *map;
     std::string dataFilename;
     std::ofstream dataFile;

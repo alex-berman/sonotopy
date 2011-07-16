@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <string>
 #include <math.h>
+#include <iostream>
 
 using namespace std;
 
@@ -260,7 +261,7 @@ void Lab::glKeyboard(unsigned char key, int x, int y) {
 void Lab::generatePlotFiles() {
   pthread_mutex_lock(&mutex);
   for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
-    (*i)->generatePlotFile();
+    (*i)->generatePlotFiles();
   pthread_mutex_unlock(&mutex);
   plotFileCount++;
 }
@@ -364,7 +365,7 @@ Lab::ComparedMap::ComparedMap(Lab *_parent, int _index) {
   parent = _parent;
 }
 
-void Lab::ComparedMap::generatePlotFile() {
+void Lab::ComparedMap::generatePlotFiles() {
   ostringstream plotFilenamePrefixSS;
   plotFilenamePrefixSS << "plots/plot" << index << "_" << parent->plotFileCount;
   plotFilenamePrefix = plotFilenamePrefixSS.str();
@@ -406,14 +407,30 @@ void Lab::ComparedGridMap::processAudio(float *inputBuffer, unsigned long numFra
   }
 }
 
+void Lab::ComparedGridMap::generatePlotFiles() {
+  ComparedMap::generatePlotFiles();
+
+  cout << "PLOT MODELS:" << endl;
+  cout << "python lab/plot_grid_map.py " << mapDataFilename
+       << " -g models | gnuplot -p" << endl;
+  cout << endl;
+
+  cout << "PLOT ACTIVATION PATTERN:" << endl;
+  cout << "python lab/plot_grid_map.py " << mapDataFilename
+       << " -g ap -ap " << activationPatternDataFilename << " | gnuplot -p" << endl;
+  cout << endl;
+}
+
 void Lab::ComparedGridMap::writePlotFilesContent() {
   gridMap->writeActivationPattern(activationPatternDataFile);
   gridMap->write(mapDataFile);
 }
 
 void Lab::ComparedGridMap::startTrajectoryPlotting() {
+  generatePlotFiles();
   trajectoryPlotter = new TrajectoryPlotter(this, parent);
   parent->plotFileCount++;
+  cout << "PRESS t TO FINISH PLOTTING TRAJECTORY" << endl;
 }
 
 void Lab::ComparedGridMap::stopTrajectoryPlotting() {
@@ -452,6 +469,15 @@ void Lab::ComparedCircleMap::processAudio(float *inputBuffer, unsigned long numF
   }
 }
 
+void Lab::ComparedCircleMap::generatePlotFiles() {
+  ComparedMap::generatePlotFiles();
+
+  cout << "PLOT ACTIVATION PATTERN:" << endl;
+  cout << "python lab/plot_circle_map.py " << mapDataFilename
+       << " -ap " << activationPatternDataFilename << " | gnuplot -p" << endl;
+  cout << endl;
+}
+
 void Lab::ComparedCircleMap::writePlotFilesContent() {
   activationPatternDataFile << circleMap->getAngle() << endl;
   circleMap->writeActivationPattern(activationPatternDataFile);
@@ -465,7 +491,8 @@ void Lab::ComparedCircleMap::display() {
 }
 
 
-Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *comparedMap, Lab *lab) {
+Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *_comparedMap, Lab *lab) {
+  comparedMap = _comparedMap;
   map = comparedMap->getGridMap();
   int index = comparedMap->getIndex();
   ostringstream dataFilenameSS;
@@ -477,6 +504,11 @@ Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *comparedMap, Lab *lab
 Lab::TrajectoryPlotter::~TrajectoryPlotter() {
   writePlotFilesContent();
   dataFile.close();
+
+  cout << "PLOT TRAJECTORY:" << endl;
+  cout << "python lab/plot_grid_map.py " << comparedMap->mapDataFilename
+       << " -g traj -traj " << dataFilename << " | gnuplot -p" << endl;
+  cout << endl;
 }
 
 void Lab::TrajectoryPlotter::writePlotFilesContent() {
