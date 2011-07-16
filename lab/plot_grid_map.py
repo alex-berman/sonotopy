@@ -23,7 +23,7 @@ import math
 
 parser = argparse.ArgumentParser()
 parser.add_argument('map')
-parser.add_argument('-g', dest='graph', required=True,
+parser.add_argument('-g', dest='graphs', required=True, action='append',
                     choices=[G_MODELS,
                              G_ACTIVATION_PATTERN,
                              G_TRAJECTORY],
@@ -49,6 +49,9 @@ rangeX2 = -0.5 + gridWidth
 rangeY1 = -0.5
 rangeY2 = -0.5 + gridHeight
 
+if len(args.graphs) > 1:
+    print >>out, "set multiplot"
+
 def writeModelPlotData(mapFile, gridX, gridY, plotDataFilename):
     z = 0
     margin = 0.1
@@ -67,7 +70,7 @@ def writeModelPlotData(mapFile, gridX, gridY, plotDataFilename):
             print >>f, "%f %f %f %f" % (x2, y, z, color)
             print >>f
 
-if args.graph == G_ACTIVATION_PATTERN:
+if G_ACTIVATION_PATTERN in args.graphs:
     dataFile = open(args.activationPatternFilename, 'r')
     plotDataFilename = args.activationPatternFilename.replace("_ap.dat", "_ap_plot.dat")
     plotDataFile = open(plotDataFilename, 'w')
@@ -88,7 +91,7 @@ if args.graph == G_ACTIVATION_PATTERN:
     print >>out, "splot [%f:%f] [%f:%f] [0:1] '%s' with lines lc rgb 'black' title ''" % (
         rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename)
 
-elif args.graph == G_TRAJECTORY:
+if G_TRAJECTORY in args.graphs:
     dataFile = open(args.trajectoryFilename, 'r')
     plotDataFilename = args.trajectoryFilename.replace("_traj.dat", "_traj_plot.dat")
     plotDataFile = open(plotDataFilename, 'w')
@@ -109,7 +112,7 @@ elif args.graph == G_TRAJECTORY:
     print >>out, "unset colorbox"
     print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc palette z title ''" % plotDataFilename
 
-elif args.graph == G_MODELS:
+if G_MODELS in args.graphs:
     plots = []
     for y in range(0, gridHeight):
         for x in range(0, gridWidth):
@@ -124,5 +127,8 @@ elif args.graph == G_MODELS:
     print >>out, "splot [%f:%f] [%f:%f] [0:1] \\" % (
         rangeX1, rangeX2, rangeY1, rangeY2)
     print >>out, "\\\n  , ".join(plots)
+
+if len(args.graphs) > 1:
+    print >>out, "unset multiplot"
 
 out.close()
