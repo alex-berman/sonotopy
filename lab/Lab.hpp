@@ -107,15 +107,13 @@ private:
 
   class TrajectoryPlotter {
   public:
-    TrajectoryPlotter(ComparedGridMap *);
+    TrajectoryPlotter(ComparedGridMap *, Lab *);
     ~TrajectoryPlotter();
     void addDatum();
   private:
     GridMap *map;
     std::string dataFilename;
-    std::string scriptFilename;
     std::ofstream dataFile;
-    std::ofstream scriptFile;
     typedef struct {
       float x;
       float y;

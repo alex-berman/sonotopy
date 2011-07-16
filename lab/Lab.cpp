@@ -412,7 +412,8 @@ void Lab::ComparedGridMap::writePlotFilesContent() {
 }
 
 void Lab::ComparedGridMap::startTrajectoryPlotting() {
-  trajectoryPlotter = new TrajectoryPlotter(this);
+  trajectoryPlotter = new TrajectoryPlotter(this, parent);
+  parent->plotFileCount++;
 }
 
 void Lab::ComparedGridMap::stopTrajectoryPlotting() {
@@ -464,37 +465,26 @@ void Lab::ComparedCircleMap::display() {
 }
 
 
-Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *comparedMap) {
+Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *comparedMap, Lab *lab) {
   map = comparedMap->getGridMap();
   int index = comparedMap->getIndex();
-  ostringstream dataFilenameSS, scriptFilenameSS;
-  dataFilenameSS << "tplot" << index << ".dat";
-  scriptFilenameSS << "tplot" << index << ".plot";
+  ostringstream dataFilenameSS;
+  dataFilenameSS << "plots/plot" << index << "_" << lab->plotFileCount << "_traj.dat";
   dataFilename = dataFilenameSS.str();
-  scriptFilename = scriptFilenameSS.str();
   dataFile.open(dataFilename.c_str());
-  scriptFile.open(scriptFilename.c_str());
 }
 
 Lab::TrajectoryPlotter::~TrajectoryPlotter() {
   writePlotFilesContent();
   dataFile.close();
-  scriptFile.close();
 }
 
 void Lab::TrajectoryPlotter::writePlotFilesContent() {
-  scriptFile << "set palette rgbformulae -2,3,3" << endl;
-  scriptFile << "unset colorbox" << endl;
-  scriptFile << "splot '" << dataFilename << "' with lines lc palette z title ''" << endl;
-
-  const static float z = 0;
-  float color;
   int numPoints = points.size();
-  int i = 0;
+  dataFile << numPoints << endl;
   for(vector<Point>::iterator p = points.begin(); p != points.end(); p++) {
-    color = (float) (i + 1) / numPoints;
-    dataFile << p->x << " " << p->y << " " << z << " " << color << endl;
-    i++;
+    dataFile << p->x << endl;
+    dataFile << p->y << endl;
   }
 }
 
