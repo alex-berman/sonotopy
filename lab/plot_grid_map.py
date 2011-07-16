@@ -49,7 +49,9 @@ rangeX2 = -0.5 + gridWidth
 rangeY1 = -0.5
 rangeY2 = -0.5 + gridHeight
 
-if len(args.graphs) > 1:
+multiplot = (len(args.graphs) > 1)
+
+if multiplot:
     print >>out, "set multiplot"
 
 def writeModelPlotData(mapFile, gridX, gridY, plotDataFilename):
@@ -69,6 +71,22 @@ def writeModelPlotData(mapFile, gridX, gridY, plotDataFilename):
             print >>f, "%f %f %f %f" % (x1, y, z, color)
             print >>f, "%f %f %f %f" % (x2, y, z, color)
             print >>f
+
+if G_MODELS in args.graphs:
+    plots = []
+    for y in range(0, gridHeight):
+        for x in range(0, gridWidth):
+            plotDataFilename = mapFilename.replace("_map.dat",
+                                                   "_map%d_%d_plot.dat" % (x, y))
+            writeModelPlotData(mapFile, x, y, plotDataFilename)
+            plots.append("'%s' with pm3d title ''" % plotDataFilename)
+    
+    print >>out, "set border 0"
+    print >>out, "unset xtics; unset ytics; unset ztics"
+    print >>out, "unset colorbox"
+    print >>out, "splot [%f:%f] [%f:%f] [0:1] \\" % (
+        rangeX1, rangeX2, rangeY1, rangeY2)
+    print >>out, "\\\n  , ".join(plots)
 
 if G_ACTIVATION_PATTERN in args.graphs:
     dataFile = open(args.activationPatternFilename, 'r')
@@ -101,34 +119,23 @@ if G_TRAJECTORY in args.graphs:
     for i in range(0, numPoints):
         x = float(dataFile.readline().rstrip("\r\n"))
         y = float(dataFile.readline().rstrip("\r\n"))
-        color = float(i + 1) / numPoints
+        color = 1 - float(i + 1) / numPoints
         print >>plotDataFile, "%f %f %f %f" % (
             x, y, z, color)
 
     plotDataFile.close()
     dataFile.close()
 
-    print >>out, "set palette rgbformulae -2,3,3"
     print >>out, "unset colorbox"
-    print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc palette z title ''" % plotDataFilename
+    if multiplot:
+        print >>out, "set border 0"
+        print >>out, "unset xtics; unset ytics; unset ztics"
+        print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines linewidth 3 title ''" % plotDataFilename
+    else:
+        print >>out, "set palette rgbformulae -2,3,3"
+        print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc palette z title ''" % plotDataFilename
 
-if G_MODELS in args.graphs:
-    plots = []
-    for y in range(0, gridHeight):
-        for x in range(0, gridWidth):
-            plotDataFilename = mapFilename.replace("_map.dat",
-                                                   "_map%d_%d_plot.dat" % (x, y))
-            writeModelPlotData(mapFile, x, y, plotDataFilename)
-            plots.append("'%s' with pm3d title ''" % plotDataFilename)
-    
-    print >>out, "set border 0"
-    print >>out, "unset xtics; unset ytics; unset ztics"
-    print >>out, "unset colorbox"
-    print >>out, "splot [%f:%f] [%f:%f] [0:1] \\" % (
-        rangeX1, rangeX2, rangeY1, rangeY2)
-    print >>out, "\\\n  , ".join(plots)
-
-if len(args.graphs) > 1:
+if multiplot:
     print >>out, "unset multiplot"
 
 out.close()
