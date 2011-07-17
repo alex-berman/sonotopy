@@ -130,7 +130,7 @@ if G_TRAJECTORY in args.graphs:
     if multiplot:
         print >>out, "set border 0"
         print >>out, "unset xtics; unset ytics; unset ztics"
-        print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines linewidth 3 title ''" % plotDataFilename
+        print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc rgb 'black' linewidth 2 title ''" % plotDataFilename
     else:
         print >>out, "set palette rgbformulae -2,3,3"
         print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc palette z title ''" % plotDataFilename

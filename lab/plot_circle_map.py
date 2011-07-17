@@ -47,9 +47,11 @@ if args.activationPatternFilename:
         value = float(line.rstrip("\r\n"))
         data.append(value)
 
-    print >>out, "set arrow from 0,0,0 to %f,%f,0 linewidth 2" % (
+    print >>out, "set border 0"
+    print >>out, "unset xtics; unset ytics; unset ztics"
+    print >>out, "set arrow from 0,0,0 to %f,%f,0 linewidth 2 lc rgb 'red'" % (
         math.cos(angle), math.sin(angle))
-    print >>out, "splot '%s' with lines title ''" % plotDataFilename
+    print >>out, "splot '%s' with lines lc rgb 'black' title ''" % plotDataFilename
 
     r = 0.7
 
