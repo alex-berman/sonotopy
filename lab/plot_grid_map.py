@@ -26,6 +26,7 @@
 
 G_MODELS = 'models'
 G_ACTIVATION_PATTERN = 'ap'
+G_GRID = 'grid'
 G_TRAJECTORY = 'traj'
 
 import sys
@@ -37,6 +38,7 @@ parser.add_argument('map')
 parser.add_argument('-g', dest='graphs', required=True, action='append',
                     choices=[G_MODELS,
                              G_ACTIVATION_PATTERN,
+                             G_GRID,
                              G_TRAJECTORY],
                     help='Graph type')
 parser.add_argument('-ap', dest='activationPatternFilename', default=None,
@@ -120,6 +122,24 @@ if G_ACTIVATION_PATTERN in args.graphs:
     print >>out, "splot [%f:%f] [%f:%f] [0:1] '%s' with lines lc rgb 'black' title ''" % (
         rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename)
 
+if G_GRID in args.graphs:
+    plotDataFilename = mapFilename.replace("_map.dat", "_grid_plot.dat")
+    plotDataFile = open(plotDataFilename, 'w')
+
+    z = 0
+    for y in range(0, gridHeight):
+        for x in range(0, gridWidth):
+            print >>plotDataFile, "%d %d %f" % (x, y, z)
+        print >>plotDataFile
+
+    plotDataFile.close()
+
+    print >>out, "set border 0"
+    print >>out, "unset xtics; unset ytics; unset ztics"
+    print >>out, "unset pm3d"
+    print >>out, "splot [%f:%f] [%f:%f] [0:1] '%s' with lines lc rgb 'black' title ''" % (
+        rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename)
+
 if G_TRAJECTORY in args.graphs:
     dataFile = open(args.trajectoryFilename, 'r')
     plotDataFilename = args.trajectoryFilename.replace("_traj.dat", "_traj_plot.dat")
@@ -138,13 +158,13 @@ if G_TRAJECTORY in args.graphs:
     dataFile.close()
 
     print >>out, "unset colorbox"
-    if multiplot:
+    if G_MODELS in args.graphs:
         print >>out, "set border 0"
         print >>out, "unset xtics; unset ytics; unset ztics"
         print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc rgb 'black' linewidth 2 title ''" % plotDataFilename
     else:
         print >>out, "set palette rgbformulae -2,3,3"
-        print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc palette z title ''" % plotDataFilename
+        print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc palette z linewidth 2 title ''" % plotDataFilename
 
 if multiplot:
     print >>out, "unset multiplot"
