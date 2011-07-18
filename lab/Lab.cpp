@@ -35,6 +35,7 @@ Lab::Lab(int _argc, char **_argv) :
   initializeAudio();
   initializeGraphics();
   initializePlotting();
+  pretrain();
   openAudioStream();
   glutMainLoop();
 }
@@ -44,6 +45,7 @@ void Lab::processCommandLineArguments() {
   echoAudio = false;
   plotError = false;
   mapCount = 0;
+  pretrainSecs = 0;
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -148,6 +150,11 @@ void Lab::processCommandLineArguments() {
       else if(strcmp(argflag, "cm") == 0) {
 	addCircleMap();
       }
+      else if(strcmp(argflag, "pretrain") == 0) {
+	argnr++;
+	argptr++;
+	pretrainSecs = atof(*argptr);
+      }
       else {
         printf("Unknown option %s\n\n", argflag);
         usage();
@@ -204,11 +211,24 @@ void Lab::initializePlotting() {
   plottingTrajectory = false;
 }
 
+void Lab::pretrain() {
+  int pretrainBuffers = pretrainSecs * audioParameters.sampleRate /
+    audioParameters.bufferSize;
+  for(int i = 0; i < pretrainBuffers; i++) {
+    readAudioBufferFromFile();
+    processAudioNonThreadSafe(audioFileBuffer);
+  }
+}
+
 void Lab::processAudio(float *inputBuffer) {
   pthread_mutex_lock(&mutex);
+  processAudioNonThreadSafe(inputBuffer);
+  pthread_mutex_unlock(&mutex);
+}
+
+void Lab::processAudioNonThreadSafe(float *inputBuffer) {
   for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
     (*i)->processAudio(inputBuffer, audioParameters.bufferSize);
-  pthread_mutex_unlock(&mutex);
 }
 
 void Lab::display() {

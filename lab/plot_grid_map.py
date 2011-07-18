@@ -13,6 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+# for postscript output:
+# plot_grid_map.py (...) > filename.plot
+# gnuplot
+# > set term postscript eps enhanced
+# > set output "filename.eps"
+# > load "filename.plot"
+# > exit
+# fixbb filename.eps
+
+
 G_MODELS = 'models'
 G_ACTIVATION_PATTERN = 'ap'
 G_TRAJECTORY = 'traj'

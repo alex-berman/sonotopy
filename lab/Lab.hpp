@@ -132,9 +132,11 @@ private:
   void initializeAudioProcessing();
   void initializeGraphics();
   void initializePlotting();
+  void pretrain();
   void addGridMap();
   void addCircleMap();
   void addComparedMap(ComparedMap *map);
+  void processAudioNonThreadSafe(float *);
   void generatePlotFiles();
   void toggleTrajectoryPlotting();
 
@@ -149,4 +151,5 @@ private:
   int mapCount;
   int plotFileCount;
   bool plottingTrajectory;
+  float pretrainSecs;
 };
