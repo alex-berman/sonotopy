@@ -23,6 +23,10 @@ parser.add_argument('-ap', dest='activationPatternFilename', default=None,
                     help='Activation pattern data file to plot')
 parser.add_argument('-models', dest='plotModels', action='store_true',
                     help='Plot models (map contents)')
+parser.add_argument('--ar', dest='arrowRadius', type=float, default=1,
+                    help='Arrow radius')
+parser.add_argument('--filled', dest='filled', action='store_true', default=False,
+                    help='Filled style')
 args = parser.parse_args()
 mapFilename = args.map
 
@@ -47,10 +51,23 @@ if args.activationPatternFilename:
         value = float(line.rstrip("\r\n"))
         data.append(value)
 
+    arrowX1 = 0
+    arrowY1 = 0
+    arrowX2 = args.arrowRadius * math.cos(angle)
+    arrowY2 = args.arrowRadius * math.sin(angle)
+    arrowZ = 0
+
     print >>out, "set border 0"
     print >>out, "unset xtics; unset ytics; unset ztics"
-    print >>out, "set arrow from 0,0,0 to %f,%f,0 linewidth 2 lc rgb 'red'" % (
-        math.cos(angle), math.sin(angle))
+    print >>out, "set arrow front from %f,%f,%f to %f,%f,%f linewidth 2 lc rgb 'red'" % (
+        arrowX1, arrowY1, arrowZ,
+        arrowX2, arrowY2, arrowZ)
+    if args.filled:
+        print >>out, "set pm3d"
+        print >>out, "set palette rgbformulae -33,-13,-10"
+        print >>out, "unset colorbox"
+    else:
+        print >>out, "unset pm3d"
     print >>out, "splot '%s' with lines lc rgb 'black' title ''" % plotDataFilename
 
     r = 0.7
