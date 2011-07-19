@@ -133,28 +133,23 @@ if G_GRID in args.graphs:
     print >>out, "unset xtics; unset ytics; unset ztics"
     print >>out, "unset pm3d"
 
+    z = 0
+    for y in range(0, gridHeight+1):
+        py = rangeY1 + (rangeY2 - rangeY1) * float(y) / gridHeight
+        print >>plotDataFile, "%f %f %f" % (rangeX1, py, z)
+        print >>plotDataFile, "%f %f %f" % (rangeX2, py, z)
+        print >>plotDataFile
+    for x in range(0, gridWidth+1):
+        px = rangeX1 + (rangeX2 - rangeX1) * float(x) / gridHeight
+        print >>plotDataFile, "%f %f %f" % (px, rangeY1, z)
+        print >>plotDataFile, "%f %f %f" % (px, rangeY2, z)
+        print >>plotDataFile
+    plotDataFile.close()
+
     if args.dims == 2:
-        for y in range(0, gridHeight+1):
-            py = rangeY1 + (rangeY2 - rangeY1) * float(y) / gridHeight
-            print >>plotDataFile, "%f %f" % (rangeX1, py)
-            print >>plotDataFile, "%f %f" % (rangeX2, py)
-            print >>plotDataFile
-        for x in range(0, gridWidth+1):
-            px = rangeX1 + (rangeX2 - rangeX1) * float(x) / gridHeight
-            print >>plotDataFile, "%f %f" % (px, rangeY1)
-            print >>plotDataFile, "%f %f" % (px, rangeY2)
-            print >>plotDataFile
-        plotDataFile.close()
         print >>out, "plot [%f:%f] [%f:%f] '%s' %s" % (
             rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename, style)
-
     elif args.dims == 3:
-        z = 0
-        for y in range(0, gridHeight):
-            for x in range(0, gridWidth):
-                print >>plotDataFile, "%d %d %f" % (x, y, z)
-            print >>plotDataFile
-        plotDataFile.close()
         print >>out, "splot [%f:%f] [%f:%f] [0:1] '%s' %s" % (
             rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename, style)
 
