@@ -41,6 +41,8 @@ parser.add_argument('-g', dest='graphs', required=True, action='append',
                              G_GRID,
                              G_TRAJECTORY],
                     help='Graph type')
+parser.add_argument('-d', dest='dims', choices=[2,3], default=3, type=int,
+                    help='Number of graph dimensions')
 parser.add_argument('-ap', dest='activationPatternFilename', default=None,
                     help='Activation pattern data file to plot')
 parser.add_argument('-traj', dest='trajectoryFilename', default=None,
@@ -123,22 +125,38 @@ if G_ACTIVATION_PATTERN in args.graphs:
         rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename)
 
 if G_GRID in args.graphs:
+    style = "with lines lc rgb 'black' title ''"
     plotDataFilename = mapFilename.replace("_map.dat", "_grid_plot.dat")
     plotDataFile = open(plotDataFilename, 'w')
-
-    z = 0
-    for y in range(0, gridHeight):
-        for x in range(0, gridWidth):
-            print >>plotDataFile, "%d %d %f" % (x, y, z)
-        print >>plotDataFile
-
-    plotDataFile.close()
 
     print >>out, "set border 0"
     print >>out, "unset xtics; unset ytics; unset ztics"
     print >>out, "unset pm3d"
-    print >>out, "splot [%f:%f] [%f:%f] [0:1] '%s' with lines lc rgb 'black' title ''" % (
-        rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename)
+
+    if args.dims == 2:
+        for y in range(0, gridHeight+1):
+            py = rangeY1 + (rangeY2 - rangeY1) * float(y) / gridHeight
+            print >>plotDataFile, "%f %f" % (rangeX1, py)
+            print >>plotDataFile, "%f %f" % (rangeX2, py)
+            print >>plotDataFile
+        for x in range(0, gridWidth+1):
+            px = rangeX1 + (rangeX2 - rangeX1) * float(x) / gridHeight
+            print >>plotDataFile, "%f %f" % (px, rangeY1)
+            print >>plotDataFile, "%f %f" % (px, rangeY2)
+            print >>plotDataFile
+        plotDataFile.close()
+        print >>out, "plot [%f:%f] [%f:%f] '%s' %s" % (
+            rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename, style)
+
+    elif args.dims == 3:
+        z = 0
+        for y in range(0, gridHeight):
+            for x in range(0, gridWidth):
+                print >>plotDataFile, "%d %d %f" % (x, y, z)
+            print >>plotDataFile
+        plotDataFile.close()
+        print >>out, "splot [%f:%f] [%f:%f] [0:1] '%s' %s" % (
+            rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename, style)
 
 if G_TRAJECTORY in args.graphs:
     dataFile = open(args.trajectoryFilename, 'r')
@@ -161,10 +179,14 @@ if G_TRAJECTORY in args.graphs:
     if G_MODELS in args.graphs:
         print >>out, "set border 0"
         print >>out, "unset xtics; unset ytics; unset ztics"
-        print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc rgb 'black' linewidth 2 title ''" % plotDataFilename
+        style = "with lines lc rgb 'black' linewidth 2 title ''"
     else:
         print >>out, "set palette rgbformulae -2,3,3"
-        print >>out, "splot [0:1] [0:1] [0:1] '%s' with lines lc palette z linewidth 2 title ''" % plotDataFilename
+        style = "with lines lc palette z linewidth 2 title ''"
+    if args.dims == 2:
+        print >>out, "plot [0:1] [0:1] '%s' using 1:2:4 %s" % (plotDataFilename, style)
+    elif args.dims == 3:
+        print >>out, "splot [0:1] [0:1] [0:1] '%s' %s" % (plotDataFilename, style)
 
 if multiplot:
     print >>out, "unset multiplot"
