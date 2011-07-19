@@ -49,6 +49,8 @@ parser.add_argument('-traj', dest='trajectoryFilename', default=None,
                     help='Trajectory file to plot')
 parser.add_argument('--models_apply_log', dest='applyLog', action='store_true', default=True,
                     help='Apply log function to model values')
+parser.add_argument('--filled', dest='filled', action='store_true', default=False,
+                    help='Filled style')
 args = parser.parse_args()
 mapFilename = args.map
 
@@ -120,7 +122,12 @@ if G_ACTIVATION_PATTERN in args.graphs:
 
     print >>out, "set border 0"
     print >>out, "unset xtics; unset ytics; unset ztics"
-    print >>out, "unset pm3d"
+    if args.filled:
+        print >>out, "set pm3d"
+        print >>out, "set palette rgbformulae 33,13,10"
+        print >>out, "unset colorbox"
+    else:
+        print >>out, "unset pm3d"
     print >>out, "splot [%f:%f] [%f:%f] [0:1] '%s' with lines lc rgb 'black' title ''" % (
         rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename)
 
