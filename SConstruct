@@ -26,6 +26,12 @@ if platform  == 'posix':
 elif platform == 'darwin':
 	PKG_CONFIG = ARGUMENTS.get('PKGConfig', '/opt/local/bin/pkg-config')
 
+# architecture
+ARCH = ARGUMENTS.get('ARCH', 'i386')
+archflags = '-arch ' + ARCH
+env.Append(CCFLAGS = archflags)
+env.Append(LINKFLAGS = archflags)
+
 try:
 	env.MergeFlags(['!%s --cflags --libs fftw3' % PKG_CONFIG])
 except:
