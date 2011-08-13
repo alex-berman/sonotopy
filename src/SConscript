@@ -3,11 +3,12 @@ Import('env', 'platform', 'Prefix')
 TARGET = 'sonotopy'
 
 SOURCE = ['BeatTracker.cpp', 'CircleMap.cpp',
-	'CircleMapParameters.cpp', 'CircleTopology.cpp', 'CircularBuffer.cpp',
-	'GridMap.cpp', 'GridMapParameters.cpp', 'Normalizer.cpp',
-	'SOM.cpp', 'Smoother.cpp', 'SpectrumMap.cpp', 'SpectrumMapParameters.cpp',
-	'SpectrumAnalyzer.cpp', 'SpectrumBinDivider.cpp',
-	'Stopwatch.cpp', 'Topology.cpp', 'RectGridTopology.cpp']
+          'CircleMapParameters.cpp', 'CircleTopology.cpp', 'CircularBuffer.cpp',
+          'GridMap.cpp', 'GridMapParameters.cpp', 'Normalizer.cpp',
+          'SOM.cpp', 'Smoother.cpp', 'SpectrumMap.cpp', 'SpectrumMapParameters.cpp',
+          'SpectrumAnalyzer.cpp', 'SpectrumBinDivider.cpp',
+          'Stopwatch.cpp', 'Topology.cpp', 'RectGridTopology.cpp',
+          'DisjointGridMap.cpp', 'DisjointGridTopology.cpp']
  
 CPPPATH = ['../../../include/sonotopy']
 env.Append(CPPPATH = CPPPATH)

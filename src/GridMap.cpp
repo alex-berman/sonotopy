@@ -29,6 +29,16 @@ GridMap::GridMap(const AudioParameters &_audioParameters,
   gridMapParameters = _gridMapParameters;
 }
 
+GridMap::GridMap(const AudioParameters &_audioParameters,
+		 const GridMapParameters &_gridMapParameters,
+		 Topology *topology)
+  : SpectrumMap(topology,
+		_audioParameters,
+		_gridMapParameters)
+{
+  gridMapParameters = _gridMapParameters;
+}
+
 float GridMap::getActivation(unsigned int x, unsigned int y) {
   unsigned int nodeId = ((RectGridTopology*) topology)->gridCoordinatesToId(x, y);
   getActivationPattern();

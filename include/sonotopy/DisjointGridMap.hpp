@@ -13,32 +13,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef GRIDMAP_HPP
-#define GRIDMAP_HPP
+#ifndef DISJOINTGRIDMAP_HPP
+#define DISJOINTGRIDMAP_HPP
 
-#include "SpectrumMap.hpp"
+#include "GridMap.hpp"
 #include "AudioParameters.hpp"
 #include "GridMapParameters.hpp"
-#include "SOM.hpp"
-#include <fstream>
+#include "DisjointGridTopology.hpp"
 
 namespace sonotopy {
 
-class GridMap : public SpectrumMap
-{
-public:
-  GridMap(const AudioParameters &, const GridMapParameters &);
-  GridMap(const AudioParameters &, const GridMapParameters &, Topology *);
-  float getActivation(unsigned int x, unsigned int y);
-  const float* getModel(unsigned int x, unsigned int y) const;
-  void getCursor(float &x, float &y);
-  const GridMapParameters getParameters() const;
-  void write(std::ofstream &f) const;
+  class DisjointGridMap : public GridMap {
+  public:
+    DisjointGridMap(const AudioParameters &, const GridMapParameters &,
+		    const std::vector<DisjointGridTopology::Node> &nodes);
+    const SOM::ActivationPattern* getActivationPattern();
 
-protected:
-  GridMapParameters gridMapParameters;
-};
+  protected:
+    SOM::ActivationPattern rectActivationPattern;
+  };
 
 }
 
-#endif // GRIDMAP_HPP
+#endif

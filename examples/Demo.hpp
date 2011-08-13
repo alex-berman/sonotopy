@@ -71,6 +71,7 @@ private:
   void processCommandLineArguments();
   void usage();
   void initializeAudioProcessing();
+  void createDisjointGridMap();
   void initializeGraphics();
   void mainLoop();
   void resizeFrames();
@@ -86,7 +87,9 @@ private:
   bool showFPS;
   bool normalizeSpectrum;
   GridMapParameters gridMapParameters;
+  GridMapParameters disjointGridMapParameters;
   GridMap *gridMap;
+  DisjointGridMap *disjointGridMap;
   const SpectrumAnalyzer *spectrumAnalyzer;
   const SpectrumBinDivider *spectrumBinDivider;
   CircleMapParameters circleMapParameters;
@@ -97,6 +100,7 @@ private:
   SpectrumFrame *spectrumFrame;
   SpectrumBinsFrame *spectrumBinsFrame;
   GridMapFrame *gridMapFrame;
+  GridMapFrame *disjointGridMapFrame;
   SmoothGridMapFrame *enlargedGridMapFrame;
   GridMapTrajectoryFrame *gridMapTrajectoryFrame;
   SmoothCircleMapFrame *enlargedCircleMapFrame;

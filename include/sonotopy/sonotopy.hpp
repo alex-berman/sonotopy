@@ -19,10 +19,12 @@
 #include <sonotopy/BeatTracker.hpp>
 #include <sonotopy/CircleMap.hpp>
 #include <sonotopy/GridMap.hpp>
+#include <sonotopy/DisjointGridMap.hpp>
 #include <sonotopy/Smoother.hpp>
 #include <sonotopy/Normalizer.hpp>
 #include <sonotopy/Stopwatch.hpp>
 #include <sonotopy/CircleTopology.hpp>
 #include <sonotopy/RectGridTopology.hpp>
+#include <sonotopy/DisjointGridTopology.hpp>
 
 #endif
