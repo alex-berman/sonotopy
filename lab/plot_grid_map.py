@@ -42,7 +42,7 @@ parser.add_argument('-g', dest='graphs', required=True, action='append',
                              G_TRAJECTORY],
                     help='Graph type')
 parser.add_argument('-d', dest='dims', choices=[2,3], default=3, type=int,
-                    help='Number of graph dimensions')
+                    help='2D or 3D mode')
 parser.add_argument('-ap', dest='activationPatternFilename', default=None,
                     help='Activation pattern data file to plot')
 parser.add_argument('-traj', dest='trajectoryFilename', default=None,
@@ -132,7 +132,7 @@ if G_ACTIVATION_PATTERN in args.graphs:
         rangeX1, rangeX2, rangeY1, rangeY2, plotDataFilename)
 
 if G_GRID in args.graphs:
-    style = "with lines lc rgb 'black' title ''"
+    style = "with lines lc rgb 'gray' title ''"
     plotDataFilename = mapFilename.replace("_map.dat", "_grid_plot.dat")
     plotDataFile = open(plotDataFilename, 'w')
 
@@ -166,6 +166,7 @@ if G_TRAJECTORY in args.graphs:
     plotDataFile = open(plotDataFilename, 'w')
 
     numPoints = int(dataFile.readline().rstrip("\r\n"))
+    numPoints = int(0.8 * numPoints) # TEMP
     z = 0
     for i in range(0, numPoints):
         x = float(dataFile.readline().rstrip("\r\n"))
@@ -181,10 +182,10 @@ if G_TRAJECTORY in args.graphs:
     if G_MODELS in args.graphs:
         print >>out, "set border 0"
         print >>out, "unset xtics; unset ytics; unset ztics"
-        style = "with lines lc rgb 'black' linewidth 2 title ''"
+        style = "with lines lc rgb 'black' linewidth 3 title ''"
     else:
         print >>out, "set palette rgbformulae -2,3,3"
-        style = "with lines lc palette z linewidth 2 title ''"
+        style = "with lines lc palette z linewidth 3 title ''"
     if args.dims == 2:
         print >>out, "plot [0:1] [0:1] '%s' using 1:2:4 %s" % (plotDataFilename, style)
     elif args.dims == 3:

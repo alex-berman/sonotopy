@@ -21,6 +21,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('map')
 parser.add_argument('-ap', dest='activationPatternFilename', default=None,
                     help='Activation pattern data file to plot')
+parser.add_argument('-d', dest='dims', choices=[2,3], default=3, type=int,
+                    help='2D or 3D mode')
 parser.add_argument('-models', dest='plotModels', action='store_true',
                     help='Plot models (map contents)')
 parser.add_argument('--ar', dest='arrowRadius', type=float, default=1,
@@ -57,21 +59,7 @@ if args.activationPatternFilename:
     arrowY2 = args.arrowRadius * math.sin(angle)
     arrowZ = 0
 
-    print >>out, "set border 0"
-    print >>out, "unset xtics; unset ytics; unset ztics"
-    print >>out, "set arrow front from %f,%f,%f to %f,%f,%f linewidth 2 lc rgb 'red'" % (
-        arrowX1, arrowY1, arrowZ,
-        arrowX2, arrowY2, arrowZ)
-    if args.filled:
-        print >>out, "set pm3d"
-        print >>out, "set palette rgbformulae -33,-13,-10"
-        print >>out, "unset colorbox"
-    else:
-        print >>out, "unset pm3d"
-    print >>out, "splot '%s' with lines lc rgb 'black' title ''" % plotDataFilename
-
     r = 0.7
-
     for i in range(0, numNodes+1):
         n = i % numNodes
         nodeAngle = float(n) / numNodes * 2 * math.pi
@@ -84,6 +72,22 @@ if args.activationPatternFilename:
 
     plotDataFile.close()
     dataFile.close()
+
+    print >>out, "set border 0"
+    print >>out, "unset xtics; unset ytics; unset ztics"
+    print >>out, "set arrow front from %f,%f,%f to %f,%f,%f linewidth 2 lc rgb 'red'" % (
+        arrowX1, arrowY1, arrowZ,
+        arrowX2, arrowY2, arrowZ)
+    if args.filled:
+        print >>out, "set pm3d"
+        print >>out, "set palette rgbformulae -33,-13,-10"
+        print >>out, "unset colorbox"
+    else:
+        print >>out, "unset pm3d"
+    if args.dims == 2:
+        print >>out, "plot '%s' with lines lc rgb 'black' title ''" % plotDataFilename
+    elif args.dims == 3:
+        print >>out, "splot '%s' with lines lc rgb 'black' title ''" % plotDataFilename
 
 elif args.plotModels:
     raise Exception("unimplemented")
