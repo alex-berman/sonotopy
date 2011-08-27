@@ -32,6 +32,7 @@ EventDetector::EventDetector(const AudioParameters &_audioParameters) {
 				      / amplitudeIntegrationTimeMs);
   setDecibelReference(dB_defaultReference);
   state = STATE_WAITING_FOR_START;
+  db = 0;
 }
 
 void EventDetector::feedAudio(const float *audio, unsigned long numFrames) {  
@@ -41,6 +42,26 @@ void EventDetector::feedAudio(const float *audio, unsigned long numFrames) {
 
   db = amplitudeToDB(amplitudeSmoother.getValue());
   updateState();
+}
+
+float EventDetector::getDbThreshold() {
+  return dbThreshold;
+}
+
+void EventDetector::setDbThreshold(float _dbThreshold) {
+  dbThreshold = _dbThreshold;
+}
+
+float EventDetector::getTrailingSilenceMs() {
+  return trailingSilenceMs;
+}
+
+void EventDetector::setTrailingSilenceMs(float _trailingSilenceMs) {
+  trailingSilenceMs = _trailingSilenceMs;
+}
+
+float EventDetector::getCurrentDb() {
+  return db;
 }
 
 void EventDetector::updateState() {

@@ -33,6 +33,11 @@ public:
   EventDetector(const AudioParameters &);
   void feedAudio(const float *audio, unsigned long numFrames);
   void setDecibelReference(double dB_reference);
+  float getDbThreshold();
+  void setDbThreshold(float);
+  float getTrailingSilenceMs();
+  void setTrailingSilenceMs(float);
+  float getCurrentDb();
   virtual void onStartOfEvent() {}
   virtual void onEndOfEvent() {}
 
