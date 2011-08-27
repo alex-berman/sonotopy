@@ -23,7 +23,7 @@ EventDetector::EventDetector(const AudioParameters &_audioParameters) {
   dB_defaultReference = 0.00001;
   amplitudeIntegrationTimeMs = 100;
   dbThreshold = 0.4;
-  minEventDurationMs = 2000;
+  minEventDurationMs = 0;
   trailingSilenceMs = 2000;
 
   bufferDurationMs = (float) 1000 * audioParameters.bufferSize
