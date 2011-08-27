@@ -23,6 +23,7 @@ public:
   Smoother();
   float smooth(float);
   void setResponseFactor(float);
+  float getValue();
 
 private:
   float responseFactor;

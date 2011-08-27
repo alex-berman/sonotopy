@@ -26,5 +26,6 @@
 #include <sonotopy/CircleTopology.hpp>
 #include <sonotopy/RectGridTopology.hpp>
 #include <sonotopy/DisjointGridTopology.hpp>
+#include <sonotopy/EventDetector.hpp>
 
 #endif

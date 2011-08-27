@@ -68,6 +68,14 @@ private:
     numScenes
   };
 
+  class EventDetectionPrinter : public EventDetector {
+  public:
+    EventDetectionPrinter(const AudioParameters &audioParameters) :
+      EventDetector(audioParameters) {}
+    void onStartOfEvent() { printf("start of event\n"); }
+    void onEndOfEvent()   { printf("end of event\n"); }
+  };
+
   void processCommandLineArguments();
   void usage();
   void initializeAudioProcessing();
@@ -95,6 +103,7 @@ private:
   CircleMapParameters circleMapParameters;
   CircleMap *circleMap;
   BeatTracker *beatTracker;
+  EventDetectionPrinter *eventDetector;
   int sceneNum;
   WaveformFrame *waveformFrame;
   SpectrumFrame *spectrumFrame;

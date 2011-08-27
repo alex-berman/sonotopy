@@ -8,7 +8,7 @@ SOURCE = ['BeatTracker.cpp', 'CircleMap.cpp',
           'SOM.cpp', 'Smoother.cpp', 'SpectrumMap.cpp', 'SpectrumMapParameters.cpp',
           'SpectrumAnalyzer.cpp', 'SpectrumBinDivider.cpp',
           'Stopwatch.cpp', 'Topology.cpp', 'RectGridTopology.cpp',
-          'DisjointGridMap.cpp', 'DisjointGridTopology.cpp']
+          'DisjointGridMap.cpp', 'DisjointGridTopology.cpp', 'EventDetector.cpp']
  
 CPPPATH = ['../../../include/sonotopy']
 env.Append(CPPPATH = CPPPATH)

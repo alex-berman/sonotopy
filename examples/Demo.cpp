@@ -133,6 +133,7 @@ void Demo::initializeAudioProcessing() {
   spectrumBinDivider = gridMap->getSpectrumBinDivider();
   circleMap = new CircleMap(audioParameters, circleMapParameters);
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
+  eventDetector = new EventDetectionPrinter(audioParameters);
   createDisjointGridMap();
 }
 
@@ -273,6 +274,7 @@ void Demo::processAudio(float *inputBuffer) {
   disjointGridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
+  eventDetector->feedAudio(inputBuffer, audioParameters.bufferSize);
   pthread_mutex_unlock(&mutex);
 }
 
