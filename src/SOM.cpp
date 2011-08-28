@@ -195,7 +195,7 @@ void SOM::getActivationPattern(ActivationPattern *activationPattern) const {
   }
 }
 
-void SOM::writeModelData(ofstream &f) const {
+void SOM::writeModelData(ostream &f) const {
   f << inputSize << endl;
   for(vector<Model*>::const_iterator i = models.begin(); i != models.end(); ++i)
     (*i)->writeData(f);
@@ -273,7 +273,7 @@ void SOM::Model::updateNeighbourList() {
   }
 }
 
-void SOM::Model::writeData(ofstream &f) const {
+void SOM::Model::writeData(ostream &f) const {
   float *valuePtr = values;
   for(uint k = 0; k < inputSize; k++)
     f << *valuePtr++ << endl;
