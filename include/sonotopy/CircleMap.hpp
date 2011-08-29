@@ -27,6 +27,7 @@ class CircleMap : public SpectrumMap
 public:
   CircleMap(const AudioParameters &, const CircleMapParameters &);
   float getAngle();
+  void write(std::ofstream &f) const;
 };
 
 }

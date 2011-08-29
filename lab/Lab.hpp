@@ -16,6 +16,8 @@
 #include <sonotopy/sonotopy.hpp>
 #include <sonotopy/uilib/uilib.hpp>
 #include <pthread.h>
+#include <sstream>
+#include <fstream>
 
 class Lab : public GlWindow, public AudioIO {
 public:
@@ -23,12 +25,13 @@ public:
   void processAudio(float *);
   void display();
   void resizedWindow();
+  void glKeyboard(unsigned char key, int x, int y);
 
 private:
-  class ErrorPlotter {
+  class ErrorGraph {
   public:
-    ErrorPlotter(Lab *, const SpectrumMap *);
-    ~ErrorPlotter();
+    ErrorGraph(Lab *, const SpectrumMap *);
+    ~ErrorGraph();
     void update();
     void render(Frame *);
   private:
@@ -46,30 +49,107 @@ private:
 
   class ComparedMap {
   public:
-    ComparedMap(Lab *, GridMapParameters &);
+    ComparedMap(Lab *, int index);
+    int getIndex() { return index; }
+    virtual void initializeGraphics() {}
+    virtual void display() {}
+    virtual void processAudio(float *buffer, unsigned long numFrames) {}
+    Frame *getFrame() { return frame; }
+    virtual void generatePlotFiles();
+    virtual void writePlotFilesContent() {}
+    virtual void startTrajectoryPlotting() {}
+    virtual void stopTrajectoryPlotting() {}
+    virtual void plotTrajectory() {}
+  protected:
+    int index;
+    Lab *parent;
+    Frame *frame;
+    ErrorGraph *errorGraph;
+    std::string plotFilenamePrefix;
+    std::string activationPatternDataFilename;
+    std::ofstream activationPatternDataFile;
+    std::string mapDataFilename;
+    std::ofstream mapDataFile;
+  };
+
+  class TrajectoryPlotter;
+
+  class ComparedGridMap : public ComparedMap {
+  public:
+    friend class TrajectoryPlotter;
+    ComparedGridMap(Lab *, int index, GridMapParameters &);
+    GridMap *getGridMap() { return gridMap; }
     void initializeGraphics();
     void display();
     void processAudio(float *buffer, unsigned long numFrames);
-    Frame *getFrame() { return gridMapFrame; }
+    void generatePlotFiles();
+    void writePlotFilesContent();
+    void startTrajectoryPlotting();
+    void stopTrajectoryPlotting();
+    void plotTrajectory();
   private:
-    Lab *parent;
     GridMapParameters parameters;
     GridMap *gridMap;
-    SmoothGridMapFrame *gridMapFrame;
-    ErrorPlotter *errorPlotter;
+    TrajectoryPlotter *trajectoryPlotter;
+    int spectrumResolution;
+  };
+
+  class ComparedCircleMap : public ComparedMap {
+  public:
+    ComparedCircleMap(Lab *, int index, CircleMapParameters &);
+    void initializeGraphics();
+    void display();
+    void processAudio(float *buffer, unsigned long numFrames);
+    void generatePlotFiles();
+    void writePlotFilesContent();
+  private:
+    CircleMapParameters parameters;
+    CircleMap *circleMap;
+    CircleTopology *topology;
+  };
+
+  class TrajectoryPlotter {
+  public:
+    TrajectoryPlotter(ComparedGridMap *, Lab *);
+    ~TrajectoryPlotter();
+    void addDatum();
+  private:
+    ComparedGridMap *comparedMap;
+    GridMap *map;
+    std::string dataFilename;
+    std::ofstream dataFile;
+    typedef struct {
+      float x;
+      float y;
+    } Point;
+    std::vector<Point> points;
+
+    void writePlotFilesContent();
   };
 
   void processCommandLineArguments();
   void usage();
   void initializeAudioProcessing();
   void initializeGraphics();
+  void initializePlotting();
+  void pretrain();
   void addGridMap();
+  void addCircleMap();
+  void addComparedMap(ComparedMap *map);
+  void processAudioNonThreadSafe(float *);
+  void generatePlotFiles();
+  void toggleTrajectoryPlotting();
 
   int argc;
   char **argv;
   GridMapParameters gridMapParameters;
-  std::vector<ComparedMap> comparedMaps;
+  CircleMapParameters circleMapParameters;
+  std::vector<ComparedMap*> comparedMaps;
   bool plotError;
   pthread_mutex_t mutex;
   unsigned long t0;
+  int mapCount;
+  int plotFileCount;
+  bool plottingTrajectory;
+  float pretrainSecs;
 };

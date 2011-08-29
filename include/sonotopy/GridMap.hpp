@@ -19,6 +19,8 @@
 #include "SpectrumMap.hpp"
 #include "AudioParameters.hpp"
 #include "GridMapParameters.hpp"
+#include "SOM.hpp"
+#include <fstream>
 
 namespace sonotopy {
 
@@ -26,11 +28,14 @@ class GridMap : public SpectrumMap
 {
 public:
   GridMap(const AudioParameters &, const GridMapParameters &);
+  GridMap(const AudioParameters &, const GridMapParameters &, Topology *);
   float getActivation(unsigned int x, unsigned int y);
+  const float* getModel(unsigned int x, unsigned int y) const;
   void getCursor(float &x, float &y);
   const GridMapParameters getParameters() const;
+  void write(std::ofstream &f) const;
 
-private:
+protected:
   GridMapParameters gridMapParameters;
 };
 

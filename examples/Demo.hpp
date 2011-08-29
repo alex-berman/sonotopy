@@ -68,9 +68,18 @@ private:
     numScenes
   };
 
+  class EventDetectionPrinter : public EventDetector {
+  public:
+    EventDetectionPrinter(const AudioParameters &audioParameters) :
+      EventDetector(audioParameters) {}
+    void onStartOfEvent() { printf("start of event\n"); }
+    void onEndOfEvent()   { printf("end of event\n"); }
+  };
+
   void processCommandLineArguments();
   void usage();
   void initializeAudioProcessing();
+  void createDisjointGridMap();
   void initializeGraphics();
   void mainLoop();
   void resizeFrames();
@@ -86,17 +95,21 @@ private:
   bool showFPS;
   bool normalizeSpectrum;
   GridMapParameters gridMapParameters;
+  GridMapParameters disjointGridMapParameters;
   GridMap *gridMap;
+  DisjointGridMap *disjointGridMap;
   const SpectrumAnalyzer *spectrumAnalyzer;
   const SpectrumBinDivider *spectrumBinDivider;
   CircleMapParameters circleMapParameters;
   CircleMap *circleMap;
   BeatTracker *beatTracker;
+  EventDetectionPrinter *eventDetector;
   int sceneNum;
   WaveformFrame *waveformFrame;
   SpectrumFrame *spectrumFrame;
   SpectrumBinsFrame *spectrumBinsFrame;
   GridMapFrame *gridMapFrame;
+  GridMapFrame *disjointGridMapFrame;
   SmoothGridMapFrame *enlargedGridMapFrame;
   GridMapTrajectoryFrame *gridMapTrajectoryFrame;
   SmoothCircleMapFrame *enlargedCircleMapFrame;

@@ -244,3 +244,15 @@ float SpectrumMap::clamp(float in, float min, float max) const {
     return max;
   return in;
 }
+
+void SpectrumMap::writeActivationPattern(ofstream &f) {
+  const SOM::ActivationPattern *activationPattern = getActivationPattern();
+  SOM::ActivationPattern::const_iterator activationPatternIterator =
+    activationPattern->begin();
+  float v;
+  for(unsigned int i = 0; i < topology->getNumNodes(); i++) {
+    v = *activationPatternIterator++;
+    f << v << endl;
+  }
+}
+

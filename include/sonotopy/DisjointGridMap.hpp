@@ -13,23 +13,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _Smoother_hpp_
-#define _Smoother_hpp_
+#ifndef DISJOINTGRIDMAP_HPP
+#define DISJOINTGRIDMAP_HPP
+
+#include "GridMap.hpp"
+#include "AudioParameters.hpp"
+#include "GridMapParameters.hpp"
+#include "DisjointGridTopology.hpp"
 
 namespace sonotopy {
 
-class Smoother {
-public:
-  Smoother();
-  float smooth(float);
-  void setResponseFactor(float);
-  float getValue();
+  class DisjointGridMap : public GridMap {
+  public:
+    DisjointGridMap(const AudioParameters &, const GridMapParameters &,
+		    const std::vector<DisjointGridTopology::Node> &nodes);
+    const SOM::ActivationPattern* getActivationPattern();
 
-private:
-  float responseFactor;
-  float currentValue;
-  bool initialized;
-};
+  protected:
+    SOM::ActivationPattern rectActivationPattern;
+  };
 
 }
 

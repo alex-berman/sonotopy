@@ -36,3 +36,7 @@ void Smoother::setResponseFactor(float _responseFactor) {
   if(responseFactor > 1)
     responseFactor = 1;
 }
+
+float Smoother::getValue() {
+  return currentValue;
+}

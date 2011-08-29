@@ -18,6 +18,7 @@
 
 #include <vector>
 #include "Topology.hpp"
+#include <iostream>
 
 namespace sonotopy {
 
@@ -35,6 +36,7 @@ public:
   void setNeighbourhoodParameter(float); // 0-1
   void setLearningParameter(float); // 0-1
   void train(const Sample &input);
+  const float* getModel(uint id) const;
   uint getWinner(const Sample &input) const;
   uint getLastWinner() const;
   void getOutput(const Sample &input, Output &output) const;
@@ -45,6 +47,7 @@ public:
   void setModel(uint modelIndex, const Sample &);
   void setAllModels(const Sample &);
   void setRandomModelValues(float min = 0, float max = 1);
+  void writeModelData(std::ostream &) const;
 
 protected:
   class Model;
@@ -64,6 +67,8 @@ protected:
     void set(const Sample &);
     void setRandomValues(float min, float max);
     void updateNeighbourList();
+    const float* getValues() { return values; }
+    void writeData(std::ostream &) const;
   private:
     const SOM *parent;
     uint id;

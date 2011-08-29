@@ -17,6 +17,9 @@
 #include <string.h>
 #include <time.h>
 #include <algorithm>
+#include <string>
+#include <math.h>
+#include <iostream>
 
 using namespace std;
 
@@ -31,6 +34,8 @@ Lab::Lab(int _argc, char **_argv) :
   initializeAudioProcessing();
   initializeAudio();
   initializeGraphics();
+  initializePlotting();
+  pretrain();
   openAudioStream();
   glutMainLoop();
 }
@@ -39,6 +44,8 @@ void Lab::processCommandLineArguments() {
   useAudioInputFile = false;
   echoAudio = false;
   plotError = false;
+  mapCount = 0;
+  pretrainSecs = 0;
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -73,43 +80,80 @@ void Lab::processCommandLineArguments() {
 	argnr++;
 	argptr++;
 	if(strcmp(*argptr, "time") == 0) {
-	  gridMapParameters.adaptationStrategy = SpectrumMapParameters::TimeBased;
+	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	    SpectrumMapParameters::TimeBased;
 	}
 	else if(strcmp(*argptr, "error") == 0) {
-	  gridMapParameters.adaptationStrategy = SpectrumMapParameters::ErrorDriven;
+	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	    SpectrumMapParameters::ErrorDriven;
 	}
 	else {
 	  printf("Unknown adaptation strategy %s\n", *argptr);
 	  usage();
 	}
       }
+      else if(strcmp(argflag, "gridWidth") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.gridWidth = atoi(*argptr);
+      }
+      else if(strcmp(argflag, "gridHeight") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.gridHeight = atoi(*argptr);
+      }
       else if(strcmp(argflag, "errorThresholdLow") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.errorThresholdLow = atof(*argptr);
+	gridMapParameters.errorThresholdLow =
+	  circleMapParameters.errorThresholdLow =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "errorThresholdHigh") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.errorThresholdHigh = atof(*argptr);
+	gridMapParameters.errorThresholdHigh =
+	  circleMapParameters.errorThresholdHigh =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "errorIntegrationTimeMs") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.errorIntegrationTimeMs = atof(*argptr);
+	gridMapParameters.errorIntegrationTimeMs =
+	  circleMapParameters.errorIntegrationTimeMs =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "adaptationPlasticity") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.adaptationPlasticity = atof(*argptr);
+	gridMapParameters.adaptationPlasticity =
+	  circleMapParameters.adaptationPlasticity =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "neighbourhoodPlasticity") == 0) {
 	argnr++;
 	argptr++;
-	gridMapParameters.neighbourhoodPlasticity = atof(*argptr);
+	gridMapParameters.neighbourhoodPlasticity =
+	  circleMapParameters.neighbourhoodPlasticity =
+	  atof(*argptr);
+      }
+      else if(strcmp(argflag, "trajectorySmoothness") == 0) {
+	argnr++;
+	argptr++;
+	gridMapParameters.trajectorySmoothness =
+	  circleMapParameters.trajectorySmoothness =
+	  atof(*argptr);
       }
       else if(strcmp(argflag, "gm") == 0) {
 	addGridMap();
+      }
+      else if(strcmp(argflag, "cm") == 0) {
+	addCircleMap();
+      }
+      else if(strcmp(argflag, "pretrain") == 0) {
+	argnr++;
+	argptr++;
+	pretrainSecs = atof(*argptr);
       }
       else {
         printf("Unknown option %s\n\n", argflag);
@@ -137,7 +181,18 @@ void Lab::usage() {
 
 void Lab::addGridMap() {
   srand(t0);
-  comparedMaps.push_back(ComparedMap(this, gridMapParameters));
+  addComparedMap(new ComparedGridMap(this, mapCount, gridMapParameters));
+}
+
+void Lab::addCircleMap() {
+  srand(t0);
+  addComparedMap(new ComparedCircleMap(this, mapCount, circleMapParameters));
+}
+
+void Lab::addComparedMap(ComparedMap *map) {
+  comparedMaps.push_back(map);
+  mapCount++;
+  circleMapParameters = CircleMapParameters();
   gridMapParameters = GridMapParameters();
 }
 
@@ -147,15 +202,33 @@ void Lab::initializeAudioProcessing() {
 }
 
 void Lab::initializeGraphics() {
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
-    i->initializeGraphics();
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    (*i)->initializeGraphics();
+}
+
+void Lab::initializePlotting() {
+  plotFileCount = 0;
+  plottingTrajectory = false;
+}
+
+void Lab::pretrain() {
+  int pretrainBuffers = pretrainSecs * audioParameters.sampleRate /
+    audioParameters.bufferSize;
+  for(int i = 0; i < pretrainBuffers; i++) {
+    readAudioBufferFromFile();
+    processAudioNonThreadSafe(audioFileBuffer);
+  }
 }
 
 void Lab::processAudio(float *inputBuffer) {
   pthread_mutex_lock(&mutex);
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
-    i->processAudio(inputBuffer, audioParameters.bufferSize);
+  processAudioNonThreadSafe(inputBuffer);
   pthread_mutex_unlock(&mutex);
+}
+
+void Lab::processAudioNonThreadSafe(float *inputBuffer) {
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    (*i)->processAudio(inputBuffer, audioParameters.bufferSize);
 }
 
 void Lab::display() {
@@ -167,8 +240,11 @@ void Lab::display() {
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
 
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
-    i->display();
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++) {
+    (*i)->display();
+    if(plottingTrajectory)
+      (*i)->plotTrajectory();
+  }
 
   pthread_mutex_unlock(&mutex);
 
@@ -181,14 +257,50 @@ void Lab::resizedWindow() {
   frameSize = min(frameSize, windowHeight);
   int offsetTop = (windowHeight - frameSize) / 2;
   int px = (windowWidth - frameSize * comparedMaps.size() - margin * (comparedMaps.size()-1)) / 2;
-  for(vector<ComparedMap>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++) {
-    i->getFrame()->setSize(frameSize, frameSize);
-    i->getFrame()->setPosition(px, offsetTop);
+  Frame *frame;
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++) {
+    frame = (*i)->getFrame();
+    frame->setSize(frameSize, frameSize);
+    frame->setPosition(px, offsetTop);
     px += frameSize + margin;
   }
 }
 
-Lab::ErrorPlotter::ErrorPlotter(Lab *_parent, const SpectrumMap *_map) {
+void Lab::glKeyboard(unsigned char key, int x, int y) {
+  switch(key) {
+  case 'p':
+    generatePlotFiles();
+    break;
+
+  case 't':
+    toggleTrajectoryPlotting();
+    break;
+  }
+}
+
+void Lab::generatePlotFiles() {
+  pthread_mutex_lock(&mutex);
+  for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+    (*i)->generatePlotFiles();
+  pthread_mutex_unlock(&mutex);
+  plotFileCount++;
+}
+
+void Lab::toggleTrajectoryPlotting() {
+  if(plottingTrajectory) {
+    for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+      (*i)->stopTrajectoryPlotting();
+    plottingTrajectory = false;
+  }
+  else {
+    for(vector<ComparedMap*>::iterator i = comparedMaps.begin(); i != comparedMaps.end(); i++)
+      (*i)->startTrajectoryPlotting();
+    plottingTrajectory = true;
+  }
+}
+
+
+Lab::ErrorGraph::ErrorGraph(Lab *_parent, const SpectrumMap *_map) {
   parent = _parent;
   map = _map;
   bufferSize = 1000;
@@ -204,20 +316,20 @@ Lab::ErrorPlotter::ErrorPlotter(Lab *_parent, const SpectrumMap *_map) {
   smootherMax.setResponseFactor(smootherResponseFactor);
 }
 
-Lab::ErrorPlotter::~ErrorPlotter() {
+Lab::ErrorGraph::~ErrorGraph() {
   delete [] buffer;
   delete circularBufferMin;
   delete circularBufferMax;
 }
 
-void Lab::ErrorPlotter::update() {
+void Lab::ErrorGraph::update() {
   circularBufferMin->write(smootherMin.smooth(map->getErrorMin()));
   circularBufferMin->moveReadHead(1);
   circularBufferMax->write(smootherMax.smooth(map->getErrorMax()));
   circularBufferMax->moveReadHead(1);
 }
 
-void Lab::ErrorPlotter::render(Frame *frame) {
+void Lab::ErrorGraph::render(Frame *frame) {
   int i = 0;
   float y;
   int width = frame->getWidth();
@@ -267,29 +379,171 @@ void Lab::ErrorPlotter::render(Frame *frame) {
   parent->glText(frame->getLeft(), frame->getBottom() + 40, text);
 }
 
-Lab::ComparedMap::ComparedMap(Lab *_parent, GridMapParameters &_parameters) {
+
+Lab::ComparedMap::ComparedMap(Lab *_parent, int _index) {
+  index = _index;
   parent = _parent;
+}
+
+void Lab::ComparedMap::generatePlotFiles() {
+  ostringstream plotFilenamePrefixSS;
+  plotFilenamePrefixSS << "plots/plot" << index << "_" << parent->plotFileCount;
+  plotFilenamePrefix = plotFilenamePrefixSS.str();
+
+  ostringstream activationPatternDataFilenameSS;
+  activationPatternDataFilenameSS << plotFilenamePrefix << "_ap.dat";
+  activationPatternDataFilename = activationPatternDataFilenameSS.str();
+  activationPatternDataFile.open(activationPatternDataFilename.c_str());
+
+  ostringstream mapDataFilenameSS;
+  mapDataFilenameSS << plotFilenamePrefix << "_map.dat";
+  mapDataFilename = mapDataFilenameSS.str();
+  mapDataFile.open(mapDataFilename.c_str());
+
+  writePlotFilesContent();
+
+  activationPatternDataFile.close();
+  mapDataFile.close();
+}
+
+
+Lab::ComparedGridMap::ComparedGridMap(Lab *_parent, int _index, GridMapParameters &_parameters)
+  : ComparedMap(_parent, _index) {
   parameters = _parameters;
   gridMap = new GridMap(parent->audioParameters, parameters);
+  spectrumResolution = gridMap->getSpectrumResolution();
 }
 
-void Lab::ComparedMap::initializeGraphics() {
-  gridMapFrame = new SmoothGridMapFrame(gridMap);
+void Lab::ComparedGridMap::initializeGraphics() {
+  frame = new SmoothGridMapFrame(gridMap);
   if(parent->plotError)
-    errorPlotter = new ErrorPlotter(parent, gridMap);
+    errorGraph = new ErrorGraph(parent, gridMap);
 }
 
-void Lab::ComparedMap::processAudio(float *inputBuffer, unsigned long numFrames) {
+void Lab::ComparedGridMap::processAudio(float *inputBuffer, unsigned long numFrames) {
   gridMap->feedAudio(inputBuffer, numFrames);
   if(parent->plotError) {
-    errorPlotter->update();
+    errorGraph->update();
   }
 }
 
-void Lab::ComparedMap::display() {
-  gridMapFrame->display();
+void Lab::ComparedGridMap::generatePlotFiles() {
+  ComparedMap::generatePlotFiles();
+
+  cout << "PLOT MODELS:" << endl;
+  cout << "python lab/plot_grid_map.py " << mapDataFilename
+       << " -g models | gnuplot -p" << endl;
+  cout << endl;
+
+  cout << "PLOT ACTIVATION PATTERN:" << endl;
+  cout << "python lab/plot_grid_map.py " << mapDataFilename
+       << " -g ap -ap " << activationPatternDataFilename << " | gnuplot -p" << endl;
+  cout << endl;
+}
+
+void Lab::ComparedGridMap::writePlotFilesContent() {
+  gridMap->writeActivationPattern(activationPatternDataFile);
+  gridMap->write(mapDataFile);
+}
+
+void Lab::ComparedGridMap::startTrajectoryPlotting() {
+  generatePlotFiles();
+  trajectoryPlotter = new TrajectoryPlotter(this, parent);
+  parent->plotFileCount++;
+  cout << "PRESS t TO FINISH PLOTTING TRAJECTORY" << endl;
+}
+
+void Lab::ComparedGridMap::stopTrajectoryPlotting() {
+  delete trajectoryPlotter;
+}
+
+void Lab::ComparedGridMap::plotTrajectory() {
+  trajectoryPlotter->addDatum();
+}
+
+void Lab::ComparedGridMap::display() {
+  frame->display();
   if(parent->plotError)
-    errorPlotter->render(gridMapFrame);
+    errorGraph->render(frame);
+}
+
+
+
+Lab::ComparedCircleMap::ComparedCircleMap(Lab *_parent, int _index, CircleMapParameters &_parameters)
+  : ComparedMap(_parent, _index) {
+  parameters = _parameters;
+  circleMap = new CircleMap(parent->audioParameters, parameters);
+  topology = (CircleTopology*) circleMap->getTopology();
+}
+
+void Lab::ComparedCircleMap::initializeGraphics() {
+  frame = new SmoothCircleMapFrame(circleMap);
+  if(parent->plotError)
+    errorGraph = new ErrorGraph(parent, circleMap);
+}
+
+void Lab::ComparedCircleMap::processAudio(float *inputBuffer, unsigned long numFrames) {
+  circleMap->feedAudio(inputBuffer, numFrames);
+  if(parent->plotError) {
+    errorGraph->update();
+  }
+}
+
+void Lab::ComparedCircleMap::generatePlotFiles() {
+  ComparedMap::generatePlotFiles();
+
+  cout << "PLOT ACTIVATION PATTERN:" << endl;
+  cout << "python lab/plot_circle_map.py " << mapDataFilename
+       << " -ap " << activationPatternDataFilename << " | gnuplot -p" << endl;
+  cout << endl;
+}
+
+void Lab::ComparedCircleMap::writePlotFilesContent() {
+  activationPatternDataFile << circleMap->getAngle() << endl;
+  circleMap->writeActivationPattern(activationPatternDataFile);
+  circleMap->write(mapDataFile);
+}
+
+void Lab::ComparedCircleMap::display() {
+  frame->display();
+  if(parent->plotError)
+    errorGraph->render(frame);
+}
+
+
+Lab::TrajectoryPlotter::TrajectoryPlotter(ComparedGridMap *_comparedMap, Lab *lab) {
+  comparedMap = _comparedMap;
+  map = comparedMap->getGridMap();
+  int index = comparedMap->getIndex();
+  ostringstream dataFilenameSS;
+  dataFilenameSS << "plots/plot" << index << "_" << lab->plotFileCount << "_traj.dat";
+  dataFilename = dataFilenameSS.str();
+  dataFile.open(dataFilename.c_str());
+}
+
+Lab::TrajectoryPlotter::~TrajectoryPlotter() {
+  writePlotFilesContent();
+  dataFile.close();
+
+  cout << "PLOT TRAJECTORY:" << endl;
+  cout << "python lab/plot_grid_map.py " << comparedMap->mapDataFilename
+       << " -g traj -traj " << dataFilename << " | gnuplot -p" << endl;
+  cout << endl;
+}
+
+void Lab::TrajectoryPlotter::writePlotFilesContent() {
+  int numPoints = points.size();
+  dataFile << numPoints << endl;
+  for(vector<Point>::iterator p = points.begin(); p != points.end(); p++) {
+    dataFile << p->x << endl;
+    dataFile << p->y << endl;
+  }
+}
+
+void Lab::TrajectoryPlotter::addDatum() {
+  Point point;
+  map->getCursor(point.x, point.y);
+  points.push_back(point);
 }
 
 int main(int argc, char **argv) {

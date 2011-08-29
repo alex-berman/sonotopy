@@ -24,6 +24,7 @@
 #include "SOM.hpp"
 #include "Smoother.hpp"
 #include <vector>
+#include <fstream>
 
 namespace sonotopy {
 
@@ -35,7 +36,8 @@ public:
   int getWinnerId() const;
   const SpectrumAnalyzer* getSpectrumAnalyzer() { return spectrumAnalyzer; }
   const SpectrumBinDivider* getSpectrumBinDivider() { return spectrumBinDivider; }
-  const SOM::ActivationPattern* getActivationPattern();
+  int getSpectrumResolution() const { return spectrumResolution; }
+  virtual const SOM::ActivationPattern* getActivationPattern();
   Topology* getTopology() const;
   void setSpectrumIntegrationTimeMs(float);
   void moveTopologyCursorTowardsWinner();
@@ -46,6 +48,8 @@ public:
   float getNeighbourhoodParameter() const;
   SpectrumMapParameters getSpectrumMapParameters() const;
   void resetAdaptation();
+  virtual void write(std::ofstream &f) const {}
+  void writeActivationPattern(std::ofstream &f);
 
 protected:
   void createSpectrumAnalyzer();

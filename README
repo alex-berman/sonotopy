@@ -39,17 +39,13 @@ Key features:
 - noise robustness: the adaptivity and psychoacoustic modelling
   limit the effects of noise in the signal
 
-The algorithms in the library are not intented to represent a true
-model of the human auditory system. Instead, the main motivator behind
-its development has been to explore artistic applications.
-
 
 //////////////////////////////////////////////////////////////////////////////
 
 EXAMPLE VIDEOS
 
-Example videos with different feature types and music sources can be found at
-https://github.com/alex-berman/sonotopy/wiki/Videos
+Example videos with different feature types can be found at
+http://vimeo.com/channels/206361
 
 
 //////////////////////////////////////////////////////////////////////////////

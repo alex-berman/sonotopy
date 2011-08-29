@@ -80,11 +80,15 @@ void Demo::processCommandLineArguments() {
 	argnr++;
 	argptr++;
 	if(strcmp(*argptr, "time") == 0) {
-	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	  gridMapParameters.adaptationStrategy =
+	  disjointGridMapParameters.adaptationStrategy =
+	    circleMapParameters.adaptationStrategy =
 	    SpectrumMapParameters::TimeBased;
 	}
 	else if(strcmp(*argptr, "error") == 0) {
-	  gridMapParameters.adaptationStrategy = circleMapParameters.adaptationStrategy =
+	  gridMapParameters.adaptationStrategy =
+	  disjointGridMapParameters.adaptationStrategy =
+	    circleMapParameters.adaptationStrategy =
 	    SpectrumMapParameters::ErrorDriven;
 	}
 	else {
@@ -129,6 +133,23 @@ void Demo::initializeAudioProcessing() {
   spectrumBinDivider = gridMap->getSpectrumBinDivider();
   circleMap = new CircleMap(audioParameters, circleMapParameters);
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
+  eventDetector = new EventDetectionPrinter(audioParameters);
+  createDisjointGridMap();
+}
+
+void Demo::createDisjointGridMap() {
+  // create disjoint map consisting of two sections: upper-left and bottom-right corner
+  int w = disjointGridMapParameters.gridWidth * 0.8;
+  int h = disjointGridMapParameters.gridHeight * 0.8;
+  vector<DisjointGridTopology::Node> nodes;
+  for(int y = 0; y < h; y++) {
+    int rw = w * y / h;
+    for(int x = 0; x < rw; x++) {
+      nodes.push_back(DisjointGridTopology::Node(disjointGridMapParameters.gridWidth-x-1, h-y));
+      nodes.push_back(DisjointGridTopology::Node(x, disjointGridMapParameters.gridHeight-(h-y)-1));
+    }
+  }
+  disjointGridMap = new DisjointGridMap(audioParameters, disjointGridMapParameters, nodes);
 }
 
 void Demo::glSpecial(int key, int x, int y) {
@@ -160,6 +181,7 @@ void Demo::initializeGraphics() {
   spectrumFrame = new SpectrumFrame(spectrumAnalyzer, normalizeSpectrum);
   spectrumBinsFrame = new SpectrumBinsFrame(spectrumBinDivider, normalizeSpectrum);
   gridMapFrame = new GridMapFrame(gridMap);
+  disjointGridMapFrame = new GridMapFrame(disjointGridMap);
   enlargedGridMapFrame = new SmoothGridMapFrame(gridMap);
   gridMapTrajectoryFrame = new GridMapTrajectoryFrame(gridMap);
   beatTrackerFrame = new BeatTrackerFrame(beatTracker);
@@ -210,10 +232,13 @@ void Demo::resizeFrames() {
       beatTrackerFrame->setPosition(SPACING, y3);
 
       circleMapFrame->setSize(columnWidth, rowHeight);
-      circleMapFrame->setPosition(SPACING + displayWidth - columnWidth*2 - SPACING, y3);
+      circleMapFrame->setPosition(SPACING + displayWidth - columnWidth*3 - SPACING*2, y3);
 
       gridMapFrame->setSize(columnWidth, rowHeight);
-      gridMapFrame->setPosition(SPACING + displayWidth - columnWidth, y3);
+      gridMapFrame->setPosition(SPACING + displayWidth - columnWidth*2 - SPACING, y3);
+
+      disjointGridMapFrame->setSize(columnWidth, rowHeight);
+      disjointGridMapFrame->setPosition(SPACING + displayWidth - columnWidth, y3);
       break;
 
     case Scene_EnlargedCircleMap:
@@ -246,8 +271,10 @@ void Demo::mainLoop() {
 void Demo::processAudio(float *inputBuffer) {
   pthread_mutex_lock(&mutex);
   gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
+  disjointGridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
+  eventDetector->feedAudio(inputBuffer, audioParameters.bufferSize);
   pthread_mutex_unlock(&mutex);
 }
 
@@ -276,6 +303,7 @@ void Demo::display() {
       spectrumFrame->display();
       spectrumBinsFrame->display();
       gridMapFrame->display();
+      disjointGridMapFrame->display();
       circleMapFrame->display();
       beatTrackerFrame->display();
       break;

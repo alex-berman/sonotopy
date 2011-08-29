@@ -17,11 +17,22 @@
 #include "RectGridTopology.hpp"
 
 using namespace sonotopy;
+using namespace std;
 
 GridMap::GridMap(const AudioParameters &_audioParameters,
 		 const GridMapParameters &_gridMapParameters)
   : SpectrumMap(new RectGridTopology(_gridMapParameters.gridWidth,
 				     _gridMapParameters.gridHeight),
+		_audioParameters,
+		_gridMapParameters)
+{
+  gridMapParameters = _gridMapParameters;
+}
+
+GridMap::GridMap(const AudioParameters &_audioParameters,
+		 const GridMapParameters &_gridMapParameters,
+		 Topology *topology)
+  : SpectrumMap(topology,
 		_audioParameters,
 		_gridMapParameters)
 {
@@ -34,6 +45,11 @@ float GridMap::getActivation(unsigned int x, unsigned int y) {
   return (*currentActivationPattern)[nodeId];
 }
 
+const float* GridMap::getModel(unsigned int x, unsigned int y) const {
+  unsigned int nodeId = ((RectGridTopology*) topology)->gridCoordinatesToId(x, y);
+  return som->getModel(nodeId);
+}
+
 void GridMap::getCursor(float &x, float &y) {
   static float gridX, gridY;
   moveTopologyCursorTowardsWinner();
@@ -44,4 +60,10 @@ void GridMap::getCursor(float &x, float &y) {
 
 const GridMapParameters GridMap::getParameters() const {
   return gridMapParameters;
+}
+
+void GridMap::write(ofstream &f) const {
+  f << gridMapParameters.gridWidth << endl;
+  f << gridMapParameters.gridHeight << endl;
+  som->writeModelData(f);
 }
