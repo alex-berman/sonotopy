@@ -5,7 +5,6 @@ platform = env['PLATFORM']
 Prefix = ARGUMENTS.get('Prefix','/usr/local')
 
 env = Environment(CCFLAGS = '-Wall -pedantic -ffast-math -fPIC ')
-env.MergeFlags(ARGUMENTS.get('CCFLAGS', '').split())
 
 DEBUG = int(ARGUMENTS.get('DEBUG', '0'))
 if DEBUG:
@@ -16,6 +15,8 @@ env.Append(CCFLAGS = CCFLAGS)
 
 CPPPATH = ['include']
 env.Append(CPPPATH = CPPPATH)
+
+env.MergeFlags(ARGUMENTS.get('CCFLAGS', ''))
 
 LIBS = [["m", "math.h"],
 		["fftw3", "fftw3.h"]]
