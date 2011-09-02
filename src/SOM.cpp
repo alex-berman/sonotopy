@@ -37,6 +37,10 @@ SOM::~SOM() {
   deleteModels();
 }
 
+Topology *SOM::getTopology() const {
+  return topology;
+}
+
 void SOM::createModels() {
   for(uint id = 0; id < numModels; id++)
     models.push_back(new Model(this, id));

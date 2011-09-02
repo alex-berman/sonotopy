@@ -31,6 +31,7 @@ public:
 
   SOM(uint inputSize, Topology *);
   ~SOM();
+  Topology *getTopology() const;
   Sample createSample(const float *) const;
   ActivationPattern* createActivationPattern() const;
   void setNeighbourhoodParameter(float); // 0-1

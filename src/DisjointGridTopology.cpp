@@ -84,3 +84,10 @@ void DisjointGridTopology::getCursorPosition(float &x, float &y) {
   x = cursorX;
   y = cursorY;
 }
+
+bool DisjointGridTopology::containsCoordinates(unsigned int x, unsigned int y) {
+  for(vector<Node>::iterator i = nodes.begin(); i != nodes.end(); i++)
+    if(i->x == x && i->y == y)
+      return true;
+  return false;
+}

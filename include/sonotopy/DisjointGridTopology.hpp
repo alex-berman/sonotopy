@@ -45,6 +45,7 @@ public:
   unsigned int gridCoordinatesToId(unsigned int x, unsigned int y);
   void idToGridCoordinates(unsigned int id, unsigned int &x, unsigned int &y);
   void getCursorPosition(float &x, float &y);
+  bool containsCoordinates(unsigned int x, unsigned int y);
 
 private:
   unsigned int gridWidth;
