@@ -75,7 +75,7 @@ float EventDetector::getCurrentDb() {
 void EventDetector::updateState() {
   switch(state) {
   case STATE_WAITING_FOR_START:
-    if(db > dbThreshold) {
+    if(db >= dbThreshold) {
       eventDurationMs = 0;
       state = STATE_STARTING;
     }
@@ -84,8 +84,7 @@ void EventDetector::updateState() {
   case STATE_STARTING:
     eventDurationMs += bufferDurationMs;
     if(db < dbThreshold) {
-      silenceDurationMs = 0;
-      state = STATE_SILENCE;
+      state = STATE_WAITING_FOR_START;
     }
     else if(eventDurationMs >= minEventDurationMs) {
       state = STATE_NON_SILENCE;
