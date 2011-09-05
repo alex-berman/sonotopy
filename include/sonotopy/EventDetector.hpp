@@ -26,6 +26,7 @@ class EventDetector
 public:
   typedef enum {
     STATE_WAITING_FOR_START,
+    STATE_STARTING,
     STATE_NON_SILENCE,
     STATE_SILENCE
   } State;
@@ -37,6 +38,8 @@ public:
   void setDbThreshold(float);
   float getTrailingSilenceMs();
   void setTrailingSilenceMs(float);
+  float getMinEventDurationMs();
+  void setMinEventDurationMs(float);
   float getCurrentDb();
   virtual void onStartOfEvent() {}
   virtual void onEndOfEvent() {}
