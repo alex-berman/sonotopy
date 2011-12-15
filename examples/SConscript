@@ -7,10 +7,10 @@ SOURCE = ['Demo.cpp',
 	  'IsolineExtractor.cpp',
 	  'IsolineRenderer.cpp']
 
-LIBLIST = [['portaudio', 'portaudio.h'],
-	   ['sndfile', 'sndfile.h'],
-	   ['sonotopy', 'sonotopy.hpp'],
+LIBLIST = [['sonotopy', 'sonotopy.hpp'],
 	   ['sonotopy-uilib', 'sonotopy/uilib/uilib.hpp'],
+	   ['portaudio', 'portaudio.h'],
+	   ['sndfile', 'sndfile.h'],
 	   ['pthread', 'pthread.h']]
 
 CPPPATH = ['../include']
@@ -26,6 +26,8 @@ try:
 		env.MergeFlags(['!%s --cflags --libs %s' % (PKG_CONFIG, lib)])
 except:
 	pass
+
+env.Prepend(LIBS = ['sonotopy'])
 
 # check the availability of libraries
 if not GetOption('clean'):

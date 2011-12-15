@@ -15,6 +15,21 @@ SOURCE = ['Frame.cpp',
 	  'BeatTrackerFrame.cpp',
 	  'GlWindow.cpp']
 
+LIBLIST = []
+if platform == 'posix':
+	LIBLIST += [['glut', 'GL/glut.h']]
+elif platform == 'darwin':
+	env.Append(FRAMEWORKS = ['OpenGL', 'GLUT'])
+
+# check the availability of libraries
+if not GetOption('clean'):
+	conf = Configure(env)
+	for (lib, headers) in LIBLIST:
+		if not conf.CheckLibWithHeader(lib, headers, 'c++'):
+			print "error: '%s' must be installed!" % lib
+			Exit(1)
+	env = conf.Finish()
+
 CPPPATH = [Dir('../../../include/sonotopy')]
 env.Append(CPPPATH = CPPPATH)
 

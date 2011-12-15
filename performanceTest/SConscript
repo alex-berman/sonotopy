@@ -20,7 +20,7 @@ if not GetOption('clean'):
 
 LIBS = ['sonotopy', 'sndfile']
 LIBPATH = ['../src']
-env.Append(LIBS = LIBS)
+env.Prepend(LIBS = LIBS)
 env.Append(LIBPATH = LIBPATH)
 
 env.Program(target = TARGET, source = SOURCE)

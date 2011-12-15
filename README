@@ -99,7 +99,13 @@ To install the library and header files, run "sudo scons install".
 
 RUNTIME EXAMPLES
 
-Sonotopy is bundled with a demo. To build the demo, run "scons examples".
+Sonotopy is bundled with a demo. To build the demo:
+
+sudo scons uilib install
+scons examples
+
+Requirements:
+apt-get install portaudio19-dev libsndfile1-dev freeglut3-dev
 
 To execute the demo, run "build/release/examples/Demo". For usage 
 instructions, run Demo with the -h flag.
