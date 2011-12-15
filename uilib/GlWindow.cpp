@@ -38,7 +38,6 @@ GlWindow::GlWindow(int argc, char **argv, int _width, int _height) {
   _glWindow = this;
   windowWidth = _width;
   windowHeight = _height;
-  frameCount = 0;
 
   glutInit(&argc, argv);
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
@@ -54,7 +53,6 @@ GlWindow::GlWindow(int argc, char **argv, int _width, int _height) {
 
 void GlWindow::glDisplay() {
   display();
-  frameCount++;
 }
 
 void GlWindow::glReshape(int _newWidth, int _newHeight) {

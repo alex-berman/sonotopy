@@ -30,6 +30,7 @@ Demo::Demo(int _argc, char **_argv) :
 
   SPACING = 5;
   SINGLE_FRAME_RELATIVE_SIZE = 0.8;
+  frameCount = 0;
 
   processCommandLineArguments();
   initializeAudioProcessing();
@@ -331,8 +332,8 @@ void Demo::display() {
   }
 
   pthread_mutex_unlock(&mutex);
-
   glutSwapBuffers();
+  frameCount++;
 
   if(showFPS) {
     if(frameCount % 100 == 0) {
@@ -393,7 +394,7 @@ void Demo::Dancer::updateTrace() {
   p.x = currentPos.x * parent->windowWidth;
   p.y = currentPos.y * parent->windowHeight;
   trace.push_back(p);
-  if(trace.size() > 5)
+  if(trace.size() > 10)
     trace.erase(trace.begin());
 }
 

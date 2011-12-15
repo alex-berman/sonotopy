@@ -31,7 +31,6 @@ public:
 
 protected:
   int windowWidth, windowHeight;
-  unsigned long frameCount;
 };
 
 #endif

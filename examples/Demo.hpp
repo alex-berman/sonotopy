@@ -118,6 +118,7 @@ private:
   IsolinesFrame *isolinesFrame;
   std::vector<Dancer> dancers;
   unsigned long displayStartTime;
+  unsigned long frameCount;
   float timeOfPreviousDisplay;
   float timeIncrement;
   pthread_mutex_t mutex;
