@@ -77,6 +77,7 @@ void SpectrumMap::resetAdaptation() {
     somInitialValueMax = spectrumMapParameters.errorThresholdHigh;
     break;
   case SpectrumMapParameters::TimeBased:
+  default:
     somInitialValueMin = 0.0;
     somInitialValueMax = 0.0001;
     break;
