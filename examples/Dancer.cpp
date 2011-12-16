@@ -4,6 +4,8 @@
 using namespace sonotopy;
 using namespace std;
 
+const float Dancer::TRACE_LIFETIME = 0.4f;
+
 Dancer::Dancer(CircleMap *_circleMap,
 	       BeatTracker *_beatTracker,
 	       GlWindow *_window) {
@@ -23,6 +25,7 @@ void Dancer::reset() {
   trace.clear();
   currentPos.x = (float) rand() / RAND_MAX;
   currentPos.y = (float) rand() / RAND_MAX;
+  currentTime = 0;
 }
 
 void Dancer::update(float timeIncrement) {
@@ -34,6 +37,7 @@ void Dancer::update(float timeIncrement) {
   float distance = speed * timeIncrement;
   currentPos.x += cos(angle) * distance;
   currentPos.y += sin(angle) * distance / aspectRatio;
+  currentTime += timeIncrement;
 }
 
 void Dancer::render() {
@@ -44,12 +48,25 @@ void Dancer::render() {
 }
 
 void Dancer::updateTrace() {
+  addCurrentPositionToTrace();
+  removeOldTailFromTrace();
+}
+
+void Dancer::addCurrentPositionToTrace() {
   Point p;
   p.x = currentPos.x * window->getWidth();
   p.y = currentPos.y * window->getHeight();
+  p.startTime = currentTime;
   trace.push_back(p);
-  if(trace.size() > 10)
-    trace.erase(trace.begin());
+}
+
+void Dancer::removeOldTailFromTrace() {
+  for(int i = trace.size() - 1; i >= 0; i--) {
+    if(currentTime - trace[i].startTime > TRACE_LIFETIME) {
+      trace.erase(trace.begin(), trace.begin() + i + 1);
+      break;
+    }
+  }
 }
 
 void Dancer::renderTrace() {
@@ -57,16 +74,16 @@ void Dancer::renderTrace() {
   glShadeModel(GL_SMOOTH);
   glLineWidth(2.0f);
   glBegin(GL_LINE_STRIP);
-  vector<Point>::iterator pos = trace.begin();
+  vector<Point>::iterator point = trace.begin();
   glColor3f(0, 0, 0);
-  glVertex2f(pos->x, pos->y);
-  pos++;
+  glVertex2f(point->x, point->y);
+  point++;
   int traceSize = trace.size();
   int n = 1;
-  for(;pos != trace.end(); pos++) {
+  for(;point != trace.end(); point++) {
     c = (float) (n + 1) / traceSize;
     glColor3f(c, c, c);
-    glVertex2f(pos->x, pos->y);
+    glVertex2f(point->x, point->y);
     n++;
   }
   glEnd();
