@@ -3,6 +3,7 @@ Import(['env', 'platform', 'PKG_CONFIG'])
 TARGET = 'Demo'
 
 SOURCE = ['Demo.cpp',
+	  'Dancer.cpp',
 	  'IsolinesFrame.cpp',
 	  'IsolineExtractor.cpp',
 	  'IsolineRenderer.cpp']

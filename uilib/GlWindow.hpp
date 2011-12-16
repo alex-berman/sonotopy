@@ -24,6 +24,8 @@ public:
   void glReshape(int width, int height);
   void glDisplay();
   void glText(int x, int y, const char *text);
+  int getWidth() { return windowWidth; }
+  int getHeight() { return windowHeight; }
   virtual void resizedWindow() {}
   virtual void display() {}
   virtual void glKeyboard(unsigned char key, int x, int y) {}

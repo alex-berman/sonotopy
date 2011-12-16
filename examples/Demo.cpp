@@ -15,7 +15,6 @@
 
 #include "Demo.hpp"
 #include <string.h>
-#include <math.h>
 #include <time.h>
 
 using namespace std;
@@ -191,7 +190,7 @@ void Demo::initializeGraphics() {
   enlargedCircleMapFrame = new SmoothCircleMapFrame(circleMap);
 
   for(int i = 0; i < 20; i++)
-    dancers.push_back(Dancer(this));
+    dancers.push_back(Dancer(circleMap, beatTracker, this));
 
   glClearColor (0.0, 0.0, 0.0, 0.0);
   glShadeModel (GL_FLAT);
@@ -352,82 +351,6 @@ void Demo::updateDancers() {
 void Demo::renderDancers() {
   for(vector<Dancer>::iterator dancer = dancers.begin(); dancer != dancers.end(); dancer++)
     dancer->render();
-}
-
-Demo::Dancer::Dancer(Demo *_parent) {
-  parent = _parent;
-  reset();
-}
-
-void Demo::Dancer::reset() {
-  speed = 0;
-  speedFactor = 0.3 + 0.3 * (float) rand() / RAND_MAX;
-  length = 0.03;
-  angle = 0;
-  angleOffset = 2 * M_PI * (float) rand() / RAND_MAX;
-  speedOffset = -(float) rand() / RAND_MAX * 0.2;
-  trace.clear();
-  currentPos.x = (float) rand() / RAND_MAX;
-  currentPos.y = (float) rand() / RAND_MAX;
-}
-
-void Demo::Dancer::update(float timeIncrement) {
-  angle = parent->circleMap->getAngle() + angleOffset;
-  speed = (parent->beatTracker->getIntensity() + speedOffset) * speedFactor;
-
-  float aspectRatio = (float) parent->windowHeight / parent->windowWidth;
-
-  float distance = speed * timeIncrement;
-  currentPos.x += cos(angle) * distance;
-  currentPos.y += sin(angle) * distance / aspectRatio;
-}
-
-void Demo::Dancer::render() {
-  updateTrace();
-  renderTrace();
-  if(traceOutOfBounds())
-    reset();
-}
-
-void Demo::Dancer::updateTrace() {
-  Point p;
-  p.x = currentPos.x * parent->windowWidth;
-  p.y = currentPos.y * parent->windowHeight;
-  trace.push_back(p);
-  if(trace.size() > 10)
-    trace.erase(trace.begin());
-}
-
-void Demo::Dancer::renderTrace() {
-  float c;
-  glShadeModel(GL_SMOOTH);
-  glLineWidth(2.0f);
-  glBegin(GL_LINE_STRIP);
-  vector<Point>::iterator pos = trace.begin();
-  glColor3f(0, 0, 0);
-  glVertex2f(pos->x, pos->y);
-  pos++;
-  int traceSize = trace.size();
-  int n = 1;
-  for(;pos != trace.end(); pos++) {
-    c = (float) (n + 1) / traceSize;
-    glColor3f(c, c, c);
-    glVertex2f(pos->x, pos->y);
-    n++;
-  }
-  glEnd();
-}
-
-bool Demo::Dancer::traceOutOfBounds() {
-  return outOfBounds(*(trace.begin())) && outOfBounds(*(trace.end()));
-}
-
-bool Demo::Dancer::outOfBounds(const Point &p) {
-  if(p.x < 0) return true;
-  if(p.y < 0) return true;
-  if(p.x > parent->windowWidth) return true;
-  if(p.y > parent->windowHeight) return true;
-  return false;
 }
 
 int main(int argc, char **argv) {

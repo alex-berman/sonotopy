@@ -13,6 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef _sonotopy_uilib_
+#define _sonotopy_uilib_
+
 #include "GlWindow.hpp"
 #include "AudioIO.hpp"
 #include "Frame.hpp"
@@ -25,3 +28,5 @@
 #include "CircleMapFrame.hpp"
 #include "SmoothCircleMapFrame.hpp"
 #include "BeatTrackerFrame.hpp"
+
+#endif

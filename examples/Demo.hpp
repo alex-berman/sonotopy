@@ -16,6 +16,7 @@
 #include <sonotopy/sonotopy.hpp>
 #include <sonotopy/uilib/uilib.hpp>
 #include "IsolinesFrame.hpp"
+#include "Dancer.hpp"
 #include <vector>
 #include <pthread.h>
 
@@ -29,35 +30,6 @@ public:
   void resizedWindow();
 
 private:
-  typedef struct {
-    float x;
-    float y;
-  } Point;
-
-  class Dancer {
-  public:
-    Dancer(Demo *);
-    void update(float timeIncrement);
-    void render();
-    void reset();
-
-  private:
-    void updateTrace();
-    void renderTrace();
-    bool outOfBounds(const Point &);
-    bool traceOutOfBounds();
-
-    Demo *parent;
-    Point currentPos;
-    std::vector<Point> trace;
-    float angleOffset;
-    float angle;
-    float speed;
-    float speedOffset;
-    float speedFactor;
-    float length;
-  };
-
   enum {
     Scene_Mixed = 0,
     Scene_Dancers,
