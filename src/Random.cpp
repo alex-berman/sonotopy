@@ -13,20 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _sonotopy_hpp_
-#define _sonotopy_hpp_
+#include "Random.hpp"
+#include <stdlib.h>
 
-#include <sonotopy/BeatTracker.hpp>
-#include <sonotopy/CircleMap.hpp>
-#include <sonotopy/GridMap.hpp>
-#include <sonotopy/DisjointGridMap.hpp>
-#include <sonotopy/Smoother.hpp>
-#include <sonotopy/Normalizer.hpp>
-#include <sonotopy/Stopwatch.hpp>
-#include <sonotopy/CircleTopology.hpp>
-#include <sonotopy/RectGridTopology.hpp>
-#include <sonotopy/DisjointGridTopology.hpp>
-#include <sonotopy/EventDetector.hpp>
-#include <sonotopy/Random.hpp>
-
-#endif
+namespace sonotopy {
+  float randomInRange(float min, float max) {
+    return min + (max - min) * (float) rand() / RAND_MAX;
+  }
+}

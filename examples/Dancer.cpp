@@ -1,10 +1,29 @@
+// Copyright (C) 2011 Alexander Berman
+//
+// Sonotopy is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "Dancer.hpp"
 #include <math.h>
 
 using namespace sonotopy;
 using namespace std;
 
-const float Dancer::TRACE_LIFETIME = 0.4f;
+const float Dancer::TRACE_LIFETIME = 0.4;
+const float Dancer::SPEED_FACTOR_MIN = 0.3;
+const float Dancer::SPEED_FACTOR_MAX = 0.6;
+const float Dancer::SPEED_OFFSET_MIN = -0.2;
+const float Dancer::SPEED_OFFSET_MAX = 0;
 
 Dancer::Dancer(CircleMap *_circleMap,
 	       BeatTracker *_beatTracker,
@@ -17,14 +36,13 @@ Dancer::Dancer(CircleMap *_circleMap,
 
 void Dancer::reset() {
   speed = 0;
-  speedFactor = 0.3 + 0.3 * (float) rand() / RAND_MAX;
-  length = 0.03;
+  speedFactor = randomInRange(SPEED_FACTOR_MIN, SPEED_FACTOR_MAX);
   angle = 0;
-  angleOffset = 2 * M_PI * (float) rand() / RAND_MAX;
-  speedOffset = -(float) rand() / RAND_MAX * 0.2;
+  angleOffset = randomInRange(0, 2 * M_PI);
+  speedOffset = randomInRange(SPEED_OFFSET_MIN, SPEED_OFFSET_MAX);
   trace.clear();
-  currentPos.x = (float) rand() / RAND_MAX;
-  currentPos.y = (float) rand() / RAND_MAX;
+  currentPos.x = randomInRange(0, 1);
+  currentPos.y = randomInRange(0, 1);
   currentTime = 0;
 }
 

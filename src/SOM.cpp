@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "SOM.hpp"
-#include <stdlib.h>
+#include "Random.hpp"
 #include <math.h>
 #include <cassert>
 
@@ -259,7 +259,7 @@ void SOM::Model::set(const Sample &sample) {
 void SOM::Model::setRandomValues(float min, float max) {
   float *valuePtr = values;
   for(uint k = 0; k < inputSize; k++)
-    *valuePtr++ = min + (max - min) * (float) rand() / RAND_MAX;
+    *valuePtr++ = randomInRange(min, max);
 }
 
 void SOM::Model::updateNeighbourList() {
