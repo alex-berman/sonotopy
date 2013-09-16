@@ -174,8 +174,12 @@ void AudioIO::readAudioBufferFromFile() {
   while(framesLeft > 0) {
     int framesRead = sf_readf_float(audioInputFile, audioFileBufferPtr, framesLeft);
     if(framesRead < framesLeft)
-      sf_seek(audioInputFile, 0, SEEK_SET); // rewind file
+      rewindAudioInputFile();
     framesLeft -= framesRead;
     audioFileBufferPtr += framesRead * 2;
   }
+}
+
+void AudioIO::rewindAudioInputFile() {
+  sf_seek(audioInputFile, 0, SEEK_SET);
 }

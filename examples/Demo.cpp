@@ -440,12 +440,15 @@ void Demo::renderDancers() {
 }
 
 void Demo::pretrain() {
+  printf("pre-training...\n");
   int pretrainBuffers = pretrainSecs * audioParameters.sampleRate /
     audioParameters.bufferSize;
   for(int i = 0; i < pretrainBuffers; i++) {
     readAudioBufferFromFile();
     processAudioNonThreadSafe(audioFileBuffer);
   }
+  rewindAudioInputFile();
+  printf("ok\n");
 }
 
 int main(int argc, char **argv) {

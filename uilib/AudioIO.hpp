@@ -29,6 +29,8 @@ protected:
   void openAudioInputFile();
   void readAudioBufferFromFile();
   virtual void processAudio(float *) {}
+  void rewindAudioInputFile();
+
   bool useAudioInputFile;
   char *audioInputFilename;
   PaStream *paStream;
