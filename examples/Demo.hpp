@@ -51,6 +51,7 @@ private:
   void processCommandLineArguments();
   void usage();
   void initializeAudioProcessing();
+  void processAudioNonThreadSafe(float *);
   void createDisjointGridMap();
   void initializeGraphics();
   void mainLoop();
@@ -58,6 +59,7 @@ private:
   void moveToScene(int _sceneNum);
   void updateDancers();
   void renderDancers();
+  void pretrain();
 
   Stopwatch stopwatch;
   int SPACING;
@@ -94,4 +96,5 @@ private:
   float timeOfPreviousDisplay;
   float timeIncrement;
   pthread_mutex_t mutex;
+  float pretrainSecs;
 };

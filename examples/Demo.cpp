@@ -35,6 +35,7 @@ Demo::Demo(int _argc, char **_argv) :
   initializeAudioProcessing();
   initializeAudio();
   initializeGraphics();
+  pretrain();
   openAudioStream();
   mainLoop();
 }
@@ -46,6 +47,7 @@ void Demo::processCommandLineArguments() {
   useAudioInputFile = false;
   echoAudio = false;
   showFPS = false;
+  pretrainSecs = 0;
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -96,6 +98,11 @@ void Demo::processCommandLineArguments() {
 	  usage();
 	}
       }
+      else if(strcmp(argflag, "pretrain") == 0) {
+	argnr++;
+	argptr++;
+	pretrainSecs = atof(*argptr);
+      }
       else {
         printf("Unknown option %s\n\n", argflag);
         usage();
@@ -120,6 +127,7 @@ void Demo::usage() {
   printf(" -d <name>     Use specified audio device\n");
   printf(" -echo         Echo audio input back to output\n");
   printf(" -showfps      Output frame rate to console\n");
+  printf(" -pretrain <N> Pre-train for N seconds\n");
 
   exit(0);
 }
@@ -270,12 +278,16 @@ void Demo::mainLoop() {
 
 void Demo::processAudio(float *inputBuffer) {
   pthread_mutex_lock(&mutex);
+  processAudioNonThreadSafe(inputBuffer);
+  pthread_mutex_unlock(&mutex);
+}
+
+void Demo::processAudioNonThreadSafe(float *inputBuffer) {
   gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   disjointGridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
   beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
   eventDetector->feedAudio(inputBuffer, audioParameters.bufferSize);
-  pthread_mutex_unlock(&mutex);
 }
 
 void Demo::display() {
@@ -351,6 +363,15 @@ void Demo::updateDancers() {
 void Demo::renderDancers() {
   for(vector<Dancer>::iterator dancer = dancers.begin(); dancer != dancers.end(); dancer++)
     dancer->render();
+}
+
+void Demo::pretrain() {
+  int pretrainBuffers = pretrainSecs * audioParameters.sampleRate /
+    audioParameters.bufferSize;
+  for(int i = 0; i < pretrainBuffers; i++) {
+    readAudioBufferFromFile();
+    processAudioNonThreadSafe(audioFileBuffer);
+  }
 }
 
 int main(int argc, char **argv) {
