@@ -50,16 +50,6 @@ http://vimeo.com/channels/206361
 
 //////////////////////////////////////////////////////////////////////////////
 
-ROADMAP (preliminary)
-
-- Integrate with Fluxus (http://www.pawfal.org/fluxus/)
-- Integrate with Pure Data (http://puredata.info/)
-- Integrate with Max (http://cycling74.com/products/maxmspjitter/)
-- Integrate with Processing (http://processing.org/)
-
-
-//////////////////////////////////////////////////////////////////////////////
-
 CONTRIBUTING
 
 Anyone is welcome to contribute to the project. Currently, the main
