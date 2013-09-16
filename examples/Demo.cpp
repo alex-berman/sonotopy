@@ -226,6 +226,13 @@ void Demo::glSpecial(int key, int x, int y) {
   }
 }
 
+void Demo::glKeyboard(unsigned char key, int x, int y) {
+  switch(key) {
+  case 27: // escape
+    exit(0);
+  }
+}
+
 void Demo::switchScene(int step) {
   if(selectedSceneNum == -1)
     moveToScene((sceneNum + step) % numScenes);

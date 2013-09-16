@@ -27,6 +27,7 @@ public:
   void processAudio(float *);
   void display();
   void glSpecial(int key, int x, int y);
+  void glKeyboard(unsigned char key, int x, int y);
   void resizedWindow();
 
 private:
