@@ -117,6 +117,10 @@ void Demo::processCommandLineArguments() {
 	selectedSceneNum = atoi(*argptr);
 	selectScene();
       }
+      else if(strcmp(argflag, "export") == 0) {
+	audioEnableVideoExport();
+	windowEnableVideoExport();
+      }
       else {
         printf("Unknown option %s\n\n", argflag);
         usage();
@@ -182,6 +186,7 @@ void Demo::usage() {
   printf(" -showfps      Output frame rate to console\n");
   printf(" -pretrain <N> Pre-train for N seconds\n");
   printf(" -scene <N>    Select only visualization number N\n");
+  printf(" -export       Export video\n");
 
   exit(0);
 }
@@ -247,7 +252,7 @@ void Demo::moveToScene(int _sceneNum) {
 
 void Demo::initializeGraphics() {
   normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == SpectrumAnalyzer::Amplitude);
-  waveformFrame = new WaveformFrame(spectrumMapInputBuffer, audioParameters.bufferSize);
+  waveformFrame = new WaveformFrame(monauralInputBuffer, audioParameters.bufferSize);
   spectrumFrame = new SpectrumFrame(spectrumAnalyzer, normalizeSpectrum);
   spectrumBinsFrame = new SpectrumBinsFrame(spectrumBinDivider, normalizeSpectrum);
   gridMapFrame = new GridMapFrame(gridMap);
@@ -382,6 +387,11 @@ void Demo::display() {
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
+
+  if(exportEnabled) {
+    readAudioBufferFromFile();
+    processAudioNonThreadSafe(audioFileBuffer);
+  }
 
   switch(sceneNum) {
     case Scene_Mixed:

@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "GlWindow.hpp"
-#include <stdio.h>
+#include <fstream>
 
 GlWindow *_glWindow;
 
@@ -38,6 +38,7 @@ GlWindow::GlWindow(int argc, char **argv, int _width, int _height) {
   _glWindow = this;
   windowWidth = _width;
   windowHeight = _height;
+  exportEnabled = false;
 
   glutInit(&argc, argv);
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
@@ -53,6 +54,9 @@ GlWindow::GlWindow(int argc, char **argv, int _width, int _height) {
 
 void GlWindow::glDisplay() {
   display();
+
+  if(exportEnabled)
+    exportFrame();
 }
 
 void GlWindow::glReshape(int _newWidth, int _newHeight) {
@@ -76,4 +80,32 @@ void GlWindow::glText(int x, int y, const char *text) {
   const char *i = text;
   while (*i) glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, *i++);
   glPopMatrix();
+}
+
+void GlWindow::windowEnableVideoExport() {
+  exportEnabled = true;
+  exportFrameNum = 0;
+  exportFrameData = (GLubyte *) malloc(3 * windowWidth * windowHeight);
+}
+
+void GlWindow::exportFrame() {
+  char filename[1024];
+  sprintf(filename, "export/frame%05d.ppm", exportFrameNum);
+  glPixelStorei(GL_PACK_ALIGNMENT, 1);
+  glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, exportFrameData);
+
+  std::ofstream out(filename, std::ios_base::binary);
+  out << "P6\n" << windowWidth << " " << windowHeight << "\n" << "255\n";
+  GLubyte *rgbPointer = exportFrameData;
+  unsigned char r, g, b;
+  for (int y = 0; y < windowHeight; y++) {
+    for (int x = 0; x < windowWidth; x++) {
+      r = *rgbPointer++;
+      g = *rgbPointer++;
+      b = *rgbPointer++;
+      out << r << g << b;
+    }
+  }
+
+  exportFrameNum++;
 }

@@ -18,13 +18,14 @@
 #include <string.h>
 
 AudioIO::AudioIO() {
-  spectrumMapInputBuffer = NULL;
+  monauralInputBuffer = NULL;
   audioFileBuffer = NULL;
   audioDeviceName = NULL;
+  videoExportEnabled = false;
 }
 
 AudioIO::~AudioIO() {
-  if(spectrumMapInputBuffer) delete spectrumMapInputBuffer;
+  if(monauralInputBuffer) delete monauralInputBuffer;
   if(useAudioInputFile) sf_close(audioInputFile);
   if(audioFileBuffer) delete audioFileBuffer;
 }
@@ -32,14 +33,17 @@ AudioIO::~AudioIO() {
 void AudioIO::initializeAudio() {
   PaError err;
   if(useAudioInputFile) openAudioInputFile();
-  err = Pa_Initialize();
-  if( err != paNoError ) {
-    printf("failed to initialize portaudio\n");
-    exit(0);
-  }
-  spectrumMapInputBuffer = new float [audioParameters.bufferSize];
-  if(!useAudioInputFile) {
-    printf("listening to audio device\n");
+
+  if(!videoExportEnabled) {
+    err = Pa_Initialize();
+    if( err != paNoError ) {
+      printf("failed to initialize portaudio\n");
+      exit(0);
+    }
+    monauralInputBuffer = new float [audioParameters.bufferSize];
+    if(!useAudioInputFile) {
+      printf("listening to audio device\n");
+    }
   }
 }
 
@@ -56,6 +60,11 @@ static int AudioIO_portaudioCallback(
 }
 
 void AudioIO::openAudioStream() {
+  if(!videoExportEnabled)
+    portaudioOpenAudioStream();
+}
+
+void AudioIO::portaudioOpenAudioStream() {
   int numInputChannels = 2;
   int numOutputChannels = echoAudio ? 2 : 0;
   int audioDeviceId = 0;
@@ -130,12 +139,12 @@ int AudioIO::audioCallback(float *inputBuffer, float *outputBuffer, unsigned lon
     inputPtr = inputBuffer;
   }
 
-  float *spectrumMapInputBufferPtr = spectrumMapInputBuffer;
+  float *monauralInputBufferPtr = monauralInputBuffer;
   float *outputPtr = (float *) outputBuffer;
 
   unsigned long i = 0;
   while(i < audioParameters.bufferSize) {
-    *spectrumMapInputBufferPtr++ = *inputPtr;
+    *monauralInputBufferPtr++ = *inputPtr;
     if(echoAudio) {
       *outputPtr++ = *inputPtr++;
       *outputPtr++ = *inputPtr++;
@@ -146,7 +155,7 @@ int AudioIO::audioCallback(float *inputBuffer, float *outputBuffer, unsigned lon
     i++;
   }
 
-  processAudio(spectrumMapInputBuffer);
+  processAudio(monauralInputBuffer);
 
   return 0;
 }
@@ -182,4 +191,8 @@ void AudioIO::readAudioBufferFromFile() {
 
 void AudioIO::rewindAudioInputFile() {
   sf_seek(audioInputFile, 0, SEEK_SET);
+}
+
+void AudioIO::audioEnableVideoExport() {
+  videoExportEnabled = true;
 }

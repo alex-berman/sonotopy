@@ -26,13 +26,19 @@ public:
   void glText(int x, int y, const char *text);
   int getWidth() { return windowWidth; }
   int getHeight() { return windowHeight; }
+  void windowEnableVideoExport();
   virtual void resizedWindow() {}
   virtual void display() {}
   virtual void glKeyboard(unsigned char key, int x, int y) {}
   virtual void glSpecial(int key, int x, int y) {}
 
 protected:
+  void exportFrame();
+
   int windowWidth, windowHeight;
+  bool exportEnabled;
+  int exportFrameNum;
+  GLubyte *exportFrameData;
 };
 
 #endif

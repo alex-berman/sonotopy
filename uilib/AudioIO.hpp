@@ -30,14 +30,17 @@ protected:
   void readAudioBufferFromFile();
   virtual void processAudio(float *) {}
   void rewindAudioInputFile();
+  void audioEnableVideoExport();
+  void portaudioOpenAudioStream();
 
   bool useAudioInputFile;
   char *audioInputFilename;
   PaStream *paStream;
   const char *audioDeviceName;
-  float *spectrumMapInputBuffer;
+  float *monauralInputBuffer;
   bool echoAudio;
   SNDFILE *audioInputFile;
   float *audioFileBuffer;
   sonotopy::AudioParameters audioParameters;
+  bool videoExportEnabled;
 };
