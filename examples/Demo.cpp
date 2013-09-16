@@ -48,6 +48,14 @@ void Demo::processCommandLineArguments() {
   echoAudio = false;
   showFPS = false;
   pretrainSecs = 0;
+  selectedSceneNum = -1;
+  
+  gridMapEnabled = true;
+  disjointGridMapEnabled = true;
+  circleMapEnabled = true;
+  beatTrackerEnabled = true;
+  eventDetectorEnabled = true;
+
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -103,6 +111,12 @@ void Demo::processCommandLineArguments() {
 	argptr++;
 	pretrainSecs = atof(*argptr);
       }
+      else if(strcmp(argflag, "scene") == 0) {
+	argnr++;
+	argptr++;
+	selectedSceneNum = atoi(*argptr);
+	selectScene();
+      }
       else {
         printf("Unknown option %s\n\n", argflag);
         usage();
@@ -117,6 +131,45 @@ void Demo::processCommandLineArguments() {
   }
 }
 
+void Demo::selectScene() {
+  gridMapEnabled = false;
+  disjointGridMapEnabled = false;
+  circleMapEnabled = false;
+  beatTrackerEnabled = false;
+  eventDetectorEnabled = false;
+
+  switch(selectedSceneNum) {
+  case Scene_Mixed:
+    printf("cannot select mixed scene\n");
+    exit(0);
+
+  case Scene_Dancers:
+    circleMapEnabled = true;
+    beatTrackerEnabled = true;
+    break;
+
+  case Scene_EnlargedCircleMap:
+    circleMapEnabled = true;
+    break;
+
+  case Scene_EnlargedGridMap:
+    gridMapEnabled = true;
+    break;
+
+  case Scene_GridMapTrajectory:
+    gridMapEnabled = true;
+    break;
+
+  case Scene_Isolines:
+    gridMapEnabled = true;
+    break;
+
+  default:
+    printf("unknown scene number %d\n", selectedSceneNum);
+    exit(0);
+  }
+}
+
 void Demo::usage() {
   printf("Usage: %s [options]\n\n", argv[0]);
 
@@ -128,6 +181,7 @@ void Demo::usage() {
   printf(" -echo         Echo audio input back to output\n");
   printf(" -showfps      Output frame rate to console\n");
   printf(" -pretrain <N> Pre-train for N seconds\n");
+  printf(" -scene <N>    Select only visualization number N\n");
 
   exit(0);
 }
@@ -163,19 +217,20 @@ void Demo::createDisjointGridMap() {
 void Demo::glSpecial(int key, int x, int y) {
   switch(key) {
   case GLUT_KEY_RIGHT:
-    if(sceneNum == (numScenes - 1))
-      moveToScene(0);
-    else
-      moveToScene(sceneNum + 1);
+    switchScene(1);
     break;
-
+    
   case GLUT_KEY_LEFT:
-    if(sceneNum == 0)
-      moveToScene(numScenes - 1);
-    else
-      moveToScene(sceneNum - 1);
+    switchScene(-1);
     break;
   }
+}
+
+void Demo::switchScene(int step) {
+  if(selectedSceneNum == -1)
+    moveToScene((sceneNum + step) % numScenes);
+  else
+    printf("cannot switch scene as a scene was selected\n");
 }
 
 void Demo::moveToScene(int _sceneNum) {
@@ -203,7 +258,10 @@ void Demo::initializeGraphics() {
   glClearColor (0.0, 0.0, 0.0, 0.0);
   glShadeModel (GL_FLAT);
 
-  moveToScene(Scene_Mixed);
+  if(selectedSceneNum == -1)
+    moveToScene(Scene_Mixed);
+  else
+    moveToScene(selectedSceneNum);
 }
 
 void Demo::resizedWindow() {
@@ -283,11 +341,20 @@ void Demo::processAudio(float *inputBuffer) {
 }
 
 void Demo::processAudioNonThreadSafe(float *inputBuffer) {
-  gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
-  disjointGridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
-  circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
-  beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
-  eventDetector->feedAudio(inputBuffer, audioParameters.bufferSize);
+  if(gridMapEnabled)
+    gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
+
+  if(disjointGridMapEnabled)
+    disjointGridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
+
+  if(circleMapEnabled)
+    circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
+
+  if(beatTrackerEnabled)
+    beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
+
+  if(eventDetectorEnabled)
+    eventDetector->feedAudio(inputBuffer, audioParameters.bufferSize);
 }
 
 void Demo::display() {
