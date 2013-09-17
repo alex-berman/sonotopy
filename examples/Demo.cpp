@@ -21,12 +21,12 @@ using namespace std;
 using namespace sonotopy;
 
 Demo::Demo(int _argc, char **_argv) :
-  GlWindow(_argc, _argv, 800, 600),
+  GlWindow(_argc, _argv),
   AudioIO()
 {
   argc = _argc;
   argv = _argv;
-
+  
   SPACING = 5;
   SINGLE_FRAME_RELATIVE_SIZE = 0.8;
   frameCount = 0;
@@ -44,6 +44,8 @@ Demo::~Demo() {
 }
 
 void Demo::processCommandLineArguments() {
+  width = 800;
+  height = 600;
   useAudioInputFile = false;
   echoAudio = false;
   showFPS = false;
@@ -121,6 +123,16 @@ void Demo::processCommandLineArguments() {
 	audioEnableVideoExport();
 	windowEnableVideoExport();
       }
+      else if(strcmp(argflag, "width") == 0) {
+	argnr++;
+	argptr++;
+	width = atoi(*argptr);
+      }
+      else if(strcmp(argflag, "height") == 0) {
+	argnr++;
+	argptr++;
+	height = atoi(*argptr);
+      }
       else {
         printf("Unknown option %s\n\n", argflag);
         usage();
@@ -179,13 +191,15 @@ void Demo::usage() {
 
   printf("Options:\n\n");
 
-  printf(" -f <WAV file> Use audio file as input\n");
-  printf(" -b <N>        Set audio buffer size to N (default: %ld)\n", audioParameters.bufferSize);
-  printf(" -d <name>     Use specified audio device\n");
+  printf(" -width X      Window width\n");
+  printf(" -height X     Window height\n");
+  printf(" -f WAV-file   Use audio file as input\n");
+  printf(" -b N          Set audio buffer size to N (default: %ld)\n", audioParameters.bufferSize);
+  printf(" -d name       Use specified audio device\n");
   printf(" -echo         Echo audio input back to output\n");
   printf(" -showfps      Output frame rate to console\n");
-  printf(" -pretrain <N> Pre-train for N seconds\n");
-  printf(" -scene <N>    Select only visualization number N\n");
+  printf(" -pretrain N   Pre-train for N seconds\n");
+  printf(" -scene N      Select only visualization number N\n");
   printf(" -export       Export video\n");
 
   exit(0);
@@ -251,6 +265,9 @@ void Demo::moveToScene(int _sceneNum) {
 }
 
 void Demo::initializeGraphics() {
+  setWindowSize(width, height);
+  GlWindow::initializeGraphics();
+
   normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == SpectrumAnalyzer::Amplitude);
   waveformFrame = new WaveformFrame(monauralInputBuffer, audioParameters.bufferSize);
   spectrumFrame = new SpectrumFrame(spectrumAnalyzer, normalizeSpectrum);

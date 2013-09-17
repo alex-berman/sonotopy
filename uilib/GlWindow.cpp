@@ -34,16 +34,22 @@ void GlWindow_special(int key, int x, int y) {
   _glWindow->glSpecial(key, x, y);
 }
 
-GlWindow::GlWindow(int argc, char **argv, int _width, int _height) {
+GlWindow::GlWindow(int _argc, char **_argv) {
   _glWindow = this;
+  exportEnabled = false;
+  argc = _argc;
+  argv = _argv;
+}
+
+void GlWindow::setWindowSize(int _width, int _height) {
   windowWidth = _width;
   windowHeight = _height;
-  exportEnabled = false;
+}
 
+void GlWindow::initializeGraphics() {
   glutInit(&argc, argv);
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize (windowWidth, windowHeight);
-  //glutInitWindowPosition (0, 0);
   glutCreateWindow (argv[0]);
   glutDisplayFunc(GlWindow_display);
   glutIdleFunc(GlWindow_display);

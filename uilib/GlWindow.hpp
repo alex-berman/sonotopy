@@ -20,7 +20,9 @@
 
 class GlWindow {
 public:
-  GlWindow(int argc, char **argv, int width, int height);
+  GlWindow(int argc, char **argv);
+  void setWindowSize(int width, int height);
+  void initializeGraphics();
   void glReshape(int width, int height);
   void glDisplay();
   void glText(int x, int y, const char *text);
@@ -35,6 +37,8 @@ public:
 protected:
   void exportFrame();
 
+  int argc;
+  char **argv;
   int windowWidth, windowHeight;
   bool exportEnabled;
   int exportFrameNum;

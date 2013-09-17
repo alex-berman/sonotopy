@@ -64,6 +64,7 @@ private:
   void selectScene();
   void switchScene(int step);
 
+  int width, height;
   Stopwatch stopwatch;
   int SPACING;
   float SINGLE_FRAME_RELATIVE_SIZE;
