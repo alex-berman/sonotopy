@@ -105,13 +105,6 @@ void Demo::processCommandLineArguments() {
 	argptr++;
 	pretrainSecs = atof(*argptr);
       }
-<<<<<<< HEAD
-      else if(strcmp(argflag, "scene") == 0) {
-	argnr++;
-	argptr++;
-	selectedSceneNum = atoi(*argptr);
-	selectScene();
-      }
       else if(strcmp(argflag, "export") == 0) {
 	audioEnableVideoExport();
 	windowEnableVideoExport();
@@ -126,8 +119,6 @@ void Demo::processCommandLineArguments() {
 	argptr++;
 	height = atoi(*argptr);
       }
-=======
->>>>>>> parent of babff2c... demo: added option for selecting a scene
       else {
         printf("Unknown option %s\n\n", argflag);
         usage();
@@ -154,13 +145,8 @@ void Demo::usage() {
   printf(" -d name       Use specified audio device\n");
   printf(" -echo         Echo audio input back to output\n");
   printf(" -showfps      Output frame rate to console\n");
-<<<<<<< HEAD
   printf(" -pretrain N   Pre-train for N seconds\n");
-  printf(" -scene N      Select only visualization number N\n");
   printf(" -export       Export video\n");
-=======
-  printf(" -pretrain <N> Pre-train for N seconds\n");
->>>>>>> parent of babff2c... demo: added option for selecting a scene
 
   exit(0);
 }
@@ -211,7 +197,6 @@ void Demo::glSpecial(int key, int x, int y) {
   }
 }
 
-<<<<<<< HEAD
 void Demo::glKeyboard(unsigned char key, int x, int y) {
   switch(key) {
   case 27: // escape
@@ -219,15 +204,6 @@ void Demo::glKeyboard(unsigned char key, int x, int y) {
   }
 }
 
-void Demo::switchScene(int step) {
-  if(selectedSceneNum == -1)
-    moveToScene((sceneNum + step) % numScenes);
-  else
-    printf("cannot switch scene as a scene was selected\n");
-}
-
-=======
->>>>>>> parent of babff2c... demo: added option for selecting a scene
 void Demo::moveToScene(int _sceneNum) {
   sceneNum = _sceneNum;
   resizeFrames();
