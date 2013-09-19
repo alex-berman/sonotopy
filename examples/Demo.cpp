@@ -263,7 +263,7 @@ void Demo::display() {
 
   if(exportEnabled) {
     readAudioBufferFromFile();
-    processAudioNonThreadSafe(audioFileBuffer);
+    processAudioNonThreadSafe(monauralInputBuffer);
   }
 
   switch(sceneNum) {

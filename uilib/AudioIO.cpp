@@ -34,13 +34,15 @@ void AudioIO::initializeAudio() {
   PaError err;
   if(useAudioInputFile) openAudioInputFile();
 
+  monauralInputBuffer = new float [audioParameters.bufferSize];
+  bzero(monauralInputBuffer, sizeof(float) * audioParameters.bufferSize);
+
   if(!videoExportEnabled) {
     err = Pa_Initialize();
     if( err != paNoError ) {
       printf("failed to initialize portaudio\n");
       exit(0);
     }
-    monauralInputBuffer = new float [audioParameters.bufferSize];
     if(!useAudioInputFile) {
       printf("listening to audio device\n");
     }
@@ -131,20 +133,23 @@ int AudioIO::audioCallback(float *inputBuffer, float *outputBuffer, unsigned lon
   }
 
   static float *inputPtr;
+  static float *monauralInputBufferPtr;
   if(useAudioInputFile) {
     readAudioBufferFromFile();
     inputPtr = audioFileBuffer;
   }
   else {
+    monauralInputBufferPtr = monauralInputBuffer;
+    inputPtr = inputBuffer;
+    for(unsigned long i = 0; i < audioParameters.bufferSize; i++) {
+      *monauralInputBufferPtr++ = *inputPtr;
+      inputPtr += 2;
+    }
     inputPtr = inputBuffer;
   }
 
-  float *monauralInputBufferPtr = monauralInputBuffer;
   float *outputPtr = (float *) outputBuffer;
-
-  unsigned long i = 0;
-  while(i < audioParameters.bufferSize) {
-    *monauralInputBufferPtr++ = *inputPtr;
+  for(unsigned long i = 0; i < audioParameters.bufferSize; i++) {
     if(echoAudio) {
       *outputPtr++ = *inputPtr++;
       *outputPtr++ = *inputPtr++;
@@ -152,7 +157,6 @@ int AudioIO::audioCallback(float *inputBuffer, float *outputBuffer, unsigned lon
     else {
       inputPtr += 2;
     }
-    i++;
   }
 
   processAudio(monauralInputBuffer);
@@ -179,13 +183,23 @@ void AudioIO::openAudioInputFile() {
 
 void AudioIO::readAudioBufferFromFile() {
   float *audioFileBufferPtr = audioFileBuffer;
+  float *monauralInputBufferPtr = monauralInputBuffer;
   int framesLeft = audioParameters.bufferSize;
   while(framesLeft > 0) {
     int framesRead = sf_readf_float(audioInputFile, audioFileBufferPtr, framesLeft);
-    if(framesRead < framesLeft)
-      rewindAudioInputFile();
+    if(framesRead < framesLeft) {
+      if(videoExportEnabled) {
+	printf("export finished\n");
+	exit(0);
+      }
+      else
+	rewindAudioInputFile();
+    }
     framesLeft -= framesRead;
-    audioFileBufferPtr += framesRead * 2;
+    for(int i = 0; i < framesRead; i++) {
+      *monauralInputBufferPtr++ = *audioFileBufferPtr;
+      audioFileBufferPtr += 2;
+    }
   }
 }
 
