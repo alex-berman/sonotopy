@@ -15,6 +15,7 @@
 
 #include <sonotopy/sonotopy.hpp>
 #include <sonotopy/uilib/uilib.hpp>
+#include <sonotopy/uilib/cmdline.hpp>
 #include "IsolinesFrame.hpp"
 #include "Dancer.hpp"
 #include <vector>
@@ -62,7 +63,7 @@ private:
   void renderDancers();
   void pretrain();
 
-  int width, height;
+  cmdline::parser parser;
   Stopwatch stopwatch;
   int SPACING;
   float SINGLE_FRAME_RELATIVE_SIZE;
@@ -98,5 +99,4 @@ private:
   float timeOfPreviousDisplay;
   float timeIncrement;
   pthread_mutex_t mutex;
-  float pretrainSecs;
 };

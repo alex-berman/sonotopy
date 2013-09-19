@@ -34,7 +34,7 @@ protected:
   void portaudioOpenAudioStream();
 
   bool useAudioInputFile;
-  char *audioInputFilename;
+  const char *audioInputFilename;
   PaStream *paStream;
   const char *audioDeviceName;
   float *monauralInputBuffer;

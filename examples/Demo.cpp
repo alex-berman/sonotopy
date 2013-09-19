@@ -44,111 +44,34 @@ Demo::~Demo() {
 }
 
 void Demo::processCommandLineArguments() {
-  width = 800;
-  height = 600;
-  useAudioInputFile = false;
-  echoAudio = false;
-  showFPS = false;
-  pretrainSecs = 0;
-  int argnr = 1;
-  char **argptr = argv + 1;
-  char *arg;
-  while(argnr < argc) {
-    arg = *argptr;
-    if(arg[0] == '-') {
-      char *argflag = arg + 1;
-      if(strcmp(argflag, "h") == 0) {
-	usage();
-      }
-      else if(strcmp(argflag, "f") == 0) {
-        useAudioInputFile = true;
-        echoAudio = true;
-        argnr++; argptr++;
-        audioInputFilename = *argptr;
-      }
-      else if(strcmp(argflag, "b") == 0) {
-        argnr++; argptr++;
-        audioParameters.bufferSize = atoi(*argptr);
-      }
-      else if(strcmp(argflag, "d") == 0) {
-        argnr++; argptr++;
-        audioDeviceName = *argptr;
-      }
-      else if(strcmp(argflag, "echo") == 0) {
-        echoAudio = true;
-      }
-      else if(strcmp(argflag, "showfps") == 0) {
-        showFPS = true;
-      }
-      else if(strcmp(argflag, "adapt") == 0) {
-	argnr++;
-	argptr++;
-	if(strcmp(*argptr, "time") == 0) {
-	  gridMapParameters.adaptationStrategy =
-	  disjointGridMapParameters.adaptationStrategy =
-	    circleMapParameters.adaptationStrategy =
-	    SpectrumMapParameters::TimeBased;
-	}
-	else if(strcmp(*argptr, "error") == 0) {
-	  gridMapParameters.adaptationStrategy =
-	  disjointGridMapParameters.adaptationStrategy =
-	    circleMapParameters.adaptationStrategy =
-	    SpectrumMapParameters::ErrorDriven;
-	}
-	else {
-	  printf("Unknown adaptation strategy %s\n", *argptr);
-	  usage();
-	}
-      }
-      else if(strcmp(argflag, "pretrain") == 0) {
-	argnr++;
-	argptr++;
-	pretrainSecs = atof(*argptr);
-      }
-      else if(strcmp(argflag, "export") == 0) {
-	audioEnableVideoExport();
-	windowEnableVideoExport();
-      }
-      else if(strcmp(argflag, "width") == 0) {
-	argnr++;
-	argptr++;
-	width = atoi(*argptr);
-      }
-      else if(strcmp(argflag, "height") == 0) {
-	argnr++;
-	argptr++;
-	height = atoi(*argptr);
-      }
-      else {
-        printf("Unknown option %s\n\n", argflag);
-        usage();
-      }
-    }
-    else {
-      printf("Unknown parameter %s\n\n", arg);
-      usage();
-    }
-    argptr++;
-    argnr++;
+  parser.add<string>("audiofile", 'f', "Audio file for input", false);
+  parser.add<int>("buffersize", 'b', "Audio buffer size", false, audioParameters.bufferSize);
+  parser.add<string>("audiodevice", 'd', "Audio device", false);
+  parser.add("echo", '\0', "Echo audio input back to output");
+  parser.add("showfps", '\0', "Output frame rate to console");
+  parser.add<float>("pretrain", '\0', "Pre-train for N seconds", false, 0.0);
+  parser.add<int>("width", 'w', "Window width", false, 800);
+  parser.add<int>("height", 'h', "Window height", false, 600);
+  parser.add("export", '\0', "Export video");
+  parser.parse_check(argc, argv);
+
+  if(parser.exist("audiofile")) {
+    useAudioInputFile = true;
+    audioInputFilename = parser.get<string>("audiofile").c_str();
   }
-}
+  else {
+    useAudioInputFile = false;
+  }
 
-void Demo::usage() {
-  printf("Usage: %s [options]\n\n", argv[0]);
+  echoAudio = (useAudioInputFile || parser.exist("echo"));
 
-  printf("Options:\n\n");
+  audioDeviceName = parser.get<string>("audiodevice").c_str();
+  showFPS = parser.exist("showfps");
 
-  printf(" -width X      Window width\n");
-  printf(" -height X     Window height\n");
-  printf(" -f WAV-file   Use audio file as input\n");
-  printf(" -b N          Set audio buffer size to N (default: %ld)\n", audioParameters.bufferSize);
-  printf(" -d name       Use specified audio device\n");
-  printf(" -echo         Echo audio input back to output\n");
-  printf(" -showfps      Output frame rate to console\n");
-  printf(" -pretrain N   Pre-train for N seconds\n");
-  printf(" -export       Export video\n");
-
-  exit(0);
+  if(parser.exist("export")) {
+    audioEnableVideoExport();
+    windowEnableVideoExport();
+  }
 }
 
 void Demo::initializeAudioProcessing() {
@@ -210,7 +133,7 @@ void Demo::moveToScene(int _sceneNum) {
 }
 
 void Demo::initializeGraphics() {
-  setWindowSize(width, height);
+  setWindowSize(parser.get<int>("width"), parser.get<int>("height"));
   GlWindow::initializeGraphics();
 
   normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == SpectrumAnalyzer::Amplitude);
@@ -400,15 +323,17 @@ void Demo::renderDancers() {
 }
 
 void Demo::pretrain() {
-  printf("pre-training...\n");
-  int pretrainBuffers = pretrainSecs * audioParameters.sampleRate /
+  int pretrainBuffers = parser.get<float>("pretrain") * audioParameters.sampleRate /
     audioParameters.bufferSize;
-  for(int i = 0; i < pretrainBuffers; i++) {
-    readAudioBufferFromFile();
-    processAudioNonThreadSafe(audioFileBuffer);
+  if(pretrainBuffers > 0) {
+    printf("pre-training...\n");
+    for(int i = 0; i < pretrainBuffers; i++) {
+      readAudioBufferFromFile();
+      processAudioNonThreadSafe(audioFileBuffer);
+    }
+    rewindAudioInputFile();
+    printf("ok\n");
   }
-  rewindAudioInputFile();
-  printf("ok\n");
 }
 
 int main(int argc, char **argv) {
