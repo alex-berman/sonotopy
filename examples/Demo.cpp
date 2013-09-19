@@ -50,14 +50,6 @@ void Demo::processCommandLineArguments() {
   echoAudio = false;
   showFPS = false;
   pretrainSecs = 0;
-  selectedSceneNum = -1;
-  
-  gridMapEnabled = true;
-  disjointGridMapEnabled = true;
-  circleMapEnabled = true;
-  beatTrackerEnabled = true;
-  eventDetectorEnabled = true;
-
   int argnr = 1;
   char **argptr = argv + 1;
   char *arg;
@@ -113,6 +105,7 @@ void Demo::processCommandLineArguments() {
 	argptr++;
 	pretrainSecs = atof(*argptr);
       }
+<<<<<<< HEAD
       else if(strcmp(argflag, "scene") == 0) {
 	argnr++;
 	argptr++;
@@ -133,6 +126,8 @@ void Demo::processCommandLineArguments() {
 	argptr++;
 	height = atoi(*argptr);
       }
+=======
+>>>>>>> parent of babff2c... demo: added option for selecting a scene
       else {
         printf("Unknown option %s\n\n", argflag);
         usage();
@@ -144,45 +139,6 @@ void Demo::processCommandLineArguments() {
     }
     argptr++;
     argnr++;
-  }
-}
-
-void Demo::selectScene() {
-  gridMapEnabled = false;
-  disjointGridMapEnabled = false;
-  circleMapEnabled = false;
-  beatTrackerEnabled = false;
-  eventDetectorEnabled = false;
-
-  switch(selectedSceneNum) {
-  case Scene_Mixed:
-    printf("cannot select mixed scene\n");
-    exit(0);
-
-  case Scene_Dancers:
-    circleMapEnabled = true;
-    beatTrackerEnabled = true;
-    break;
-
-  case Scene_EnlargedCircleMap:
-    circleMapEnabled = true;
-    break;
-
-  case Scene_EnlargedGridMap:
-    gridMapEnabled = true;
-    break;
-
-  case Scene_GridMapTrajectory:
-    gridMapEnabled = true;
-    break;
-
-  case Scene_Isolines:
-    gridMapEnabled = true;
-    break;
-
-  default:
-    printf("unknown scene number %d\n", selectedSceneNum);
-    exit(0);
   }
 }
 
@@ -198,9 +154,13 @@ void Demo::usage() {
   printf(" -d name       Use specified audio device\n");
   printf(" -echo         Echo audio input back to output\n");
   printf(" -showfps      Output frame rate to console\n");
+<<<<<<< HEAD
   printf(" -pretrain N   Pre-train for N seconds\n");
   printf(" -scene N      Select only visualization number N\n");
   printf(" -export       Export video\n");
+=======
+  printf(" -pretrain <N> Pre-train for N seconds\n");
+>>>>>>> parent of babff2c... demo: added option for selecting a scene
 
   exit(0);
 }
@@ -236,15 +196,22 @@ void Demo::createDisjointGridMap() {
 void Demo::glSpecial(int key, int x, int y) {
   switch(key) {
   case GLUT_KEY_RIGHT:
-    switchScene(1);
+    if(sceneNum == (numScenes - 1))
+      moveToScene(0);
+    else
+      moveToScene(sceneNum + 1);
     break;
-    
+
   case GLUT_KEY_LEFT:
-    switchScene(-1);
+    if(sceneNum == 0)
+      moveToScene(numScenes - 1);
+    else
+      moveToScene(sceneNum - 1);
     break;
   }
 }
 
+<<<<<<< HEAD
 void Demo::glKeyboard(unsigned char key, int x, int y) {
   switch(key) {
   case 27: // escape
@@ -259,6 +226,8 @@ void Demo::switchScene(int step) {
     printf("cannot switch scene as a scene was selected\n");
 }
 
+=======
+>>>>>>> parent of babff2c... demo: added option for selecting a scene
 void Demo::moveToScene(int _sceneNum) {
   sceneNum = _sceneNum;
   resizeFrames();
@@ -287,10 +256,7 @@ void Demo::initializeGraphics() {
   glClearColor (0.0, 0.0, 0.0, 0.0);
   glShadeModel (GL_FLAT);
 
-  if(selectedSceneNum == -1)
-    moveToScene(Scene_Mixed);
-  else
-    moveToScene(selectedSceneNum);
+  moveToScene(Scene_Mixed);
 }
 
 void Demo::resizedWindow() {
@@ -370,20 +336,11 @@ void Demo::processAudio(float *inputBuffer) {
 }
 
 void Demo::processAudioNonThreadSafe(float *inputBuffer) {
-  if(gridMapEnabled)
-    gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
-
-  if(disjointGridMapEnabled)
-    disjointGridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
-
-  if(circleMapEnabled)
-    circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
-
-  if(beatTrackerEnabled)
-    beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
-
-  if(eventDetectorEnabled)
-    eventDetector->feedAudio(inputBuffer, audioParameters.bufferSize);
+  gridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
+  disjointGridMap->feedAudio(inputBuffer, audioParameters.bufferSize);
+  circleMap->feedAudio(inputBuffer, audioParameters.bufferSize);
+  beatTracker->feedFeatureVector(spectrumBinDivider->getBinValues());
+  eventDetector->feedAudio(inputBuffer, audioParameters.bufferSize);
 }
 
 void Demo::display() {

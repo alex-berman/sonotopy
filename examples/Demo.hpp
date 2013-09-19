@@ -61,8 +61,6 @@ private:
   void updateDancers();
   void renderDancers();
   void pretrain();
-  void selectScene();
-  void switchScene(int step);
 
   int width, height;
   Stopwatch stopwatch;
@@ -101,10 +99,4 @@ private:
   float timeIncrement;
   pthread_mutex_t mutex;
   float pretrainSecs;
-  int selectedSceneNum;
-  bool gridMapEnabled;
-  bool disjointGridMapEnabled;
-  bool circleMapEnabled;
-  bool beatTrackerEnabled;
-  bool eventDetectorEnabled;
 };
