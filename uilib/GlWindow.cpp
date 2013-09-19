@@ -107,9 +107,10 @@ void GlWindow::exportFrame() {
 
     std::ofstream out(filename, std::ios_base::binary);
     out << "P6\n" << windowWidth << " " << windowHeight << "\n" << "255\n";
-    GLubyte *rgbPointer = exportFrameData;
+    GLubyte *rgbPointer;
     unsigned char r, g, b;
     for (int y = 0; y < windowHeight; y++) {
+      rgbPointer = exportFrameData + 3 * windowWidth * (windowHeight - y - 1);
       for (int x = 0; x < windowWidth; x++) {
 	r = *rgbPointer++;
 	g = *rgbPointer++;
