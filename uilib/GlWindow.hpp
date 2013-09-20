@@ -39,6 +39,8 @@ protected:
 
   int argc;
   char **argv;
+  bool initialized;
+  int desiredWidth, desiredHeight;
   int windowWidth, windowHeight;
   bool exportEnabled;
   int exportFrameNum;
