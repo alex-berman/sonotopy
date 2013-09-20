@@ -25,8 +25,8 @@ SmoothGridMapFrame::SmoothGridMapFrame(GridMap *_gridMap) {
 void SmoothGridMapFrame::render() {
   static int x1, x2, py1, py2;
   glShadeModel(GL_SMOOTH);
-  for(int y = 0; y < gridMapWidth-1; y++) {
-    for(int x = 0; x < gridMapHeight-1; x++) {
+  for(int y = 0; y < gridMapHeight-1; y++) {
+    for(int x = 0; x < gridMapWidth-1; x++) {
       x1 = (int) (width * x / (gridMapWidth-1));
       x2 = (int) (width * (x+1) / (gridMapWidth-1));
       py1 = (int) (y * height / (gridMapHeight-1));

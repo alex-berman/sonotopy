@@ -34,8 +34,8 @@ void GridMapFrame::renderActivationPattern() {
   activationPattern = gridMap->getActivationPattern();
   SOM::ActivationPattern::const_iterator activationPatternIterator =
     activationPattern->begin();
-  for(int y = 0; y < gridMapWidth; y++) {
-    for(int x = 0; x < gridMapHeight; x++) {
+  for(int y = 0; y < gridMapHeight; y++) {
+    for(int x = 0; x < gridMapWidth; x++) {
       v = *activationPatternIterator;
       v = pow(v, activationPatternContrast);
       glColor3f(v, v, v);
