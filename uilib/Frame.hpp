@@ -24,6 +24,8 @@ public:
   Frame();
   void setSize(int width, int height);
   void setPosition(int width, int height);
+  void setPadding(int);
+  void setBorderWidth(int);
   void display();
   virtual void render() {}
   int getWidth();

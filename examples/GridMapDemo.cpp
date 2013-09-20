@@ -33,6 +33,8 @@ void GridMapDemo::initializeAudioProcessing() {
 void GridMapDemo::initializeGraphics() {
   Demo::initializeGraphics();
   gridMapFrame = new SmoothGridMapFrame(gridMap);
+  gridMapFrame->setBorderWidth(0);
+  gridMapFrame->setPadding(0);
 }
 
 void GridMapDemo::resizedWindow() {

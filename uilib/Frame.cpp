@@ -23,8 +23,17 @@ Frame::Frame() {
   height = 0;
   posLeft = 0;
   posTop = 0;
-  padding = 2;
-  borderWidth = 1;
+  setPadding(2);
+  setBorderWidth(1);
+}
+
+void Frame::setPadding(int _padding) {
+  padding = _padding;
+  margin = borderWidth + padding;
+}
+
+void Frame::setBorderWidth(int _borderWidth) {
+  borderWidth = _borderWidth;
   margin = borderWidth + padding;
 }
 
