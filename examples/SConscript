@@ -1,8 +1,9 @@
 Import(['env', 'platform', 'PKG_CONFIG'])
 
-TARGET = 'Demo'
+TARGET = 'DemoBrowser'
 
 SOURCE = ['Demo.cpp',
+	  'DemoBrowser.cpp',
 	  'Dancer.cpp',
 	  'IsolinesFrame.cpp',
 	  'IsolineExtractor.cpp',

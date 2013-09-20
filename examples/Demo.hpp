@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Alexander Berman
+// Copyright (C) 2013 Alexander Berman
 //
 // Sonotopy is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,9 +16,6 @@
 #include <sonotopy/sonotopy.hpp>
 #include <sonotopy/uilib/uilib.hpp>
 #include <sonotopy/uilib/cmdline.hpp>
-#include "IsolinesFrame.hpp"
-#include "Dancer.hpp"
-#include <vector>
 #include <pthread.h>
 
 class Demo : public GlWindow, public AudioIO {
@@ -27,73 +24,21 @@ public:
   ~Demo();
   void processAudio(float *);
   void display();
-  void glSpecial(int key, int x, int y);
   void glKeyboard(unsigned char key, int x, int y);
-  void resizedWindow();
+  virtual void renderDemoGraphics()=0;
+  virtual void processDemoAudio(float *)=0;
+  virtual void initializeGraphics();
+  void runDemo();
 
-private:
-  enum {
-    Scene_Mixed = 0,
-    Scene_Dancers,
-    Scene_EnlargedCircleMap,
-    Scene_EnlargedGridMap,
-    Scene_GridMapTrajectory,
-    Scene_Isolines,
-    numScenes
-  };
-
-  class EventDetectionPrinter : public EventDetector {
-  public:
-    EventDetectionPrinter(const AudioParameters &audioParameters) :
-      EventDetector(audioParameters) {}
-    void onStartOfEvent() { printf("start of event\n"); }
-    void onEndOfEvent()   { printf("end of event\n"); }
-  };
-
+protected:
   void processCommandLineArguments();
-  void usage();
-  void initializeAudioProcessing();
-  void processAudioNonThreadSafe(float *);
-  void createDisjointGridMap();
-  void initializeGraphics();
-  void mainLoop();
-  void resizeFrames();
-  void moveToScene(int _sceneNum);
-  void updateDancers();
-  void renderDancers();
   void pretrain();
 
   cmdline::parser parser;
   Stopwatch stopwatch;
-  int SPACING;
-  float SINGLE_FRAME_RELATIVE_SIZE;
   int argc;
   char **argv;
   bool showFPS;
-  bool normalizeSpectrum;
-  GridMapParameters gridMapParameters;
-  GridMapParameters disjointGridMapParameters;
-  GridMap *gridMap;
-  DisjointGridMap *disjointGridMap;
-  const SpectrumAnalyzer *spectrumAnalyzer;
-  const SpectrumBinDivider *spectrumBinDivider;
-  CircleMapParameters circleMapParameters;
-  CircleMap *circleMap;
-  BeatTracker *beatTracker;
-  EventDetectionPrinter *eventDetector;
-  int sceneNum;
-  WaveformFrame *waveformFrame;
-  SpectrumFrame *spectrumFrame;
-  SpectrumBinsFrame *spectrumBinsFrame;
-  GridMapFrame *gridMapFrame;
-  GridMapFrame *disjointGridMapFrame;
-  SmoothGridMapFrame *enlargedGridMapFrame;
-  GridMapTrajectoryFrame *gridMapTrajectoryFrame;
-  SmoothCircleMapFrame *enlargedCircleMapFrame;
-  CircleMapFrame *circleMapFrame;
-  BeatTrackerFrame *beatTrackerFrame;
-  IsolinesFrame *isolinesFrame;
-  std::vector<Dancer> dancers;
   unsigned long displayStartTime;
   unsigned long frameCount;
   float timeOfPreviousDisplay;

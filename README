@@ -97,5 +97,5 @@ scons examples
 Requirements:
 apt-get install portaudio19-dev libsndfile1-dev freeglut3-dev
 
-To execute the demo, run "build/release/examples/Demo". For usage 
-instructions, run Demo with the -h flag.
+To execute the demo, run "build/release/examples/DemoBrowser". For usage 
+instructions, run DemoBrowser with the -h flag.
