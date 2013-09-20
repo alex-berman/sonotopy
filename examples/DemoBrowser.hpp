@@ -56,7 +56,6 @@ private:
   int SPACING;
   float SINGLE_FRAME_RELATIVE_SIZE;
   bool normalizeSpectrum;
-  GridMapParameters gridMapParameters;
   GridMapParameters disjointGridMapParameters;
   GridMap *gridMap;
   DisjointGridMap *disjointGridMap;

@@ -25,6 +25,7 @@ Demo::Demo(int _argc, char **_argv) :
 {
   argc = _argc;
   argv = _argv;
+  processCommandLineArguments();
 }
 
 Demo::~Demo() {
@@ -32,7 +33,6 @@ Demo::~Demo() {
 
 void Demo::runDemo() {
   frameCount = 0;
-  processCommandLineArguments();
   pthread_mutex_init(&mutex, NULL);
   initializeAudio();
   initializeGraphics();
@@ -43,7 +43,7 @@ void Demo::runDemo() {
 
 void Demo::processCommandLineArguments() {
   parser.add<string>("audiofile", 'f', "Audio file for input", false);
-  parser.add<int>("buffersize", 'b', "Audio buffer size", false, audioParameters.bufferSize);
+  parser.add<int>("bufferSize", 'b', "Audio buffer size", false, audioParameters.bufferSize);
   parser.add<string>("audiodevice", 'd', "Audio device", false);
   parser.add("echo", '\0', "Echo audio input back to output");
   parser.add("showfps", '\0', "Output frame rate to console");
@@ -51,6 +51,8 @@ void Demo::processCommandLineArguments() {
   parser.add<int>("width", 'w', "Window width", false, 800);
   parser.add<int>("height", 'h', "Window height", false, 600);
   parser.add("export", '\0', "Export video");
+  parser.add<int>("gridMapWidth", '\0', "Grid map width", false, gridMapParameters.gridWidth);
+  parser.add<int>("gridMapHeight", '\0', "Grid map height", false, gridMapParameters.gridHeight);
   parser.parse_check(argc, argv);
 
   if(parser.exist("audiofile")) {
@@ -62,9 +64,11 @@ void Demo::processCommandLineArguments() {
   }
 
   echoAudio = (useAudioInputFile || parser.exist("echo"));
-
   audioDeviceName = parser.get<string>("audiodevice").c_str();
   showFPS = parser.exist("showfps");
+  audioParameters.bufferSize = parser.get<int>("bufferSize");
+  gridMapParameters.gridWidth = parser.get<int>("gridMapWidth");
+  gridMapParameters.gridHeight = parser.get<int>("gridMapHeight");
 
   if(parser.exist("export")) {
     audioEnableVideoExport();

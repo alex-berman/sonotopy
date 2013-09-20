@@ -35,6 +35,7 @@ protected:
   void pretrain();
 
   cmdline::parser parser;
+  GridMapParameters gridMapParameters;
   Stopwatch stopwatch;
   int argc;
   char **argv;

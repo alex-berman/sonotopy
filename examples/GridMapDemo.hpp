@@ -26,7 +26,6 @@ public:
 private:
   void initializeAudioProcessing();
 
-  GridMapParameters gridMapParameters;
   GridMap *gridMap;
   SmoothGridMapFrame *gridMapFrame;
 };

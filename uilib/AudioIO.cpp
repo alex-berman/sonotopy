@@ -104,6 +104,10 @@ void AudioIO::portaudioOpenAudioStream() {
     outputParameters.sampleFormat = paFloat32;
   }
 
+  printf("opening audio stream: sample rate %d, buffer size %d\n",
+	 audioParameters.sampleRate,
+	 audioParameters.bufferSize);
+
   err = Pa_OpenStream(
     &paStream,
     &inputParameters,
