@@ -1,14 +1,5 @@
 Import(['env', 'platform', 'PKG_CONFIG'])
 
-TARGET = 'DemoBrowser'
-
-SOURCE = ['Demo.cpp',
-	  'DemoBrowser.cpp',
-	  'Dancer.cpp',
-	  'IsolinesFrame.cpp',
-	  'IsolineExtractor.cpp',
-	  'IsolineRenderer.cpp']
-
 LIBLIST = [['sonotopy', 'sonotopy.hpp'],
 	   ['sonotopy-uilib', 'sonotopy/uilib/uilib.hpp'],
 	   ['portaudio', 'portaudio.h'],
@@ -40,4 +31,14 @@ if not GetOption('clean'):
 			Exit(1)
 	env = conf.Finish()
 
-env.Program(target = TARGET, source = SOURCE)
+env.Program(target = 'DemoBrowser',
+	    source = ['Demo.cpp',
+		      'DemoBrowser.cpp',
+		      'Dancer.cpp',
+		      'IsolinesFrame.cpp',
+		      'IsolineExtractor.cpp',
+		      'IsolineRenderer.cpp'])
+
+env.Program(target = 'GridMapDemo',
+	    source = ['Demo.cpp',
+		      'GridMapDemo.cpp'])
