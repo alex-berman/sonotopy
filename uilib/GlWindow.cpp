@@ -103,7 +103,7 @@ void GlWindow::windowEnableVideoExport() {
 void GlWindow::exportFrame() {
   if(initialized) {
     char filename[1024];
-    sprintf(filename, "export/frame%05d.ppm", exportFrameNum);
+    sprintf(filename, "export/frame%07d.ppm", exportFrameNum);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     if(exportFrameData == NULL)
       exportFrameData = (GLubyte *) malloc(3 * windowWidth * windowHeight);
