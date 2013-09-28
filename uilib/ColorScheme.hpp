@@ -38,9 +38,13 @@ public:
 
 class Stripes : public ColorScheme {
 public:
-  Stripes(float _contrast) { contrast = _contrast; }
+  Stripes(float _contrast, float _frequency) {
+    contrast = _contrast;
+    frequency = _frequency;
+  }
   Color getColor(float);
   float contrast;
+  float frequency;
 };
 
 class Rainbow : public ColorScheme {
