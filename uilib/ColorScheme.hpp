@@ -14,12 +14,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Color.hpp"
+#include "cmdline.hpp"
 
 #ifndef _ColorScheme_hpp_
 #define _ColorScheme_hpp_
 
 class ColorScheme {
 public:
+  static void addParserArguments(cmdline::parser &);
+  static ColorScheme *createFromParser(cmdline::parser &);
   virtual Color getColor(float) = 0;
   Color HSV_to_RGB(float, float, float);
 };

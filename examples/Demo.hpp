@@ -33,7 +33,6 @@ public:
 
 protected:
   void processCommandLineArguments();
-  ColorScheme *createColorScheme();
   void pretrain();
 
   cmdline::parser parser;

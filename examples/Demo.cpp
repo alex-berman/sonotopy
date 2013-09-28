@@ -53,8 +53,7 @@ void Demo::processCommandLineArguments() {
   parser.add("export", '\0', "Export video");
   parser.add<int>("gridMapWidth", '\0', "Grid map width", false, gridMapParameters.gridWidth);
   parser.add<int>("gridMapHeight", '\0', "Grid map height", false, gridMapParameters.gridHeight);
-  parser.add<string>("colorScheme", '\0', "Color scheme", false, "grayscale",
-		     cmdline::oneof<string>("grayscale", "rainbow", "stripes"));
+  ColorScheme::addParserArguments(parser);
   parser.parse_check(argc, argv);
 
   if(parser.exist("audiofile")) {
@@ -87,22 +86,8 @@ void Demo::glKeyboard(unsigned char key, int x, int y) {
 
 void Demo::initializeGraphics() {
   setWindowSize(parser.get<int>("width"), parser.get<int>("height"));
-  colorScheme = createColorScheme();
+  colorScheme = ColorScheme::createFromParser(parser);
   GlWindow::initializeGraphics();
-}
-
-ColorScheme* Demo::createColorScheme() {
-  string colorSchemeName = parser.get<string>("colorScheme");
-  if(colorSchemeName == "grayscale")
-    return new Grayscale();
-  else if(colorSchemeName == "stripes")
-    return new Stripes();
-  else if(colorSchemeName == "rainbow")
-    return new Rainbow();
-  else {
-    printf("unknown color scheme %s\n", colorSchemeName.c_str());
-    exit(-1);
-  }
 }
 
 void Demo::processAudio(float *inputBuffer) {

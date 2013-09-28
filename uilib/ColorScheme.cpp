@@ -14,7 +14,28 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ColorScheme.hpp"
+#include <string.h>
 #include <math.h>
+#include <exception>
+
+using namespace std;
+
+void ColorScheme::addParserArguments(cmdline::parser &parser) {
+  parser.add<string>("colorScheme", '\0', "Color scheme", false, "grayscale",
+		     cmdline::oneof<string>("grayscale", "rainbow", "stripes"));
+}
+
+ColorScheme* ColorScheme::createFromParser(cmdline::parser &parser) {
+  string colorSchemeName = parser.get<string>("colorScheme");
+  if(colorSchemeName == "grayscale")
+    return new Grayscale();
+  else if(colorSchemeName == "stripes")
+    return new Stripes();
+  else if(colorSchemeName == "rainbow")
+    return new Rainbow();
+  else
+    throw runtime_error("unknown color scheme" + colorSchemeName);
+}
 
 const float Grayscale::contrast = 5.0f;
 
@@ -38,8 +59,6 @@ Color Rainbow::getColor(float fraction) {
 
 
 Color ColorScheme::HSV_to_RGB(float h, float s, float v) {
-  float r, g, b;
-
   int i = int(h * 6);
   float f = h * 6 - i;
   float p = v * (1 - s);
@@ -47,13 +66,11 @@ Color ColorScheme::HSV_to_RGB(float h, float s, float v) {
   float t = v * (1 - (1 - f) * s);
   
   switch(i % 6) {
-  case 0: r = v; g = t; b = p; break;
-  case 1: r = q; g = v; b = p; break;
-  case 2: r = p; g = v; b = t; break;
-  case 3: r = p; g = q; b = v; break;
-  case 4: r = t; g = p; b = v; break;
-  case 5: r = v; g = p; b = q; break;
+  case 0: return Color(v, t, p);
+  case 1: return Color(q, v, p);
+  case 2: return Color(p, v, t);
+  case 3: return Color(p, q, v);
+  case 4: return Color(t, p, v);
+  default: return Color(v, p, q);
   }
-
-  return Color(r, g, b);
 }
