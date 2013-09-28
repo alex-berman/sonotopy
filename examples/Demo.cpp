@@ -54,7 +54,7 @@ void Demo::processCommandLineArguments() {
   parser.add<int>("gridMapWidth", '\0', "Grid map width", false, gridMapParameters.gridWidth);
   parser.add<int>("gridMapHeight", '\0', "Grid map height", false, gridMapParameters.gridHeight);
   parser.add<string>("colorScheme", '\0', "Color scheme", false, "grayscale",
-		     cmdline::oneof<string>("grayscale", "rainbow"));
+		     cmdline::oneof<string>("grayscale", "rainbow", "stripes"));
   parser.parse_check(argc, argv);
 
   if(parser.exist("audiofile")) {
@@ -95,6 +95,8 @@ ColorScheme* Demo::createColorScheme() {
   string colorSchemeName = parser.get<string>("colorScheme");
   if(colorSchemeName == "grayscale")
     return new Grayscale();
+  else if(colorSchemeName == "stripes")
+    return new Stripes();
   else if(colorSchemeName == "rainbow")
     return new Rainbow();
   else {

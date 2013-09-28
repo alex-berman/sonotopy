@@ -23,9 +23,19 @@ Color Grayscale::getColor(float fraction) {
   return Color(v, v, v);
 }
 
+
+const float Stripes::contrast = 5.0f;
+
+Color Stripes::getColor(float fraction) {
+  float v = pow(sin(fraction * 10.0f), contrast);
+  return Color(v, v, v);
+}
+
+
 Color Rainbow::getColor(float fraction) {
   return HSV_to_RGB(fraction, 1.0f, 1.0f);
 }
+
 
 Color ColorScheme::HSV_to_RGB(float h, float s, float v) {
   float r, g, b;

@@ -30,6 +30,12 @@ public:
   const static float contrast;
 };
 
+class Stripes : public ColorScheme {
+public:
+  Color getColor(float);
+  const static float contrast;
+};
+
 class Rainbow : public ColorScheme {
 public:
   Color getColor(float);
