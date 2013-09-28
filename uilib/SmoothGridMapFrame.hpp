@@ -14,18 +14,20 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Frame.hpp"
+#include "ColorScheme.hpp"
 #include <sonotopy/GridMap.hpp>
 
 using namespace sonotopy;
 
 class SmoothGridMapFrame : public Frame {
 public:
-  SmoothGridMapFrame(GridMap *);
+  SmoothGridMapFrame(GridMap *, ColorScheme *);
   ~SmoothGridMapFrame();
   void render();
 private:
   void setColorFromActivationPattern(int x, int y);
   GridMap *gridMap;
+  ColorScheme *colorScheme;
   const SOM::ActivationPattern *activationPattern;
   int gridMapWidth;
   int gridMapHeight;

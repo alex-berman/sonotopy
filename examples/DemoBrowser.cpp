@@ -61,9 +61,9 @@ void DemoBrowser::initializeGraphics() {
   waveformFrame = new WaveformFrame(monauralInputBuffer, audioParameters.bufferSize);
   spectrumFrame = new SpectrumFrame(spectrumAnalyzer, normalizeSpectrum);
   spectrumBinsFrame = new SpectrumBinsFrame(spectrumBinDivider, normalizeSpectrum);
-  gridMapFrame = new GridMapFrame(gridMap);
-  disjointGridMapFrame = new GridMapFrame(disjointGridMap);
-  enlargedGridMapFrame = new SmoothGridMapFrame(gridMap);
+  gridMapFrame = new GridMapFrame(gridMap, colorScheme);
+  disjointGridMapFrame = new GridMapFrame(disjointGridMap, colorScheme);
+  enlargedGridMapFrame = new SmoothGridMapFrame(gridMap, colorScheme);
   gridMapTrajectoryFrame = new GridMapTrajectoryFrame(gridMap);
   beatTrackerFrame = new BeatTrackerFrame(beatTracker);
   isolinesFrame = new IsolinesFrame(gridMap);

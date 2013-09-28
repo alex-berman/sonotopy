@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Alexander Berman
+// Copyright (C) 2013 Alexander Berman
 //
 // Sonotopy is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,24 +13,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "Frame.hpp"
-#include "ColorScheme.hpp"
-#include <sonotopy/GridMap.hpp>
+#include "Color.hpp"
 
-using namespace sonotopy;
+#ifndef _ColorScheme_hpp_
+#define _ColorScheme_hpp_
 
-class GridMapFrame : public Frame {
+class ColorScheme {
 public:
-  GridMapFrame(GridMap *, ColorScheme *);
-  ~GridMapFrame();
-  void render();
-private:
-  void renderActivationPattern();
-  void renderCursor();
-  GridMap *gridMap;
-  ColorScheme *colorScheme;
-  const SOM::ActivationPattern *activationPattern;
-  int gridMapWidth;
-  int gridMapHeight;
+  const static float contrast;
+  Color getColor(float);
 };
 
+#endif

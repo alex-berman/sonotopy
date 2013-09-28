@@ -13,7 +13,8 @@ SOURCE = ['Frame.cpp',
 	  'CircleMapFrame.cpp',
 	  'SmoothCircleMapFrame.cpp',
 	  'BeatTrackerFrame.cpp',
-	  'GlWindow.cpp']
+	  'GlWindow.cpp',
+	  'ColorScheme.cpp']
 
 LIBLIST = []
 if platform == 'posix':

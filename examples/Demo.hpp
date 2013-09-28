@@ -16,6 +16,7 @@
 #include <sonotopy/sonotopy.hpp>
 #include <sonotopy/uilib/uilib.hpp>
 #include <sonotopy/uilib/cmdline.hpp>
+#include <sonotopy/uilib/ColorScheme.hpp>
 #include <pthread.h>
 
 class Demo : public GlWindow, public AudioIO {
@@ -45,4 +46,5 @@ protected:
   float timeOfPreviousDisplay;
   float timeIncrement;
   pthread_mutex_t mutex;
+  ColorScheme *colorScheme;
 };

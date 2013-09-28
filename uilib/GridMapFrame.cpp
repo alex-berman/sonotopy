@@ -14,10 +14,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "GridMapFrame.hpp"
-#include <math.h>
 
-GridMapFrame::GridMapFrame(GridMap *_gridMap) {
+GridMapFrame::GridMapFrame(GridMap *_gridMap, ColorScheme *_colorScheme) {
   gridMap = _gridMap;
+  colorScheme = _colorScheme;
   gridMapWidth = gridMap->getParameters().gridWidth;
   gridMapHeight = gridMap->getParameters().gridHeight;
 }
@@ -31,14 +31,15 @@ void GridMapFrame::render() {
 void GridMapFrame::renderActivationPattern() {
   static float v;
   static int x1, x2, py1, py2;
+  static Color color;
   activationPattern = gridMap->getActivationPattern();
   SOM::ActivationPattern::const_iterator activationPatternIterator =
     activationPattern->begin();
   for(int y = 0; y < gridMapHeight; y++) {
     for(int x = 0; x < gridMapWidth; x++) {
       v = *activationPatternIterator;
-      v = pow(v, activationPatternContrast);
-      glColor3f(v, v, v);
+      color = colorScheme->getColor(v);
+      glColor3f(color.r, color.g, color.b);
       glBegin(GL_POLYGON);
       x1 = (int) (width * x / gridMapWidth);
       x2 = (int) (width * (x+1) / gridMapWidth);

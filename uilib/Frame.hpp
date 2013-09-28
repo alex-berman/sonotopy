@@ -20,7 +20,6 @@
 
 class Frame {
 public:
-  const static float activationPatternContrast;
   Frame();
   void setSize(int width, int height);
   void setPosition(int width, int height);

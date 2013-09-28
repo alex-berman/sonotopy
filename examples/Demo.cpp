@@ -85,6 +85,7 @@ void Demo::glKeyboard(unsigned char key, int x, int y) {
 
 void Demo::initializeGraphics() {
   setWindowSize(parser.get<int>("width"), parser.get<int>("height"));
+  colorScheme = new ColorScheme();
   GlWindow::initializeGraphics();
 }
 

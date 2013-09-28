@@ -14,10 +14,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "SmoothGridMapFrame.hpp"
-#include <math.h>
 
-SmoothGridMapFrame::SmoothGridMapFrame(GridMap *_gridMap) {
+SmoothGridMapFrame::SmoothGridMapFrame(GridMap *_gridMap, ColorScheme *_colorScheme) {
   gridMap = _gridMap;
+  colorScheme = _colorScheme;
   gridMapWidth = gridMap->getParameters().gridWidth;
   gridMapHeight = gridMap->getParameters().gridHeight;
 }
@@ -48,7 +48,8 @@ void SmoothGridMapFrame::render() {
 }
 
 void SmoothGridMapFrame::setColorFromActivationPattern(int x, int y) {
+  static Color color;
   float v = gridMap->getActivation((unsigned int)x, (unsigned int)y);
-  v = pow(v, activationPatternContrast);
-  glColor3f(v, v, v);
+  color = colorScheme->getColor(v);
+  glColor3f(color.r, color.g, color.b);
 }
