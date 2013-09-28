@@ -23,29 +23,27 @@ using namespace std;
 void ColorScheme::addParserArguments(cmdline::parser &parser) {
   parser.add<string>("colorScheme", '\0', "Color scheme", false, "grayscale",
 		     cmdline::oneof<string>("grayscale", "rainbow", "stripes"));
+  parser.add<float>("contrast", '\0', "Contrast (>0)", false, 5.0);
 }
 
 ColorScheme* ColorScheme::createFromParser(cmdline::parser &parser) {
   string colorSchemeName = parser.get<string>("colorScheme");
+  float contrast = parser.get<float>("contrast");
   if(colorSchemeName == "grayscale")
-    return new Grayscale();
+    return new Grayscale(contrast);
   else if(colorSchemeName == "stripes")
-    return new Stripes();
+    return new Stripes(contrast);
   else if(colorSchemeName == "rainbow")
     return new Rainbow();
   else
     throw runtime_error("unknown color scheme" + colorSchemeName);
 }
 
-const float Grayscale::contrast = 5.0f;
-
 Color Grayscale::getColor(float fraction) {
   float v = pow(fraction, contrast);
   return Color(v, v, v);
 }
 
-
-const float Stripes::contrast = 5.0f;
 
 Color Stripes::getColor(float fraction) {
   float v = pow(sin(fraction * 10.0f), contrast);

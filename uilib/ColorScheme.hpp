@@ -15,6 +15,7 @@
 
 #include "Color.hpp"
 #include "cmdline.hpp"
+#include <string.h>
 
 #ifndef _ColorScheme_hpp_
 #define _ColorScheme_hpp_
@@ -23,20 +24,23 @@ class ColorScheme {
 public:
   static void addParserArguments(cmdline::parser &);
   static ColorScheme *createFromParser(cmdline::parser &);
+  static ColorScheme *createByName(std::string);
   virtual Color getColor(float) = 0;
   Color HSV_to_RGB(float, float, float);
 };
 
 class Grayscale : public ColorScheme {
 public:
+  Grayscale(float _contrast) { contrast = _contrast; }
   Color getColor(float);
-  const static float contrast;
+  float contrast;
 };
 
 class Stripes : public ColorScheme {
 public:
+  Stripes(float _contrast) { contrast = _contrast; }
   Color getColor(float);
-  const static float contrast;
+  float contrast;
 };
 
 class Rainbow : public ColorScheme {
