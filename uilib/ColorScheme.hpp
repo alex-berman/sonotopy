@@ -20,7 +20,18 @@
 
 class ColorScheme {
 public:
+  virtual Color getColor(float) = 0;
+  Color HSV_to_RGB(float, float, float);
+};
+
+class Grayscale : public ColorScheme {
+public:
+  Color getColor(float);
   const static float contrast;
+};
+
+class Rainbow : public ColorScheme {
+public:
   Color getColor(float);
 };
 

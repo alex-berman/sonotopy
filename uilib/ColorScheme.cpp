@@ -16,9 +16,34 @@
 #include "ColorScheme.hpp"
 #include <math.h>
 
-const float ColorScheme::contrast = 5.0f;
+const float Grayscale::contrast = 5.0f;
 
-Color ColorScheme::getColor(float fraction) {
+Color Grayscale::getColor(float fraction) {
   float v = pow(fraction, contrast);
   return Color(v, v, v);
+}
+
+Color Rainbow::getColor(float fraction) {
+  return HSV_to_RGB(fraction, 1.0f, 1.0f);
+}
+
+Color ColorScheme::HSV_to_RGB(float h, float s, float v) {
+  float r, g, b;
+
+  int i = int(h * 6);
+  float f = h * 6 - i;
+  float p = v * (1 - s);
+  float q = v * (1 - f * s);
+  float t = v * (1 - (1 - f) * s);
+  
+  switch(i % 6) {
+  case 0: r = v; g = t; b = p; break;
+  case 1: r = q; g = v; b = p; break;
+  case 2: r = p; g = v; b = t; break;
+  case 3: r = p; g = q; b = v; break;
+  case 4: r = t; g = p; b = v; break;
+  case 5: r = v; g = p; b = q; break;
+  }
+
+  return Color(r, g, b);
 }
