@@ -21,13 +21,14 @@ using namespace std;
 
 SpectrumMap::SpectrumMap(Topology *_topology,
 			 const AudioParameters &_audioParameters,
+			 const SpectrumAnalyzerParameters &spectrumAnalyzerParameters,
 			 const SpectrumMapParameters &_spectrumMapParameters)
 {
   topology = _topology;
   audioParameters = _audioParameters;
   spectrumMapParameters = _spectrumMapParameters;
 
-  createSpectrumAnalyzer();
+  createSpectrumAnalyzer(spectrumAnalyzerParameters);
   createSpectrumBinDivider();
   createSom();
   createSomInput();
@@ -105,8 +106,8 @@ const SOM::ActivationPattern* SpectrumMap::getActivationPattern() {
   return currentActivationPattern;
 }
 
-void SpectrumMap::createSpectrumAnalyzer() {
-  spectrumAnalyzer = new SpectrumAnalyzer();
+void SpectrumMap::createSpectrumAnalyzer(const SpectrumAnalyzerParameters &spectrumAnalyzerParameters) {
+  spectrumAnalyzer = new SpectrumAnalyzer(spectrumAnalyzerParameters);
 }
 
 void SpectrumMap::createSpectrumBinDivider() {

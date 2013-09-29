@@ -20,20 +20,24 @@ using namespace sonotopy;
 using namespace std;
 
 GridMap::GridMap(const AudioParameters &_audioParameters,
+		 const SpectrumAnalyzerParameters &_spectrumAnalyzerParameters,
 		 const GridMapParameters &_gridMapParameters)
   : SpectrumMap(new RectGridTopology(_gridMapParameters.gridWidth,
 				     _gridMapParameters.gridHeight),
 		_audioParameters,
+		_spectrumAnalyzerParameters,
 		_gridMapParameters)
 {
   gridMapParameters = _gridMapParameters;
 }
 
 GridMap::GridMap(const AudioParameters &_audioParameters,
+		 const SpectrumAnalyzerParameters &_spectrumAnalyzerParameters,
 		 const GridMapParameters &_gridMapParameters,
 		 Topology *topology)
   : SpectrumMap(topology,
 		_audioParameters,
+		_spectrumAnalyzerParameters,
 		_gridMapParameters)
 {
   gridMapParameters = _gridMapParameters;

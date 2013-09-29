@@ -20,9 +20,11 @@ using namespace sonotopy;
 using namespace std;
 
 CircleMap::CircleMap(const AudioParameters &_audioParameters,
+		     const SpectrumAnalyzerParameters &_spectrumAnalyzerParameters,
 		     const CircleMapParameters &_circleMapParameters)
   : SpectrumMap(new CircleTopology(_circleMapParameters.numNodes),
 		_audioParameters,
+		_spectrumAnalyzerParameters,
 		_circleMapParameters)
 {
 }

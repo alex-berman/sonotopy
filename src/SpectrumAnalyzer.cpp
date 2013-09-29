@@ -20,15 +20,11 @@
 
 using namespace sonotopy;
 
-SpectrumAnalyzer::SpectrumAnalyzer(
-    int _windowSize,
-    float _windowOverlap,
-    PowerScale _powerScale,
-    WindowFunction _windowFunction) {
-  windowSize = _windowSize;
-  windowOverlap = _windowOverlap;
-  powerScale = _powerScale;
-  windowFunction = _windowFunction;
+SpectrumAnalyzer::SpectrumAnalyzer(const SpectrumAnalyzerParameters &parameters) {
+  windowSize = parameters.windowSize;
+  windowOverlap = parameters.windowOverlap;
+  powerScale = parameters.powerScale;
+  windowFunction = parameters.windowFunction;
 
   spectrumResolution = windowSize / 2;
   numUnconsumedFrames = 0;

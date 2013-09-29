@@ -19,9 +19,11 @@ using namespace sonotopy;
 using namespace std;
 
 DisjointGridMap::DisjointGridMap(const AudioParameters &_audioParameters,
+				 const SpectrumAnalyzerParameters &_spectrumAnalyzerParameters,
 				 const GridMapParameters &_gridMapParameters,
 				 const vector<DisjointGridTopology::Node> &nodes)
   : GridMap(_audioParameters,
+	    _spectrumAnalyzerParameters,
 	    _gridMapParameters,
 	    new DisjointGridTopology(_gridMapParameters.gridWidth,
 				     _gridMapParameters.gridHeight,

@@ -29,10 +29,10 @@ DemoBrowser::DemoBrowser(int _argc, char **_argv) :
 void DemoBrowser::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
 
-  gridMap = new GridMap(audioParameters, gridMapParameters);
+  gridMap = new GridMap(audioParameters, spectrumAnalyzerParameters, gridMapParameters);
   spectrumAnalyzer = gridMap->getSpectrumAnalyzer();
   spectrumBinDivider = gridMap->getSpectrumBinDivider();
-  circleMap = new CircleMap(audioParameters, circleMapParameters);
+  circleMap = new CircleMap(audioParameters, spectrumAnalyzerParameters, circleMapParameters);
   beatTracker = new BeatTracker(spectrumBinDivider->getNumBins(), audioParameters.bufferSize, audioParameters.sampleRate);
   eventDetector = new EventDetectionPrinter(audioParameters);
   createDisjointGridMap();
@@ -50,14 +50,17 @@ void DemoBrowser::createDisjointGridMap() {
       nodes.push_back(DisjointGridTopology::Node(x, disjointGridMapParameters.gridHeight-(h-y)-1));
     }
   }
-  disjointGridMap = new DisjointGridMap(audioParameters, disjointGridMapParameters, nodes);
+  disjointGridMap = new DisjointGridMap(audioParameters,
+					spectrumAnalyzerParameters,
+					disjointGridMapParameters,
+					nodes);
 }
 
 void DemoBrowser::initializeGraphics() {
   printf("press right or left arrow on keyboard to switch between visualizations\n");
   Demo::initializeGraphics();
 
-  normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == SpectrumAnalyzer::Amplitude);
+  normalizeSpectrum = (spectrumAnalyzer->getPowerScale() == Amplitude);
   waveformFrame = new WaveformFrame(monauralInputBuffer, audioParameters.bufferSize);
   spectrumFrame = new SpectrumFrame(spectrumAnalyzer, normalizeSpectrum);
   spectrumBinsFrame = new SpectrumBinsFrame(spectrumBinDivider, normalizeSpectrum);

@@ -17,6 +17,7 @@
 #define _SpectrumMap_hpp_
 
 #include "AudioParameters.hpp"
+#include "SpectrumAnalyzerParameters.hpp"
 #include "SpectrumMapParameters.hpp"
 #include "Topology.hpp"
 #include "SpectrumAnalyzer.hpp"
@@ -30,7 +31,10 @@ namespace sonotopy {
 
 class SpectrumMap {
 public:
-  SpectrumMap(Topology *, const AudioParameters &, const SpectrumMapParameters &);
+  SpectrumMap(Topology *,
+	      const AudioParameters &,
+	      const SpectrumAnalyzerParameters &,
+	      const SpectrumMapParameters &);
   ~SpectrumMap();
   void feedAudio(const float *audio, unsigned long numFrames);
   int getWinnerId() const;
@@ -52,7 +56,7 @@ public:
   void writeActivationPattern(std::ofstream &f);
 
 protected:
-  void createSpectrumAnalyzer();
+  void createSpectrumAnalyzer(const SpectrumAnalyzerParameters &);
   void createSpectrumBinDivider();
   void createSom();
   void createSomInput();

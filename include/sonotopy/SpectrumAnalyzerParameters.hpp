@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Alexander Berman
+// Copyright (C) 2013 Alexander Berman
 //
 // Sonotopy is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,27 +13,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef CIRCLEMAP_HPP
-#define CIRCLEMAP_HPP
-
-#include "SpectrumMap.hpp"
-#include "AudioParameters.hpp"
-#include "SpectrumAnalyzerParameters.hpp"
-#include "CircleMapParameters.hpp"
+#ifndef _SpectrumAnalyzerParameters_hpp_
+#define _SpectrumAnalyzerParameters_hpp_
 
 namespace sonotopy {
 
-class CircleMap : public SpectrumMap
-{
-public:
-  CircleMap(const AudioParameters &,
-	    const SpectrumAnalyzerParameters &,
-	    const CircleMapParameters &);
-  float getAngle();
-  void write(std::ofstream &f) const;
-};
+  typedef enum {
+    dB,
+    Amplitude
+  } PowerScale;
+
+  typedef enum {
+    NoWindowFunction,
+    BlackmanHarris
+  } WindowFunction;
+
+
+  class SpectrumAnalyzerParameters {
+  public:
+    SpectrumAnalyzerParameters() {
+      powerScale = Amplitude;
+      windowFunction = BlackmanHarris;
+      windowSize = 16384;
+      windowOverlap = (float) 15/16;
+    }
+
+    PowerScale powerScale;
+    WindowFunction windowFunction;
+    int windowSize;
+    float windowOverlap;
+  };
 
 }
 
-#endif // CIRCLEMAP_HPP
-
+#endif

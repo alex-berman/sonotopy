@@ -16,6 +16,7 @@
 #ifndef _SpectrumAnalyzer_hpp_
 #define _SpectrumAnalyzer_hpp_
 
+#include "SpectrumAnalyzerParameters.hpp"
 #include "CircularBuffer.hpp"
 #include <fftw3.h>
 
@@ -23,20 +24,7 @@ namespace sonotopy {
 
 class SpectrumAnalyzer {
 public:
-  typedef enum {
-    dB,
-    Amplitude
-  } PowerScale;
-
-  typedef enum {
-    NoWindowFunction,
-    BlackmanHarris
-  } WindowFunction;
-
-  SpectrumAnalyzer(int spectrumWindowSize = 16384,
-                   float spectrumWindowOverlap = (float) 15/16,
-                   PowerScale = SpectrumAnalyzer::Amplitude,
-                   WindowFunction = SpectrumAnalyzer::BlackmanHarris);
+  SpectrumAnalyzer(const SpectrumAnalyzerParameters &);
   ~SpectrumAnalyzer();
   void feedAudioFrames(const float *input, unsigned long numFrames);
   float *getSpectrum() const { return spectrum; }

@@ -18,6 +18,7 @@
 
 #include "GridMap.hpp"
 #include "AudioParameters.hpp"
+#include "SpectrumAnalyzerParameters.hpp"
 #include "GridMapParameters.hpp"
 #include "DisjointGridTopology.hpp"
 
@@ -25,7 +26,9 @@ namespace sonotopy {
 
   class DisjointGridMap : public GridMap {
   public:
-    DisjointGridMap(const AudioParameters &, const GridMapParameters &,
+    DisjointGridMap(const AudioParameters &,
+		    const SpectrumAnalyzerParameters &,
+		    const GridMapParameters &,
 		    const std::vector<DisjointGridTopology::Node> &nodes);
     const SOM::ActivationPattern* getActivationPattern();
 

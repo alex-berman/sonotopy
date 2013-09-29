@@ -36,6 +36,7 @@ protected:
   void pretrain();
 
   cmdline::parser parser;
+  SpectrumAnalyzerParameters spectrumAnalyzerParameters;
   GridMapParameters gridMapParameters;
   Stopwatch stopwatch;
   int argc;

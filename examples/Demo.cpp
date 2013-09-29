@@ -53,6 +53,10 @@ void Demo::processCommandLineArguments() {
   parser.add("export", '\0', "Export video");
   parser.add<int>("gridMapWidth", '\0', "Grid map width", false, gridMapParameters.gridWidth);
   parser.add<int>("gridMapHeight", '\0', "Grid map height", false, gridMapParameters.gridHeight);
+  parser.add<int>("windowSize", '\0', "Spectrum analyzer window size (2^N)", false,
+		  spectrumAnalyzerParameters.windowSize);
+  parser.add<float>("windowOverlap", '\0', "Spectrum analyzer window overlap (0-1)", false,
+		    spectrumAnalyzerParameters.windowOverlap);
   ColorScheme::addParserArguments(parser);
   parser.parse_check(argc, argv);
 
@@ -70,6 +74,8 @@ void Demo::processCommandLineArguments() {
   audioParameters.bufferSize = parser.get<int>("bufferSize");
   gridMapParameters.gridWidth = parser.get<int>("gridMapWidth");
   gridMapParameters.gridHeight = parser.get<int>("gridMapHeight");
+  spectrumAnalyzerParameters.windowSize = parser.get<int>("windowSize");
+  spectrumAnalyzerParameters.windowOverlap = parser.get<float>("windowOverlap");
 
   if(parser.exist("export")) {
     audioEnableVideoExport();

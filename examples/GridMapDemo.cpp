@@ -27,7 +27,7 @@ GridMapDemo::GridMapDemo(int _argc, char **_argv) :
 void GridMapDemo::initializeAudioProcessing() {
   srand((unsigned) time(NULL));
 
-  gridMap = new GridMap(audioParameters, gridMapParameters);
+  gridMap = new GridMap(audioParameters, spectrumAnalyzerParameters, gridMapParameters);
 }
 
 void GridMapDemo::initializeGraphics() {
