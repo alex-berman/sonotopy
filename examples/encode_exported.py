@@ -7,6 +7,7 @@ import os
 def call_avconv():
     global args, export_dir
     cmd = ["avconv",
+           "-ss", str(args.sync),
            "-f", "image2",
            "-r", "44100/1024",
            "-i", "%s/frame%%07d.ppm" % export_dir,
@@ -42,6 +43,7 @@ parser.add_argument("-fade-out", type=float)
 parser.add_argument("-f", "--force", action="store_true")
 parser.add_argument("-audio", type=str)
 parser.add_argument("-o", "--output", type=str, default="export.mp4")
+parser.add_argument("-sync", type=float)
 args = parser.parse_args()
 
 export_dir = "export"
