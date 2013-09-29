@@ -42,3 +42,7 @@ env.Program(target = 'DemoBrowser',
 env.Program(target = 'GridMapDemo',
 	    source = ['Demo.cpp',
 		      'GridMapDemo.cpp'])
+
+env.Program(target = 'ColoredGridMapDemo',
+	    source = ['Demo.cpp',
+		      'ColoredGridMapDemo.cpp'])

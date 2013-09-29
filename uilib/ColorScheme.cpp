@@ -24,6 +24,7 @@ void ColorScheme::addParserArguments(cmdline::parser &parser) {
   parser.add<string>("colorScheme", '\0', "Color scheme", false, "grayscale",
 		     cmdline::oneof<string>("grayscale", "rainbow", "stripes"));
   parser.add<float>("contrast", '\0', "Contrast (>0)", false, 5.0);
+  parser.add<float>("saturation", '\0', "Saturation (0-1)", false, 1.0);
   parser.add<float>("stripes-frequency", '\0', "Stripes frequency", false, 10.0f);
 }
 
@@ -33,7 +34,9 @@ ColorScheme* ColorScheme::createFromParser(cmdline::parser &parser) {
   if(colorSchemeName == "grayscale")
     return new Grayscale(contrast);
   else if(colorSchemeName == "stripes")
-    return new Stripes(contrast, parser.get<float>("stripes-frequency"));
+    return new Stripes(contrast,
+		       parser.get<float>("stripes-frequency"),
+		       parser.get<float>("saturation"));
   else if(colorSchemeName == "rainbow")
     return new Rainbow();
   else
@@ -47,8 +50,8 @@ Color Grayscale::getColor(float fraction) {
 
 
 Color Stripes::getColor(float fraction) {
-  float v = pow(sin(fraction * frequency), contrast);
-  return Color(v, v, v);
+  float lightness = pow(sin(fraction * frequency), contrast);
+  return HSV_to_RGB(hue, saturation, lightness);
 }
 
 

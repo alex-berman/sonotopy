@@ -38,13 +38,21 @@ public:
 
 class Stripes : public ColorScheme {
 public:
-  Stripes(float _contrast, float _frequency) {
+  Stripes(float _contrast,
+	  float _frequency,
+	  float _saturation=.0,
+	  float _hue=.0) {
     contrast = _contrast;
     frequency = _frequency;
+    saturation = _saturation;
+    hue = _hue;
   }
+  void setHue(float _hue) { hue = _hue; }
   Color getColor(float);
   float contrast;
   float frequency;
+  float hue;
+  float saturation;
 };
 
 class Rainbow : public ColorScheme {
