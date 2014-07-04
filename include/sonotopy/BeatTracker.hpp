@@ -35,8 +35,6 @@ public:
   void setAdaptationTimeMs(float);
 
 private:
-  const static float DEFAULT_ADAPTATION_TIME_MS;
-  const static float DEFAULT_RESPONSE_TIME_MS;
 
   float compareFeatures(const FeatureVector &, const FeatureVector &);
 

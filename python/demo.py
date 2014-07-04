@@ -50,7 +50,7 @@ class Demo(App):
             frames_per_buffer = int(self.audio_parameters.bufferSize))
 
         #self.update(None)
-        Clock.schedule_interval(self.update, 1.0)
+        Clock.schedule_interval(self.update, 1.0/2.0)
 
         return Widget()
 
