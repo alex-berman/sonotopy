@@ -35,6 +35,10 @@ public:
   void setAdaptationTimeMs(float);
 
 private:
+#ifndef SWIG
+  const static float DEFAULT_ADAPTATION_TIME_MS;
+  const static float DEFAULT_RESPONSE_TIME_MS;
+#endif
 
   float compareFeatures(const FeatureVector &, const FeatureVector &);
 

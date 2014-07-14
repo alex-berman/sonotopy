@@ -1,25 +1,31 @@
 import struct
-from ctypes import *
 
 import sonotopy
-import pyaudio
+from audiostream import get_input
 import numpy
 
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 
-FORMAT = pyaudio.paFloat32
-CHANNELS = 1
+def mic_callback(buf):
+    #a = numpy.fromstring(buf, dtype="<h")
+    #a = a/32768.0
+    #a.dtype = numpy.float32
+    #data = a.astype(numpy.float32).tostring()
+    
+    data_len = len(buf)/2
+    data_int = struct.unpack("%dh"%(data_len), buf)
+    data = sonotopy.floatArray(data_len)
+    for i in range(data_len):
+        data[i] = float(data_int[i])/32768.0
 
-c_float_p = POINTER(c_float)
-
-def array_ctypes(points):
-    n = len(points)
-    return (c_float_p*n)(*[p for p in points])
+    demo.grid_map.feedAudio(data, data_len)
+    demo.beat_tracker.feedFeatureVector(demo.spectrum_bin_divider.getBinValues())
 
 class Demo(App):
     stream = None
+    audiobuffer = None
     audio_parameters = None
     grid_map_parameters = None
     spectrum_analyzer_parameters = None
@@ -29,6 +35,7 @@ class Demo(App):
 
     def build(self):
         self.audio_parameters = sonotopy.AudioParameters()
+        #self.audio_parameters.bufferSize = 4096
         self.grid_map_parameters = sonotopy.GridMapParameters()
         self.spectrum_analyzer_parameters = sonotopy.SpectrumAnalyzerParameters()
 
@@ -38,33 +45,16 @@ class Demo(App):
         self.beat_tracker = sonotopy.BeatTracker(self.spectrum_bin_divider.getNumBins(),
             self.audio_parameters.bufferSize, self.audio_parameters.sampleRate)
 
-        if self.stream and self.stream.is_active():
-            self.stream.close()
-        self.stream = None
-
-        p = pyaudio.PyAudio()
-        self.stream = p.open(format = FORMAT,
-            channels = CHANNELS,
-            rate = self.audio_parameters.sampleRate,
-            input = True,
-            frames_per_buffer = int(self.audio_parameters.bufferSize))
+        self.stream = get_input(callback=mic_callback)
+        self.stream.start()
 
         #self.update(None)
-        Clock.schedule_interval(self.update, 1.0/2.0)
+        Clock.schedule_interval(self.update, 1.0/60.0)
 
         return Widget()
 
     def update(self, dt):
-        data = None
-        try:
-            data = self.stream.read(self.audio_parameters.bufferSize)
-        except IOError as ex:
-            if ex[1] != pyaudio.paInputOverflowed:
-                raise
-            print "error read step 1"
-        if (data):
-            self.grid_map.feedAudio(data, self.audio_parameters.bufferSize)
-            self.beat_tracker.feedFeatureVector(self.spectrum_bin_divider.getBinValues())
-            print(self.beat_tracker.getIntensity())
+        print(self.beat_tracker.getIntensity())
 
-Demo().run()
+demo = Demo()
+demo.run()

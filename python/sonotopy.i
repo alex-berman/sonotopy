@@ -1,13 +1,7 @@
 %module sonotopy
 
-%typemap(in) const float *audio {
-    if (!PyString_Check($input)) {
-        PyErr_SetString(PyExc_ValueError,"Expected a string");
-        return NULL;
-    }
-
-    $1 = (float *)$input;
-} 
+%include "carrays.i"
+%array_class(float, floatArray);
 
 %{
     #define SWIG_FILE_WITH_INIT
