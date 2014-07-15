@@ -11,7 +11,7 @@ The bindings also need SWIG installed:
 
 http://swig.org/
 
-There is an example "dancer.py" in the "example" directory, a port of the
+There is an example "dancer.py" in the "examples" directory, a port of the
 "dancer" visualization of the C++ DemoBrowser example. It needs Kivy and the
 Kivy audiostream extension:
 
