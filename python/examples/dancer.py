@@ -123,10 +123,10 @@ class Dancer():
                 break
 
     def renderTrace(self):
-        if len(self.trace) > 1:
-            for i, t in enumerate(self.trace[1:]):
-                col = float(i+1)/len(self.trace)
-                with self.window.canvas:
+        with self.window.canvas:
+            if len(self.trace) > 1:
+                for i, t in enumerate(self.trace[1:]):
+                    col = float(i+1)/len(self.trace)
                     Color(col, col, col)
                     Line(points=[self.trace[i-1]['x'], self.trace[i-1]['y'],
                         self.trace[i]['x'], self.trace[i]['y']], width=2)
@@ -151,8 +151,8 @@ class Dancer():
 class Demo(App):
 
     def build(self):
+        self.dancers = []
         self.audio_parameters = sonotopy.AudioParameters()
-        #self.audio_parameters.bufferSize = 4096
         self.grid_map_parameters = sonotopy.GridMapParameters()
         self.spectrum_analyzer_parameters = sonotopy.SpectrumAnalyzerParameters()
         self.circle_map_parameters = sonotopy.CircleMapParameters()
@@ -168,14 +168,12 @@ class Demo(App):
         self.stream = get_input(callback=mic_callback)
         self.stream.start()
 
-        #self.update(None)
         Clock.schedule_interval(self.update, 1.0/60.0)
 
         return Widget()
 
     def on_start(self):
-        self.dancers = []
-        for _ in range(30):
+        for _ in range(40):
             d = Dancer(self.circle_map, self.beat_tracker, self.root)
             self.dancers.append(d)
 
