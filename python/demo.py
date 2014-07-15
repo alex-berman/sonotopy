@@ -1,7 +1,7 @@
 import struct
 import random
 import math
-import collections
+import time
 
 import sonotopy
 from audiostream import get_input
@@ -18,7 +18,7 @@ SPEED_FACTOR_MIN = 0.3
 SPEED_OFFSET_MIN = -0.2
 SPEED_OFFSET_MAX = 0
 
-#PointWithTs = collections.namedtuple("PointWithTs", "x y start_time")
+last_time = time.clock()
 
 def random(v1=None, v2=None):
     """Returns a random value.
@@ -60,6 +60,13 @@ def mic_callback(buf):
     demo.grid_map.feedAudio(data, data_len)
     demo.circle_map.feedAudio(data, data_len)
     demo.beat_tracker.feedFeatureVector(demo.spectrum_bin_divider.getBinValues())
+
+    global last_time
+    this_time = time.clock()
+    diff_time = this_time - last_time
+    for d in demo.dancers:
+            d.update(diff_time)
+    last_time = this_time
 
 class Dancer():
 
@@ -175,7 +182,6 @@ class Demo(App):
     def update(self, dt):
         self.root.canvas.clear()
         for d in self.dancers:
-            d.update(dt)
             d.render()
 
 demo = Demo()
