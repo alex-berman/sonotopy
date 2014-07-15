@@ -2,8 +2,6 @@ import sysconfig
 from setuptools import setup, Extension
 
 libs = [ 'sonotopy', 'fftw3' ]
-#includes = [ sysconfig.get_path("include") ]
-#compilerArgs = []
 lang = 'c++'
 swig_opts = ['-c++']
 
