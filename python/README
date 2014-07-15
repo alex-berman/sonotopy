@@ -1,0 +1,17 @@
+This is the Python bindings for the sonotopy library:
+
+https://github.com/alex-berman/sonotopy
+
+To install:
+
+python setup.py install
+
+There is an example "dancer.py" in the "example" directory, a port of the
+"dancer" visualization of the C++ DemoBrowser example. It needs Kivy and the
+Kivy audiostream extension:
+
+http://kivy.org/
+https://github.com/kivy/audiostream
+
+Author of the Python bindings: Peter Bouda (see http://www.peterbouda.eu)
+Contact: pbouda@cidles.eu
