@@ -169,7 +169,7 @@ class Demo(App):
         self.stream.start()
 
         #self.update(None)
-        Clock.schedule_interval(self.update, 1.0/30.0)
+        Clock.schedule_interval(self.update, 1.0/60.0)
 
         return Widget()
 
