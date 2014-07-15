@@ -5,7 +5,6 @@ import time
 
 import sonotopy
 from audiostream import get_input
-import numpy
 
 from kivy.app import App
 from kivy.uix.widget import Widget
