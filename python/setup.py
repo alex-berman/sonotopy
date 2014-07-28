@@ -33,6 +33,6 @@ setup(
     'Topic :: Scientific/Engineering',
     'Topic :: Scientific/Engineering :: Visualization'
     ],
-    ext_modules=[Extension('_sonotopy', ['sonotopy.i'], libraries=libs, lang=lang, swig_opts=swig_opts)],
+    ext_modules=[Extension('_sonotopy', ['sonotopy.i'], libraries=libs, swig_opts=swig_opts)],
     py_modules=['sonotopy']
 )

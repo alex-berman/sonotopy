@@ -1,0 +1,255 @@
+import time
+import struct
+import math
+import array
+
+from PyQt5.QtMultimedia import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+import sonotopy
+
+# Window creation function.
+def create_window(window_class):
+    """Create a QT window in Python, or interactively in IPython with QT GUI
+    event loop integration:
+    # in ~/.ipython/ipython_config.py
+    c.TerminalIPythonApp.gui = 'qt'
+    c.TerminalIPythonApp.pylab = 'qt'
+    See also:
+    http://ipython.org/ipython-doc/dev/interactive/qtconsole.html#qt-and-the-qtconsole
+    """
+    app_created = False
+    app = QtCore.QCoreApplication.instance()
+    if app is None:
+        app = QtGui.QApplication(sys.argv)
+    app_created = True
+    app.references = set()
+
+    window = window_class()
+    app.references.add(window)
+    window.show()
+
+    if app_created:
+        app.exec_()
+
+    return window
+
+
+class OpenGLWindow(QtGui.QWindow):
+    def __init__(self, parent=None):
+        super(OpenGLWindow, self).__init__(parent)
+
+        self.m_update_pending = False
+        self.m_animating = False
+        self.m_context = None
+        self.m_gl = None
+
+        self.setSurfaceType(QtGui.QWindow.OpenGLSurface)
+
+    def initialize(self):
+        pass
+
+    def setAnimating(self, animating):
+        self.m_animating = animating
+
+        if animating:
+            self.renderLater()
+
+    def renderLater(self):
+        if not self.m_update_pending:
+            self.m_update_pending = True
+            QtGui.QGuiApplication.postEvent(self, QtCore.QEvent(QtCore.QEvent.UpdateRequest))
+
+    def renderNow(self):
+        if not self.isExposed():
+            return
+
+        self.m_update_pending = False
+
+        needsInitialize = False
+
+        if self.m_context is None:
+            self.m_context = QtGui.QOpenGLContext(self)
+            self.m_context.setFormat(self.requestedFormat())
+            self.m_context.create()
+
+            needsInitialize = True
+
+        self.m_context.makeCurrent(self)
+
+        if needsInitialize:
+            version = QtGui.QOpenGLVersionProfile()
+            version.setVersion(2, 0)
+            self.m_gl = self.m_context.versionFunctions(version)
+            self.m_gl.initializeOpenGLFunctions()
+
+            self.initialize()
+
+        self.render(self.m_gl)
+
+        self.m_context.swapBuffers(self)
+
+        if self.m_animating:
+            self.renderLater()
+
+    def event(self, event):
+        if event.type() == QtCore.QEvent.UpdateRequest:
+            self.renderNow()
+            return True
+
+        return super(OpenGLWindow, self).event(event)
+
+    def exposeEvent(self, event):
+        self.renderNow()
+
+    def resizeEvent(self, event):
+        self.renderNow()
+
+
+class LiveCodeWindow(OpenGLWindow):
+    
+    vertexShaderSource = '''
+varying vec4 position;
+ 
+void main()
+{
+    gl_Position = position;
+}
+'''
+
+    fragmentShaderSource = '''
+uniform vec2 resolution;
+uniform vec2 spec;
+uniform float time;
+ 
+void main(void) {
+    vec2 uv = 2.0 * (gl_FragCoord.xy / resolution) - 1.0;
+    float col = 0.0;
+    uv.x += sin(time*6.0 + uv.y*1.5) * spec.y;
+    col += abs(0.066/uv.x) * spec.y;
+    gl_FragColor = vec4(col,col,col,1.0);
+}
+'''
+
+    def __init__(self, parent=None):
+        super(LiveCodeWindow, self).__init__(parent)
+
+        self.start_time = time.clock()
+
+        self.init_sonotopy()
+        self.init_audio()
+
+    def initialize(self):
+        self.program = QtGui.QOpenGLShaderProgram(self)
+
+        self.program.addShaderFromSourceCode(QtGui.QOpenGLShader.Vertex,
+                self.vertexShaderSource)
+        self.program.addShaderFromSourceCode(QtGui.QOpenGLShader.Fragment,
+                self.fragmentShaderSource)
+
+        self.program.link()
+
+        self.resolution = self.program.uniformLocation("resolution")
+        self.m_gl.glUniform2f(self.resolution, self.width(), self.height())
+        self.spec = self.program.uniformLocation("spec")
+        self.m_gl.glUniform2f(self.spec, 0.2, 0.1)
+        self.time = self.program.uniformLocation("time")
+
+    def init_sonotopy(self):
+        self.audio_parameters = sonotopy.AudioParameters()
+        self.grid_map_parameters = sonotopy.GridMapParameters()
+        self.grid_map_parameters.gridWidth = 2
+        self.grid_map_parameters.gridHeight = 1
+        self.spectrum_analyzer_parameters = sonotopy.SpectrumAnalyzerParameters()
+        #self.circle_map_parameters = sonotopy.CircleMapParameters()
+
+        self.grid_map = sonotopy.GridMap(self.audio_parameters,
+            self.spectrum_analyzer_parameters, self.grid_map_parameters);
+        #self.circle_map = sonotopy.CircleMap(self.audio_parameters,
+        #    self.spectrum_analyzer_parameters, self.circle_map_parameters);
+        self.spectrum_bin_divider = self.grid_map.getSpectrumBinDivider();
+        #self.beat_tracker = sonotopy.BeatTracker(self.spectrum_bin_divider.getNumBins(),
+        #    self.audio_parameters.bufferSize, self.audio_parameters.sampleRate)
+
+    def init_audio(self):
+        format = QAudioFormat()
+        format.setSampleRate(self.audio_parameters.sampleRate)
+        format.setChannelCount(1)
+        format.setSampleSize(16)
+        format.setCodec("audio/pcm")
+        format.setByteOrder(QAudioFormat.LittleEndian);
+        format.setSampleType(QAudioFormat.SignedInt);
+
+        info = QAudioDeviceInfo.defaultInputDevice()
+        print("Using audio device: {}".format(info.deviceName()))
+        if not info.isFormatSupported(format):
+            print("Changing to nearest format")
+            format = info.nearestFormat(format)
+
+        self.buffer = QtCore.QBuffer()
+        self.buffer.open(QtCore.QIODevice.ReadWrite)
+        self.buffer.bytesWritten.connect(self.callback)
+
+        self.audio = QAudioInput(format)
+        self.audio.setBufferSize(2048)
+        self.audio.start(self.buffer)
+
+    def event(self, event):
+        if event.type() == QtCore.QEvent.Close:
+            self.audio.stop()
+            self.buffer.close()
+            return True
+
+        return super(LiveCodeWindow, self).event(event)
+
+    def callback(self, bytes):
+        data_len = int(self.buffer.size()/2)
+        data_bytes = self.buffer.data().data()
+        self.buffer.reset()
+
+        data_int = struct.unpack("%dh"%(data_len), data_bytes)
+        data = sonotopy.floatArray(data_len)
+        for i in range(data_len):
+            data[i] = float(data_int[i])/32768.0
+
+        self.grid_map.feedAudio(data, data_len)
+
+        #self.circle_map.feedAudio(data, data_len)
+        #self.beat_tracker.feedFeatureVector(self.spectrum_bin_divider.getBinValues())
+
+        #this_time = time.clock()
+        #diff_time = this_time - self.last_time
+        #for d in self.dancers:
+        #    d.update(diff_time)
+        #self.last_time = this_time
+
+    def render(self, gl):
+        gl.glViewport(0, 0, self.width(), self.height())
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+
+        self.program.bind()
+
+        gl.glUniform1f(self.time, (time.clock() - self.start_time) / 1000.0)
+        #gl.glUniform2fv(self.spec, 1, self.spectrum_bin_divider.getBinValues())
+        print(self.spectrum_bin_divider.getBinValues())
+        
+        gl.glRecti(1.0, 1.0, -1.0, -1.0)
+
+        self.program.release()
+
+if __name__ == '__main__':
+    import sys
+ 
+    app = QtWidgets.QApplication(sys.argv)
+    
+    format = QtGui.QSurfaceFormat()
+    format.setSamples(4)
+
+    window = LiveCodeWindow()
+    window.setFormat(format)
+    window.resize(640, 480)
+    window.show()
+
+    window.setAnimating(True)
+
+    sys.exit(app.exec_())
