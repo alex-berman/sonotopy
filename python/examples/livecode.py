@@ -109,11 +109,9 @@ class OpenGLWindow(QtGui.QWindow):
 class LiveCodeWindow(OpenGLWindow):
     
     vertexShaderSource = '''
-varying vec4 position;
- 
 void main()
 {
-    gl_Position = position;
+    gl_Position = gl_Vertex;
 }
 '''
 
@@ -124,17 +122,17 @@ uniform float time;
  
 void main(void) {
     vec2 uv = 2.0 * (gl_FragCoord.xy / resolution) - 1.0;
-    float col = 0.0;
+    float col = time;
     uv.x += sin(time*6.0 + uv.y*1.5) * spec.y;
     col += abs(0.066/uv.x) * spec.y;
-    gl_FragColor = vec4(col,col,col,1.0);
+    gl_FragColor = vec4(col, col, col, 1.0);
 }
 '''
 
     def __init__(self, parent=None):
         super(LiveCodeWindow, self).__init__(parent)
 
-        self.start_time = time.clock()
+        self.start_time = time.time()
 
         self.init_sonotopy()
         self.init_audio()
@@ -149,27 +147,31 @@ void main(void) {
 
         self.program.link()
 
-        self.resolution = self.program.uniformLocation("resolution")
-        self.m_gl.glUniform2f(self.resolution, self.width(), self.height())
-        self.spec = self.program.uniformLocation("spec")
-        self.m_gl.glUniform2f(self.spec, 0.2, 0.1)
-        self.time = self.program.uniformLocation("time")
+        self.program.bind()
+        self.program.setUniformValue("resolution", self.width(), self.height())
+        self.program.setUniformValue("spec", 0.2, 0.1)
+        self.program.release()
 
     def init_sonotopy(self):
         self.audio_parameters = sonotopy.AudioParameters()
-        self.grid_map_parameters = sonotopy.GridMapParameters()
-        self.grid_map_parameters.gridWidth = 2
-        self.grid_map_parameters.gridHeight = 1
-        self.spectrum_analyzer_parameters = sonotopy.SpectrumAnalyzerParameters()
-        #self.circle_map_parameters = sonotopy.CircleMapParameters()
+        self.spectrum_parameters = sonotopy.SpectrumAnalyzerParameters()
 
-        self.grid_map = sonotopy.GridMap(self.audio_parameters,
-            self.spectrum_analyzer_parameters, self.grid_map_parameters);
-        #self.circle_map = sonotopy.CircleMap(self.audio_parameters,
-        #    self.spectrum_analyzer_parameters, self.circle_map_parameters);
-        self.spectrum_bin_divider = self.grid_map.getSpectrumBinDivider();
-        #self.beat_tracker = sonotopy.BeatTracker(self.spectrum_bin_divider.getNumBins(),
-        #    self.audio_parameters.bufferSize, self.audio_parameters.sampleRate)
+        bin1 = sonotopy.BinDefinition()
+        bin1.centerFreqHz = 4000
+        bin1.bandWidthHz = 3000
+        bin2 = sonotopy.BinDefinition()
+        bin2.centerFreqHz = 12000
+        bin2.bandWidthHz = 5000
+
+        self.spectrum_analyzer = sonotopy.SpectrumAnalyzer(self.spectrum_parameters)
+        self.bin_divider = sonotopy.SpectrumBinDivider(
+            self.audio_parameters.sampleRate,
+            self.spectrum_analyzer.getSpectrumResolution(),
+            [ bin1, bin2 ]
+        )
+        #print(self.bin_divider.getNumBins())
+        self.bin_values = [ 0.0, 0.0 ]
+
 
     def init_audio(self):
         format = QAudioFormat()
@@ -212,29 +214,24 @@ void main(void) {
         for i in range(data_len):
             data[i] = float(data_int[i])/32768.0
 
-        self.grid_map.feedAudio(data, data_len)
-
-        #self.circle_map.feedAudio(data, data_len)
-        #self.beat_tracker.feedFeatureVector(self.spectrum_bin_divider.getBinValues())
-
-        #this_time = time.clock()
-        #diff_time = this_time - self.last_time
-        #for d in self.dancers:
-        #    d.update(diff_time)
-        #self.last_time = this_time
+        self.spectrum_analyzer.feedAudioFrames(data, data_len)
+        spectrum = self.spectrum_analyzer.getSpectrum()
+        self.bin_divider.feedSpectrum(spectrum, data_len);
+        self.bin_values = sonotopy.floatArray_frompointer(
+            self.bin_divider.getBinValues())
 
     def render(self, gl):
         gl.glViewport(0, 0, self.width(), self.height())
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        gl.glLoadIdentity()
 
         self.program.bind()
 
-        gl.glUniform1f(self.time, (time.clock() - self.start_time) / 1000.0)
-        #gl.glUniform2fv(self.spec, 1, self.spectrum_bin_divider.getBinValues())
-        print(self.spectrum_bin_divider.getBinValues())
-        
-        gl.glRecti(1.0, 1.0, -1.0, -1.0)
+        self.program.setUniformValue("time", self.start_time-time.time())
+        self.program.setUniformValue("spec", self.bin_values[0], self.bin_values[1])
 
+        gl.glRectf(1.0, 1.0, -1.0, -1.0)
+        
         self.program.release()
 
 if __name__ == '__main__':

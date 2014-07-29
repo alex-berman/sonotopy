@@ -23,6 +23,9 @@
     #include "../include/sonotopy/CircleMap.hpp"
 %}
 
+%include "std_vector.i"
+%template(BinDefinitionVector) std::vector<sonotopy::BinDefinition>;
+
 // Parse the original header file
 %include "../include/sonotopy/AudioParameters.hpp"
 %include "../include/sonotopy/SpectrumAnalyzerParameters.hpp"

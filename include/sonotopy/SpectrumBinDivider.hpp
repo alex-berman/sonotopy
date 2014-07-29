@@ -20,16 +20,17 @@
 
 namespace sonotopy {
 
+typedef struct {
+  float centerFreqHz;
+  float bandWidthHz;
+} BinDefinition;
+
+
 class SpectrumBinDivider {
 public:
-  typedef struct {
-    float centerFreqHz;
-    float bandWidthHz;
-  } BinDefinition;
-
   SpectrumBinDivider(int sampleRate,
                      unsigned int spectrumResolution,
-                     const std::vector<BinDefinition> &_binDefinitions = std::vector<BinDefinition>(),
+                     const std::vector<sonotopy::BinDefinition> &_binDefinitions = std::vector<sonotopy::BinDefinition>(),
                      float integrationTimeMs = 40.0f);
   ~SpectrumBinDivider();
   int getSampleRate() { return sampleRate; }
@@ -41,7 +42,7 @@ public:
 
 private:
   typedef struct {
-    BinDefinition definition;
+    sonotopy::BinDefinition definition;
     float size; // integral of band envelope = sum of strengths of the connections to this bin
     float powerSum;
     float *valuePtr;
@@ -63,7 +64,7 @@ private:
 
   int sampleRate;
   unsigned int spectrumResolution;
-  std::vector<BinDefinition> binDefinitions;
+  std::vector<sonotopy::BinDefinition> binDefinitions;
   int nyquistFrequency;
   Bin *bins;
   float *binValues; // this is where the output is built
