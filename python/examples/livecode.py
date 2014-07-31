@@ -1,3 +1,4 @@
+import sys
 import time
 import struct
 import math
@@ -18,19 +19,18 @@ def create_window(window_class):
     See also:
     http://ipython.org/ipython-doc/dev/interactive/qtconsole.html#qt-and-the-qtconsole
     """
-    app_created = False
     app = QtCore.QCoreApplication.instance()
+    
     if app is None:
-        app = QtGui.QApplication(sys.argv)
-    app_created = True
+        print("GUI loop not hooked.")
+        return None
+
     app.references = set()
 
     window = window_class()
+    #window.setAnimating(True)
     app.references.add(window)
-    window.show()
-
-    if app_created:
-        app.exec_()
+    window.showMaximized()
 
     return window
 
@@ -105,45 +105,73 @@ class OpenGLWindow(QtGui.QWindow):
     def resizeEvent(self, event):
         self.renderNow()
 
-
-class LiveCodeWindow(OpenGLWindow):
-    
-    vertexShaderSource = '''
+VS = '''
 void main()
 {
     gl_Position = gl_Vertex;
 }
 '''
 
-    fragmentShaderSource = '''
+FS = '''
 uniform vec2 resolution;
 uniform vec2 spec;
 uniform float time;
  
 void main(void) {
     vec2 uv = 2.0 * (gl_FragCoord.xy / resolution) - 1.0;
-    float col = time;
+    float col = 0.0;
     uv.x += sin(time*6.0 + uv.y*1.5) * spec.y;
     col += abs(0.066/uv.x) * spec.y;
     gl_FragColor = vec4(col, col, col, 1.0);
 }
 '''
 
+class LiveCodeWindow(OpenGLWindow):
+
     def __init__(self, parent=None):
         super(LiveCodeWindow, self).__init__(parent)
 
+        self.program = None
+        self._vs = VS
+        self._fs = FS
         self.start_time = time.time()
 
         self.init_sonotopy()
         self.init_audio()
 
+    def fs():
+        doc = "The fs property."
+        def fget(self):
+            return self._fs
+        def fset(self, value):
+            self._fs = value
+            self.initialize()
+        def fdel(self):
+            del self._fs
+        return locals()
+    fs = property(**fs())
+
+    def vs():
+        doc = "The vs property."
+        def fget(self):
+            return self._vs
+        def fset(self, value):
+            self._vs = value
+            self.initialize()
+        def fdel(self):
+            del self._vs
+        return locals()
+    vs = property(**vs())
+
     def initialize(self):
         self.program = QtGui.QOpenGLShaderProgram(self)
 
-        self.program.addShaderFromSourceCode(QtGui.QOpenGLShader.Vertex,
-                self.vertexShaderSource)
-        self.program.addShaderFromSourceCode(QtGui.QOpenGLShader.Fragment,
-                self.fragmentShaderSource)
+        self.program.addShaderFromSourceCode(
+            QtGui.QOpenGLShader.Vertex,
+            self.vs)
+        self.program.addShaderFromSourceCode(
+            QtGui.QOpenGLShader.Fragment,
+            self.fs)
 
         self.program.link()
 
@@ -216,9 +244,14 @@ void main(void) {
 
         self.spectrum_analyzer.feedAudioFrames(data, data_len)
         spectrum = self.spectrum_analyzer.getSpectrum()
-        self.bin_divider.feedSpectrum(spectrum, data_len);
-        self.bin_values = sonotopy.floatArray_frompointer(
+        self.bin_divider.feedSpectrum(spectrum, data_len)
+
+        _bin_values = sonotopy.floatArray_frompointer(
             self.bin_divider.getBinValues())
+        self.bin_values[0] = _bin_values[0]*1024*16
+        self.bin_values[1] = _bin_values[1]*1024*16
+
+        self.renderLater()       
 
     def render(self, gl):
         gl.glViewport(0, 0, self.width(), self.height())
@@ -233,6 +266,13 @@ void main(void) {
         gl.glRectf(1.0, 1.0, -1.0, -1.0)
         
         self.program.release()
+
+    def resizeEvent(self, event):
+        super(LiveCodeWindow, self).resizeEvent(event)
+        if self.program:
+            self.program.bind()
+            self.program.setUniformValue("resolution", self.width(), self.height())
+            self.program.release()
 
 if __name__ == '__main__':
     import sys
