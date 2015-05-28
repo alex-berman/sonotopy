@@ -1,0 +1,22 @@
+This is the Python bindings for the sonotopy library:
+
+https://github.com/alex-berman/sonotopy
+
+To install the Python library, first compile and install sonotopy as explained
+in the sonotopy README and then:
+
+python setup.py install
+
+The bindings also need SWIG installed:
+
+http://swig.org/
+
+There is an example "dancer_kivy.py" in the "examples" directory, a port of the
+"dancer" visualization of the C++ DemoBrowser example. It needs Kivy and the
+Kivy audiostream extension:
+
+http://kivy.org/
+https://github.com/kivy/audiostream
+
+Author of the Python bindings: Peter Bouda (see http://www.peterbouda.eu)
+Contact: pbouda@cidles.eu

@@ -1,3 +1,5 @@
+import os
+
 env = Environment()
 
 platform = env['PLATFORM']
@@ -17,6 +19,13 @@ CPPPATH = ['include']
 env.Append(CPPPATH = CPPPATH)
 
 env.MergeFlags(ARGUMENTS.get('CCFLAGS', ''))
+
+if 'CROSS' in os.environ:
+	cross = os.environ['CROSS']
+	env.Append(CROSS = cross)
+	env.Replace(CC = cross + 'gcc')
+	env.Replace(CXX = cross + 'g++')
+	env.Replace(LD = cross + 'ld')
 
 LIBS = [["m", "math.h"],
 		["fftw3", "fftw3.h"]]
